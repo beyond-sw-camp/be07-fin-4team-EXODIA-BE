@@ -1,7 +1,7 @@
 package com.example.exodia.user.domain;
 
-import com.example.exodia.common.domain.BaseTimeEntity;
-import com.example.exodia.common.domain.DelYN;
+import com.example.exodia.Common.domain.BaseTimeEntity;
+import com.example.exodia.Common.domain.DelYN;
 import com.example.exodia.department.domain.Department;
 import com.example.exodia.position.domain.Position;
 import lombok.AllArgsConstructor;

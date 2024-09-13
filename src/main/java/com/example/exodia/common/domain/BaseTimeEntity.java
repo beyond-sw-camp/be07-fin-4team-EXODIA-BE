@@ -1,5 +1,6 @@
-package com.example.exodia.common.domain;
+package com.example.exodia.Common.domain;
 
+import com.example.exodia.Common.domain.DelYN;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import javax.persistence.*;
