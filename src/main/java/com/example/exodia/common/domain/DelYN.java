@@ -1,4 +1,4 @@
-package com.example.exodia.Common.domain;
+package com.example.exodia.common.domain;
 
 public enum DelYN {
     Y, N
