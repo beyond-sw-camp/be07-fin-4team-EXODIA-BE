@@ -69,6 +69,17 @@ public class User extends BaseTimeEntity {
     @JoinColumn(name = "position_id", nullable = false)
     private Position position;
 
+    @Column(nullable = false)
+    private int loginFailCount = 0;
+
+
+    public void incrementLoginFailCount() {
+        this.loginFailCount += 1;
+    }
+
+    public void resetLoginFailCount() {
+        this.loginFailCount = 0;
+    }
 }
 
 
