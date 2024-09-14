@@ -41,6 +41,9 @@ public class User extends BaseTimeEntity {
     @Column(unique = true, length = 100)
     private String email;
 
+    @Column(length = 100)
+    private String address;
+
     @Column(nullable = false, length = 11)
     private String phone;
 
@@ -55,6 +58,9 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false)
     private HireType hire;
 
+    @Column(length = 100)
+    private NowStatus n_status;
+
     @ManyToOne
     @JoinColumn(name = "department_id", nullable = false)
     private Department department;
@@ -64,3 +70,5 @@ public class User extends BaseTimeEntity {
     private Position position;
 
 }
+
+
