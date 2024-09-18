@@ -25,7 +25,7 @@ public class User extends BaseTimeEntity {
     private Long id;
 
     @Column(nullable = false, length = 12, unique = true)
-    private String userId;
+    private String userNum;
 
     private String profileImage;
 
@@ -100,7 +100,7 @@ public class User extends BaseTimeEntity {
     public static User fromRegisterDto(UserRegisterDto dto, Department department, Position position, String encodedPassword) {
         return new User(
                 null,
-                dto.getUserId(),
+                dto.getUserNum(),
                 dto.getProfileImage(),
                 dto.getName(),
                 Gender.valueOf(dto.getGender()),

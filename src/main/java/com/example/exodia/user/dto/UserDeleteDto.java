@@ -8,7 +8,7 @@
 //@NoArgsConstructor
 //@AllArgsConstructor
 //public class UserDeleteDto {
-//    private String userId;
+//    private String userNum;
 //    private String deletedBy;
 //    private String reason;
 //}

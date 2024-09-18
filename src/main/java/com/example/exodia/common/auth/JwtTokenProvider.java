@@ -17,14 +17,14 @@ public class JwtTokenProvider {
     @Value("${jwt.expirationRT}")
     private long tokenValidity;
 
-    public String createToken(String id, Long departmentId, Long positionId) {
+    public String createToken(String userNum, Long departmentId, Long positionId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("department_id", departmentId.toString());
         claims.put("position_id", positionId.toString());
 
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(id)
+                .setSubject(userNum)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + tokenValidity))
                 .signWith(SignatureAlgorithm.HS512, secret)

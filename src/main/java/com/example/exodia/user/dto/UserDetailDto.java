@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserDetailDto {
-    private String Id;
+    private String userNum;
     private String departmentName;
     private String positionName;
     private String birthDate;
@@ -23,7 +23,7 @@ public class UserDetailDto {
 
     public static UserDetailDto fromEntity(User user) {
         return new UserDetailDto(
-                user.getUserId(),
+                user.getUserNum(),
                 user.getDepartment().getName(),
                 user.getPosition().getName(),
                 UserDto.parseBirthDate(user.getSocialNum()),

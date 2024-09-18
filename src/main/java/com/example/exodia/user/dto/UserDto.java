@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class UserDto {
-    private String id;
+    private String userNum;
     private String name;
     private String email;
     private String phone;
@@ -18,7 +18,7 @@ public class UserDto {
 
     public static UserDto fromEntity(User user) {
         UserDto dto = new UserDto();
-        dto.setId(user.getUserId());
+        dto.setUserNum(user.getUserNum());
         dto.setName(user.getName());
         dto.setEmail(user.getEmail());
         dto.setPhone(user.getPhone());

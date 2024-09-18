@@ -10,7 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Data
 public class UserRegisterDto {
-    private String userId;
+    private String userNum;
     private String profileImage;
     private String name;
     private String gender;

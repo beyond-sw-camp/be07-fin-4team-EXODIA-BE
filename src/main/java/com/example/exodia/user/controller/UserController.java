@@ -58,11 +58,11 @@ public class UserController {
         return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 등록 성공", newUser));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable String id, @RequestBody UserUpdateDto updateDto, @RequestHeader("Authorization") String token) {
+    @PutMapping("/{userNum}")
+    public ResponseEntity<?> updateUser(@PathVariable String userNum, @RequestBody UserUpdateDto updateDto, @RequestHeader("Authorization") String token) {
 //        String departmentName = jwtTokenProvider.getDepartmentNameFromToken(token.substring(7));
         String departmentid = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
-        User updatedUser = userService.updateUser(id, updateDto, departmentid);
+        User updatedUser = userService.updateUser(userNum, updateDto, departmentid);
         return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 정보 수정 완료", updatedUser));
     }
 
@@ -72,9 +72,9 @@ public class UserController {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<UserDetailDto> getUserDetail(@PathVariable String id) {
-        return ResponseEntity.ok(userService.getUserDetail(id));
+    @GetMapping("/{userNum}")
+    public ResponseEntity<UserDetailDto> getUserDetail(@PathVariable String userNum) {
+        return ResponseEntity.ok(userService.getUserDetail(userNum));
     }
 
 

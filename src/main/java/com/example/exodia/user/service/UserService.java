@@ -35,7 +35,7 @@ public class UserService {
     }
 
     public String login(UserLoginDto loginDto) {
-        User user = userRepository.findByUserId(loginDto.getUserId())
+        User user = userRepository.findByUserNum(loginDto.getUserNum())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 아이디입니다."));
         if (user.isDeleted()) {
             throw new RuntimeException("비활성화 상태의 계정입니다.");
@@ -50,7 +50,7 @@ public class UserService {
         }
         user.resetLoginFailCount();
         userRepository.save(user);
-        return jwtTokenProvider.createToken(user.getUserId(),
+        return jwtTokenProvider.createToken(user.getUserNum(),
                 user.getDepartment().getId(),
                 user.getPosition().getId());
     }
@@ -65,9 +65,9 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public User updateUser(String id, UserUpdateDto updateDto, String departmentName) {
+    public User updateUser(String userNum, UserUpdateDto updateDto, String departmentName) {
         checkHrAuthority(departmentName);
-        User user = userRepository.findById(id)
+        User user = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
         Department department = departmentRepository.findById(updateDto.getDepartmentId())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 부서입니다."));
@@ -101,8 +101,8 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    public UserDetailDto getUserDetail(String id) {
-        User user = userRepository.findById(id)
+    public UserDetailDto getUserDetail(String userNum) {
+        User user = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
         return UserDetailDto.fromEntity(user);
     }

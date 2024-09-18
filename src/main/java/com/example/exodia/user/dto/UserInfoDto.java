@@ -11,7 +11,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserInfoDto {
-    private String id;
+    private String userNum;
     private String departmentName;
     private String name;
     private String positionName;
@@ -19,7 +19,7 @@ public class UserInfoDto {
 
     public static UserInfoDto fromEntity(User user) {
         return new UserInfoDto(
-                user.getUserId(),
+                user.getUserNum(),
                 user.getDepartment().getName(),
                 user.getName(),
                 user.getPosition().getName(),
