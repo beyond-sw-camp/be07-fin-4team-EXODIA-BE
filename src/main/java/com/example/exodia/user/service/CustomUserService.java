@@ -20,7 +20,7 @@ public class CustomUserService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("해당 사용자(" + username + ")를 찾을 수 없습니다."));
 
         return org.springframework.security.core.userdetails.User.builder()
-                .username(user.getId())
+                .username(user.getUserId())
                 .password(user.getPassword())
                 .roles("USER")
                 .build();

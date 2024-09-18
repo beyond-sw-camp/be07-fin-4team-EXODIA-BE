@@ -10,7 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Data
 public class UserRegisterDto {
-    private String id;
+    private String userId;
     private String profileImage;
     private String name;
     private String gender;
@@ -25,20 +25,5 @@ public class UserRegisterDto {
     private Long departmentId;
     private Long positionId;
     private int annualLeave;
-
-    public User toEntity(DepartmentRepository departmentRepository,
-                         PositionRepository positionRepository,
-                         PasswordEncoder passwordEncoder) {
-        Department department = departmentRepository.findById(departmentId)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 부서입니다."));
-        Position position = positionRepository.findById(positionId)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 직급입니다."));
-
-        return new User(
-                null, null, this.name, null, Status.재직,
-                passwordEncoder.encode(this.password),
-                this.email, null, this.phone, null,
-                this.socialNum, this.hireType, null,
-                this.annualLeave, department, position, 0);
-    }
 }
+

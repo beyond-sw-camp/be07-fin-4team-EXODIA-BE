@@ -35,7 +35,7 @@ public class UserService {
     }
 
     public String login(UserLoginDto loginDto) {
-        User user = userRepository.findById(loginDto.getId())
+        User user = userRepository.findByUserId(loginDto.getUserId())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 아이디입니다."));
         if (user.isDeleted()) {
             throw new RuntimeException("비활성화 상태의 계정입니다.");
@@ -50,7 +50,7 @@ public class UserService {
         }
         user.resetLoginFailCount();
         userRepository.save(user);
-        return jwtTokenProvider.createToken(user.getId(),
+        return jwtTokenProvider.createToken(user.getUserId(),
                 user.getDepartment().getId(),
                 user.getPosition().getId());
     }
@@ -61,7 +61,6 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 부서입니다."));
         Position position = positionRepository.findById(registerDto.getPositionId())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 직급입니다."));
-
         User user = User.fromRegisterDto(registerDto, department, position, registerDto.getPassword());
         return userRepository.save(user);
     }
@@ -90,7 +89,7 @@ public class UserService {
 //    }
 
     private void checkHrAuthority(String departmentName) {
-        if (!"인사팀".equals(departmentName)) {
+        if (!"1".equals(departmentName)) {
             throw new RuntimeException("권한이 없습니다. 관리자만 수행할 수 있습니다.");
         }
     }

@@ -10,8 +10,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Where;
+
 import javax.persistence.*;
-import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
@@ -21,10 +21,12 @@ import java.time.LocalDateTime;
 public class User extends BaseTimeEntity {
 
     @Id
-    @Column(nullable = false, length = 12)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-//    @Column(nullable = false)
+    @Column(nullable = false, length = 12, unique = true)
+    private String userId;
+
     private String profileImage;
 
     @Column(nullable = false)
@@ -95,15 +97,14 @@ public class User extends BaseTimeEntity {
         return this.annualLeave;
     }
 
-
-
     public static User fromRegisterDto(UserRegisterDto dto, Department department, Position position, String encodedPassword) {
         return new User(
-                dto.getId(),
+                null,
+                dto.getUserId(),
                 dto.getProfileImage(),
                 dto.getName(),
                 Gender.valueOf(dto.getGender()),
-                Status.재직,
+                Status.valueOf(dto.getStatus()),
                 encodedPassword,
                 dto.getEmail(),
                 dto.getAddress(),
@@ -115,7 +116,7 @@ public class User extends BaseTimeEntity {
                 dto.getAnnualLeave(),
                 department,
                 position,
-                15
+                0
         );
     }
 
@@ -129,7 +130,4 @@ public class User extends BaseTimeEntity {
         this.department = department;
         this.position = position;
     }
-
 }
-
-

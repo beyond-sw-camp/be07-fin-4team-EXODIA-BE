@@ -23,7 +23,7 @@ public class UserDetailDto {
 
     public static UserDetailDto fromEntity(User user) {
         return new UserDetailDto(
-                user.getId(),
+                user.getUserId(),
                 user.getDepartment().getName(),
                 user.getPosition().getName(),
                 UserDto.parseBirthDate(user.getSocialNum()),

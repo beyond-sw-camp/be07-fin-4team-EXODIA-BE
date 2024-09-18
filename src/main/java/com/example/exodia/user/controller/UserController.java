@@ -52,18 +52,20 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody UserRegisterDto registerDto, @RequestHeader("Authorization") String token) {
-        String departmentName = jwtTokenProvider.getDepartmentNameFromToken(token.substring(7));
-        User newUser = userService.registerUser(registerDto, departmentName);
+//        String departmentName = jwtTokenProvider.getDepartmentNameFromToken(token.substring(7));
+        String departmentid = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
+        User newUser = userService.registerUser(registerDto, departmentid);
         return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 등록 성공", newUser));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(@PathVariable String id, @RequestBody UserUpdateDto updateDto, @RequestHeader("Authorization") String token) {
-        String departmentName = jwtTokenProvider.getDepartmentNameFromToken(token.substring(7));
-        User updatedUser = userService.updateUser(id, updateDto, departmentName);
+//        String departmentName = jwtTokenProvider.getDepartmentNameFromToken(token.substring(7));
+        String departmentid = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
+        User updatedUser = userService.updateUser(id, updateDto, departmentid);
         return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 정보 수정 완료", updatedUser));
     }
-    
+
 
     @GetMapping
     public ResponseEntity<List<UserInfoDto>> getAllUsers() {

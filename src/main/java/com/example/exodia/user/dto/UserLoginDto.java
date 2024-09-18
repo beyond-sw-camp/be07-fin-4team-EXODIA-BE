@@ -7,6 +7,6 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class UserLoginDto {
-    private String id;
+    private String userId;
     private String password;
 }

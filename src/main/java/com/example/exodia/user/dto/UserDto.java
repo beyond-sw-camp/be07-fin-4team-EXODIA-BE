@@ -18,7 +18,7 @@ public class UserDto {
 
     public static UserDto fromEntity(User user) {
         UserDto dto = new UserDto();
-        dto.setId(user.getId());
+        dto.setId(user.getUserId());
         dto.setName(user.getName());
         dto.setEmail(user.getEmail());
         dto.setPhone(user.getPhone());

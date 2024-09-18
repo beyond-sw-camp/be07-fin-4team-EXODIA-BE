@@ -49,6 +49,7 @@ public class InitialDataLoader implements CommandLineRunner {
         String Password2 = passwordEncoder.encode("testtest");
 
         User user1 = new User(
+                null,
                 "20240901001",
                 null,
                 "test1",
@@ -69,6 +70,7 @@ public class InitialDataLoader implements CommandLineRunner {
         );
 
         User user2 = new User(
+                null,
                 "20240901002",
                 null,
                 "test2",

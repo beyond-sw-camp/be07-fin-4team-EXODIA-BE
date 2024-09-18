@@ -46,9 +46,14 @@ public class JwtTokenProvider {
         return getClaimsFromToken(token).getSubject();
     }
 
-    public String getDepartmentNameFromToken(String token) {
-        return getClaimsFromToken(token).get("department_name", String.class);
+    public String getDepartmentIdFromToken(String token) {
+        return getClaimsFromToken(token).get("department_id", String.class);
     }
+
+
+//    public String getDepartmentNameFromToken(String token) {
+//        return getClaimsFromToken(token).get("department_name", String.class);
+//    }
 
     public boolean validateToken(String token) {
         try {

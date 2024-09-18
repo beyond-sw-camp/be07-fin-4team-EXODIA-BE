@@ -19,7 +19,7 @@ public class UserInfoDto {
 
     public static UserInfoDto fromEntity(User user) {
         return new UserInfoDto(
-                user.getId(),
+                user.getUserId(),
                 user.getDepartment().getName(),
                 user.getName(),
                 user.getPosition().getName(),
