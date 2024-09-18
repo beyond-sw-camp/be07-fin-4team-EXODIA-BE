@@ -21,7 +21,7 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false, length = 12)
     private String id;
 
-    @Column(nullable = false)
+//    @Column(nullable = false)
     private String profileImage;
 
     @Column(nullable = false)

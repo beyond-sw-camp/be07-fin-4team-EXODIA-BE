@@ -3,7 +3,7 @@ package com.example.exodia.user.service;
 import com.example.exodia.common.auth.JwtTokenProvider;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.dto.UserLoginDto;
-import com.example.exodia.user.respository.UserRepository;
+import com.example.exodia.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

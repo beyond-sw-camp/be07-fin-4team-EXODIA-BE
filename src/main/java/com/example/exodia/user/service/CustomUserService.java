@@ -1,7 +1,7 @@
 package com.example.exodia.user.service;
 
 import com.example.exodia.user.domain.User;
-import com.example.exodia.user.respository.UserRepository;
+import com.example.exodia.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
