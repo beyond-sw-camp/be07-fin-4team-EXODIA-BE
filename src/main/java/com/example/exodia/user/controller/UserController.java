@@ -63,13 +63,7 @@ public class UserController {
         User updatedUser = userService.updateUser(id, updateDto, departmentName);
         return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 정보 수정 완료", updatedUser));
     }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable String id, @RequestParam String deletedBy, @RequestParam String reason, @RequestHeader("Authorization") String token) {
-        String departmentName = jwtTokenProvider.getDepartmentNameFromToken(token.substring(7));
-        userService.deleteUser(id, deletedBy, reason, departmentName);
-        return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 삭제 완료", null));
-    }
+    
 
     @GetMapping
     public ResponseEntity<List<UserInfoDto>> getAllUsers() {

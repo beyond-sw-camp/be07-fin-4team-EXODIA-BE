@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserDetailDto {
-    private String userId;
+    private String Id;
     private String departmentName;
     private String positionName;
     private String birthDate;

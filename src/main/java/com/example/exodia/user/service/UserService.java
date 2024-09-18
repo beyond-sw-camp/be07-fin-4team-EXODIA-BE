@@ -91,7 +91,20 @@ public class UserService {
 
     private void checkHrAuthority(String departmentName) {
         if (!"인사팀".equals(departmentName)) {
-            throw new RuntimeException("권한이 없습니다. 인사팀만 이 작업을 수행할 수 있습니다.");
+            throw new RuntimeException("권한이 없습니다. 관리자만 수행할 수 있습니다.");
         }
+    }
+
+    public List<UserInfoDto> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .map(UserInfoDto::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    public UserDetailDto getUserDetail(String id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
+        return UserDetailDto.fromEntity(user);
     }
 }
