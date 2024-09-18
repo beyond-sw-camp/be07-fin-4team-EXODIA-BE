@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Where;
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
@@ -61,6 +62,9 @@ public class User extends BaseTimeEntity {
     @Column(length = 100)
     private NowStatus n_status;
 
+    @Column(nullable = false)
+    private int annual;
+
     @ManyToOne
     @JoinColumn(name = "department_id", nullable = false)
     private Department department;
@@ -80,6 +84,7 @@ public class User extends BaseTimeEntity {
     public void resetLoginFailCount() {
         this.loginFailCount = 0;
     }
+
 }
 
 

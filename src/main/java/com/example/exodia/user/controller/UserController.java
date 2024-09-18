@@ -1,23 +1,32 @@
 package com.example.exodia.user.controller;
 
+import com.example.exodia.common.auth.JwtTokenProvider;
 import com.example.exodia.common.dto.CommonErrorDto;
 import com.example.exodia.common.dto.CommonResDto;
-import com.example.exodia.user.dto.UserLoginDto;
+import com.example.exodia.user.domain.User;
+import com.example.exodia.user.dto.*;
+import com.example.exodia.user.repository.UserRepository;
 import com.example.exodia.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("user")
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+
+    private final UserService userService;
+    private final JwtTokenProvider jwtTokenProvider;
+
+    public UserController(UserService userService, JwtTokenProvider jwtTokenProvider) {
+        this.userService = userService;
+        this.jwtTokenProvider = jwtTokenProvider;
+    }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody UserLoginDto loginDto) {
@@ -41,4 +50,42 @@ public class UserController {
         }
     }
 
+    @PostMapping("/register")
+    public ResponseEntity<?> registerUser(@RequestBody UserRegisterDto registerDto, @RequestHeader("Authorization") String token) {
+        String departmentName = jwtTokenProvider.getDepartmentNameFromToken(token.substring(7));
+        User newUser = userService.registerUser(registerDto, departmentName);
+        return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 등록 성공", newUser));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateUser(@PathVariable String id, @RequestBody UserUpdateDto updateDto, @RequestHeader("Authorization") String token) {
+        String departmentName = jwtTokenProvider.getDepartmentNameFromToken(token.substring(7));
+        User updatedUser = userService.updateUser(id, updateDto, departmentName);
+        return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 정보 수정 완료", updatedUser));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable String id, @RequestParam String deletedBy, @RequestParam String reason, @RequestHeader("Authorization") String token) {
+        String departmentName = jwtTokenProvider.getDepartmentNameFromToken(token.substring(7));
+        userService.deleteUser(id, deletedBy, reason, departmentName);
+        return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 삭제 완료", null));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<UserInfoDto>> getAllUsers() {
+        return ResponseEntity.ok(userService.getAllUsers());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<UserDetailDto> getUserDetail(@PathVariable String id) {
+        return ResponseEntity.ok(userService.getUserDetail(id));
+    }
+
+
+//    @DeleteMapping("/delete")
+//    public ResponseEntity<?> deleteUser(@RequestBody UserDeleteDto userDeleteDto, @RequestParam String departmentName) {
+//        userService.deleteUser(userDeleteDto, departmentName);
+//        CommonResDto response = new CommonResDto(HttpStatus.OK, "유저 삭제 성공", null);
+//        return new ResponseEntity<>(response, HttpStatus.OK);
+//    }
 }

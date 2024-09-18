@@ -11,21 +11,27 @@ import com.example.exodia.user.domain.NowStatus;
 import com.example.exodia.user.repository.UserRepository;
 import com.example.exodia.department.repository.DepartmentRepository;
 import com.example.exodia.position.repository.PositionRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
 public class InitialDataLoader implements CommandLineRunner {
 
-    @Autowired
-    private DepartmentRepository departmentRepository;
+    private final DepartmentRepository departmentRepository;
+    private final PositionRepository positionRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private PositionRepository positionRepository;
-
-    @Autowired
-    private UserRepository userRepository;
+    public InitialDataLoader(DepartmentRepository departmentRepository,
+                             PositionRepository positionRepository,
+                             UserRepository userRepository,
+                             PasswordEncoder passwordEncoder) {
+        this.departmentRepository = departmentRepository;
+        this.positionRepository = positionRepository;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Override
     public void run(String... args) throws Exception {
@@ -39,20 +45,24 @@ public class InitialDataLoader implements CommandLineRunner {
         positionRepository.save(teamLeader);
         positionRepository.save(director);
 
+        String Password1 = passwordEncoder.encode("testtest");
+        String Password2 = passwordEncoder.encode("testtest");
+
         User user1 = new User(
                 "20240901001",
                 null,
-                "Kim Minho",
+                "test1",
                 Gender.M,
                 Status.재직,
-                "testtest",
-                "minho.kim@example.com",
-                "Seoul, Korea",
+                Password1,
+                "test1@test",
+                "어양동",
                 "01012345678",
                 DelYN.N,
                 "123456-1234567",
                 HireType.정규직,
                 NowStatus.출근,
+                15,
                 hrDepartment,
                 teamLeader,
                 0
@@ -61,17 +71,18 @@ public class InitialDataLoader implements CommandLineRunner {
         User user2 = new User(
                 "20240901002",
                 null,
-                "Lee Jiyoon",
+                "test2",
                 Gender.W,
                 Status.재직,
-                "testtest",
-                "jiyoon.lee@example.com",
-                "Busan, Korea",
+                Password2,
+                "test2@test",
+                "영등동",
                 "01098765432",
                 DelYN.N,
-                "234567-2345678",
+                "123456-2345678",
                 HireType.계약직,
                 NowStatus.회의,
+                15,
                 webDevDepartment,
                 director,
                 0
