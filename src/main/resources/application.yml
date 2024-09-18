@@ -22,5 +22,5 @@ spring:
     show-sql: true
 
 jwt:
-  secretKeyRT: 3600000
-  expirationRT: 4000000
+  secretKeyRT: mySuperSuperSecretKey
+  expirationRT: 3600000
