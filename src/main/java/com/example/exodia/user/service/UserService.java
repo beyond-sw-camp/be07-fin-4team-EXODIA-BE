@@ -15,6 +15,7 @@ import com.example.exodia.userDelete.repository.DeleteHistoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.*;
@@ -103,6 +104,7 @@ public class UserService {
         return UserDetailDto.fromEntity(user);
     }
 
+    @Transactional
     public void deleteUser(UserDeleteDto deleteDto, String departmentId) {
         checkHrAuthority(departmentId);
         User user = userRepository.findByUserNumAndDelYn(deleteDto.getUserNum(), DelYN.N)
