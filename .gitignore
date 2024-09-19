@@ -40,6 +40,7 @@ out/
 
  ###yml ###
  src/main/resources/application.yml
+ resources/application.yml
  application*.yml
  application.yml
  .idea
