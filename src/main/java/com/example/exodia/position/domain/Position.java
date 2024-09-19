@@ -1,11 +1,16 @@
 package com.example.exodia.position.domain;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+import javax.persistence.*;
+
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
+@Table(name = "dep_position")
 public class Position {
 
     @Id
