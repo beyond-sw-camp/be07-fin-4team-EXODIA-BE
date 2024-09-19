@@ -17,7 +17,7 @@ public abstract class BaseTimeEntity {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     @Column(name = "created_at", updatable = false, nullable = false)
     private LocalDateTime createdAt;
-
+    
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
