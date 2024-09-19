@@ -58,30 +58,25 @@ public class UserController {
         return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 등록 성공", newUser));
     }
 
-    @PutMapping("/{userNum}")
-    public ResponseEntity<?> updateUser(@PathVariable String userNum, @RequestBody UserUpdateDto updateDto, @RequestHeader("Authorization") String token) {
-//        String departmentName = jwtTokenProvider.getDepartmentNameFromToken(token.substring(7));
-        String departmentid = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
-        User updatedUser = userService.updateUser(userNum, updateDto, departmentid);
-        return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 정보 수정 완료", updatedUser));
-    }
-
-
-    @GetMapping
+    @GetMapping("/list")
     public ResponseEntity<List<UserInfoDto>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
-    @GetMapping("/{userNum}")
+    @GetMapping("/list/{userNum}")
     public ResponseEntity<UserDetailDto> getUserDetail(@PathVariable String userNum) {
         return ResponseEntity.ok(userService.getUserDetail(userNum));
     }
 
-
-//    @DeleteMapping("/delete")
-//    public ResponseEntity<?> deleteUser(@RequestBody UserDeleteDto userDeleteDto, @RequestParam String departmentName) {
-//        userService.deleteUser(userDeleteDto, departmentName);
-//        CommonResDto response = new CommonResDto(HttpStatus.OK, "유저 삭제 성공", null);
-//        return new ResponseEntity<>(response, HttpStatus.OK);
-//    }
+   @DeleteMapping("/delete")
+    public ResponseEntity<?> deleteUser(@RequestBody UserDeleteDto userDeleteDto, @RequestHeader("Authorization") String token) {
+        try {
+            String departmentId = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
+            userService.deleteUser(userDeleteDto, departmentId);
+            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 삭제 성공", null));
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.UNAUTHORIZED, e.getMessage()), HttpStatus.UNAUTHORIZED);
+        }
+    }
 }

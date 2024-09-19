@@ -42,7 +42,7 @@ public class JwtTokenProvider {
         return getClaimsFromToken(token).getExpiration().before(new Date());
     }
 
-    public String getUserIdFromToken(String token) {
+    public String getUserNumFromToken(String token) {
         return getClaimsFromToken(token).getSubject();
     }
 

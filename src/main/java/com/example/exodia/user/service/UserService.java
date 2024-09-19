@@ -10,6 +10,8 @@ import com.example.exodia.user.domain.Status;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.dto.*;
 import com.example.exodia.user.repository.UserRepository;
+import com.example.exodia.userDelete.domain.DeleteHistory;
+import com.example.exodia.userDelete.repository.DeleteHistoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,13 +23,15 @@ import java.util.stream.*;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final DeleteHistoryRepository deleteHistoryRepository;
     private final DepartmentRepository departmentRepository;
     private final PositionRepository positionRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, DepartmentRepository departmentRepository, PositionRepository positionRepository, JwtTokenProvider jwtTokenProvider, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, DeleteHistoryRepository deleteHistoryRepository, DepartmentRepository departmentRepository, PositionRepository positionRepository, JwtTokenProvider jwtTokenProvider, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.deleteHistoryRepository = deleteHistoryRepository;
         this.departmentRepository = departmentRepository;
         this.positionRepository = positionRepository;
         this.jwtTokenProvider = jwtTokenProvider;
@@ -65,28 +69,20 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public User updateUser(String userNum, UserUpdateDto updateDto, String departmentName) {
-        checkHrAuthority(departmentName);
+    public User updateUser(String userNum, UserUpdateDto updateDto, String departmentId) {
+        checkHrAuthority(departmentId);
         User user = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
+
         Department department = departmentRepository.findById(updateDto.getDepartmentId())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 부서입니다."));
+
         Position position = positionRepository.findById(updateDto.getPositionId())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 직급입니다."));
 
         user.updateFromDto(updateDto, department, position);
         return userRepository.save(user);
     }
-
-
-//    public void deleteUser(UserDeleteDto userDeleteDto, String departmentName) {
-//        checkHrAuthority(departmentName);
-//        User user = userRepository.findById(userDeleteDto.getUserId())
-//                .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
-//
-//        user.userDeleted(userDeleteDto.getDeletedBy(), userDeleteDto.getReason());
-//        userRepository.save(user);
-//    }
 
     private void checkHrAuthority(String departmentName) {
         if (!"1".equals(departmentName)) {
@@ -105,5 +101,20 @@ public class UserService {
         User user = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
         return UserDetailDto.fromEntity(user);
+    }
+
+    public void deleteUser(UserDeleteDto deleteDto, String departmentId) {
+        checkHrAuthority(departmentId);
+        User user = userRepository.findByUserNum(deleteDto.getUserNum())
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
+        user.softDelete();
+        userRepository.save(user);
+
+        DeleteHistory deleteHistory = new DeleteHistory(
+                deleteDto.getDeletedBy(),
+                deleteDto.getReason(),
+                user
+        );
+        deleteHistoryRepository.save(deleteHistory);
     }
 }

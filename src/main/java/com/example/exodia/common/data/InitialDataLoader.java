@@ -91,6 +91,8 @@ public class InitialDataLoader implements CommandLineRunner {
         );
 
         userRepository.save(user1);
+        System.out.println("User1 saved: " + user1.getUserNum());
         userRepository.save(user2);
+        System.out.println("User2 saved: " + user2.getUserNum());
     }
 }
