@@ -12,12 +12,13 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Where(clause = "del_yn = 'N'")
+//@Where(clause = "del_yn = 'N'")
 public class User extends BaseTimeEntity {
 
     @Id
@@ -130,4 +131,10 @@ public class User extends BaseTimeEntity {
         this.department = department;
         this.position = position;
     }
+
+    @Override
+    public void softDelete() {
+        super.softDelete();
+    }
 }
+

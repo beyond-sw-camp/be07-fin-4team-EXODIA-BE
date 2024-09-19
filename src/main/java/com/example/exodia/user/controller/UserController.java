@@ -68,6 +68,21 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserDetail(userNum));
     }
 
+    @PutMapping("/list/{userNum}")
+    public ResponseEntity<?> updateUser(
+            @PathVariable String userNum,
+            @RequestBody UserUpdateDto updateDto,
+            @RequestHeader("Authorization") String token) {
+        try {
+            String departmentId = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
+            User updatedUser = userService.updateUser(userNum, updateDto, departmentId);
+            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 정보 수정 완료", updatedUser));
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.UNAUTHORIZED, e.getMessage()), HttpStatus.UNAUTHORIZED);
+        }
+    }
+
    @DeleteMapping("/delete")
     public ResponseEntity<?> deleteUser(@RequestBody UserDeleteDto userDeleteDto, @RequestHeader("Authorization") String token) {
         try {
@@ -79,4 +94,5 @@ public class UserController {
             return new ResponseEntity<>(new CommonErrorDto(HttpStatus.UNAUTHORIZED, e.getMessage()), HttpStatus.UNAUTHORIZED);
         }
     }
+
 }

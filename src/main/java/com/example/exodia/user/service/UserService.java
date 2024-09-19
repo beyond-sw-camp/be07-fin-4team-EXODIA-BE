@@ -39,7 +39,7 @@ public class UserService {
     }
 
     public String login(UserLoginDto loginDto) {
-        User user = userRepository.findByUserNum(loginDto.getUserNum())
+        User user = userRepository.findByUserNumAndDelYn(loginDto.getUserNum(), DelYN.N)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 아이디입니다."));
         if (user.isDeleted()) {
             throw new RuntimeException("비활성화 상태의 계정입니다.");
@@ -71,7 +71,7 @@ public class UserService {
 
     public User updateUser(String userNum, UserUpdateDto updateDto, String departmentId) {
         checkHrAuthority(departmentId);
-        User user = userRepository.findByUserNum(userNum)
+        User user = userRepository.findByUserNumAndDelYn(userNum, DelYN.N)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
 
         Department department = departmentRepository.findById(updateDto.getDepartmentId())
@@ -91,21 +91,21 @@ public class UserService {
     }
 
     public List<UserInfoDto> getAllUsers() {
-        List<User> users = userRepository.findAll();
+        List<User> users = userRepository.findAllByDelYn(DelYN.N);
         return users.stream()
                 .map(UserInfoDto::fromEntity)
                 .collect(Collectors.toList());
     }
 
     public UserDetailDto getUserDetail(String userNum) {
-        User user = userRepository.findByUserNum(userNum)
+        User user = userRepository.findByUserNumAndDelYn(userNum, DelYN.N)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
         return UserDetailDto.fromEntity(user);
     }
 
     public void deleteUser(UserDeleteDto deleteDto, String departmentId) {
         checkHrAuthority(departmentId);
-        User user = userRepository.findByUserNum(deleteDto.getUserNum())
+        User user = userRepository.findByUserNumAndDelYn(deleteDto.getUserNum(), DelYN.N)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
         user.softDelete();
         userRepository.save(user);

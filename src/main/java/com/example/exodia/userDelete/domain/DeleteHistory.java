@@ -12,7 +12,7 @@ import javax.persistence.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class DeleteHistory extends BaseTimeEntity {
+public class DeleteHistory  {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,3 +34,4 @@ public class DeleteHistory extends BaseTimeEntity {
         this.deletedUser = deletedUser;
     }
 }
+

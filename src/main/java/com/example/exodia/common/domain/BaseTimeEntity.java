@@ -33,3 +33,5 @@ public abstract class BaseTimeEntity {
         return this.delYn == DelYN.Y;
     }
 }
+
+
