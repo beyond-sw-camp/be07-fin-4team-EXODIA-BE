@@ -40,5 +40,6 @@ public class JanusService {
         String url = JANUS_URL + "/" + sessionId + "/" + handleId + "/trickle";
         JanusCandidateRequest request = new JanusCandidateRequest(candidate);
         restTemplate.postForObject(url, request, JanusResponse.class);
+        
     }
 }
