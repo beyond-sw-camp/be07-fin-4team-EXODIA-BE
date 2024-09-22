@@ -1,165 +1,158 @@
 package com.example.exodia.calendar.service;
 
-import com.example.exodia.calendar.dto.CalendarListDto;
+
+import com.example.exodia.calendar.domain.Calendar;
+import com.example.exodia.calendar.dto.CalendarResponseDto;
 import com.example.exodia.calendar.dto.CalendarSaveDto;
+import com.example.exodia.calendar.dto.CalendarUpdateDto;
 import com.example.exodia.calendar.repository.CalendarRepository;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
-import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
-import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
-import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.gson.GsonFactory;
-import com.google.api.client.util.DateTime;
-import com.google.api.client.util.store.FileDataStoreFactory;
-import com.google.api.services.calendar.Calendar;
-import com.google.api.services.calendar.CalendarScopes;
 import com.google.api.services.calendar.model.Event;
-import com.google.api.services.calendar.model.EventDateTime;
-import com.google.api.services.calendar.model.Events;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.Collections;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CalendarService {
 
-    private static final String APPLICATION_NAME = "Google Calendar API Java Quickstart";
-    private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
+    @Autowired
+    private final CalendarRepository calendarRepository;
+    @Autowired
+    private final UserRepository userRepository;
+    @Autowired
+    private final GoogleCalendarService googleCalendarService;
 
-    @Value("${google.oauth.client-id}")
-    private String clientId;
+    public CalendarService(CalendarRepository calendarRepository, UserRepository userRepository, GoogleCalendarService googleCalendarService) {
+        this.calendarRepository = calendarRepository;
+        this.userRepository = userRepository;
+        this.googleCalendarService = googleCalendarService;
+    }
+    /* 현재 인증된 사용자 정보 */
+    private User getAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-    @Value("${google.oauth.client-secret}")
-    private String clientSecret;
-
-    @Value("${google.oauth.redirect-uri}")
-    private String redirectUri;
-
-    @Value("${google.oauth.credentials-file-path}")
-    private String credentialsFilePath;
-
-    @Value("${google.oauth.tokens-directory-path}")
-    private String tokensDirectoryPath;
-
-    /* CalendarService 인스턴스를 생성 */
-    private Calendar getCalendarService() throws Exception {
-        final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-        Credential credential = getCredentials(HTTP_TRANSPORT);
-
-        return new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
-                .setApplicationName(APPLICATION_NAME)
-                .build();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new IllegalArgumentException("인증된 사용자가 없습니다.");
+        }
+        if (authentication.getPrincipal() instanceof UserDetails) {
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            return userRepository.findByUserNum(userDetails.getUsername())
+                    .orElseThrow(() -> new IllegalArgumentException("해당 사용자는 존재하지 않습니다."));
+        } else {
+            throw new IllegalArgumentException("UserDetails 타입이 아닙니다.");
+        }
     }
 
-    /* OAuth 2.0 인증 */
-    private Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws Exception {
-        InputStream in = CalendarService.class.getResourceAsStream(credentialsFilePath);
-        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
+    /* 이벤트 생성 */
+    @Transactional
+    public CalendarResponseDto createCalendarEvent(CalendarSaveDto dto) throws Exception {
+        User user = getAuthenticatedUser();
+        Calendar calendar = Calendar.fromDto(dto, user);
+        calendarRepository.save(calendar);
 
-        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-                HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, Collections.singleton(CalendarScopes.CALENDAR))
-                .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(tokensDirectoryPath)))
-                .setAccessType("offline")
-                .build();
+        // Google Calendar API 연동 로직
+        Event googleEvent = googleCalendarService.addEventToGoogleCalendar(dto);
 
-        LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
-        return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
-    }
+        calendar.setGoogleEventId(googleEvent.getId());
+        calendarRepository.save(calendar);
 
-    /* 이벤트 생성(일정 생성) */
-    public String createGoogleCalendarEvent(CalendarSaveDto dto) throws Exception {
-        Calendar service = getCalendarService();
-
-        // 이벤트 생성
-        Event event = new Event()
-                .setSummary(dto.getTitle())
-                .setDescription(dto.getContent());
-
-        // 시작시간
-        DateTime startDateTime = new DateTime(dto.getStartTime().toString() + ":00Z");
-        EventDateTime start = new EventDateTime()
-                .setDateTime(startDateTime)
-                .setTimeZone("Asia/Seoul");
-        event.setStart(start);
-
-        // 종료시간
-        DateTime endDateTime = new DateTime(dto.getEndTime().toString() + ":00Z");
-        EventDateTime end = new EventDateTime()
-                .setDateTime(endDateTime)
-                .setTimeZone("Asia/Seoul");
-        event.setEnd(end);
-
-        // 이벤트 삽입
-        event = service.events().insert("primary", event).execute();
-        return event.getId();
-    }
-
-    /* 달 기준 이벤트 조회 */
-    public List<Event> getGoogleCalendarEventsByMonth(CalendarListDto dto) throws Exception {
-        com.google.api.services.calendar.Calendar service = getCalendarService();
-        String monthStart = String.format("%04d-%02d-01T00:00:00Z", dto.getYear(), dto.getMonth());
-        String monthEnd = String.format("%04d-%02d-%02dT23:59:59Z", dto.getYear(), dto.getMonth(), getLastDayOfMonth(dto.getYear(), dto.getMonth()));
-
-        DateTime timeMin = new DateTime(monthStart);
-        DateTime timeMax = new DateTime(monthEnd);
-
-        Events events = service.events().list("primary")
-                .setTimeMin(timeMin)
-                .setTimeMax(timeMax)
-                .setOrderBy("startTime")
-                .setSingleEvents(true)
-                .execute();
-
-        return events.getItems();
-    }
-
-    private int getLastDayOfMonth(int year, int month) {
-        java.util.Calendar calendar = java.util.Calendar.getInstance();
-        calendar.set(year, month - 1, 1);
-        return calendar.getActualMaximum(java.util.Calendar.DAY_OF_MONTH);
+        return CalendarResponseDto.fromEntity(calendar);
     }
 
 
+    /* 이벤트 업데이트 */
+    @Transactional
+    public CalendarResponseDto updateCalendarEvent(Long calendarId, CalendarUpdateDto dto) throws Exception {
+        User user = getAuthenticatedUser();//
+        Calendar calendar = calendarRepository.findById(calendarId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 이벤트가 없습니다."));
 
-    /*  이벤트 수정 */
-    public String updateGoogleCalendarEvent(String eventId, CalendarSaveDto dto) throws Exception {
-        Calendar service = getCalendarService();
+        if (!calendar.getUser().getId().equals(user.getId())) {
+            throw new IllegalAccessException("수정 권한이 없습니다.");
+        }
+        // 로컬 데이터베이스 업데이트
+        calendar.updateFromDto(dto);
+        calendarRepository.save(calendar);
 
-        // 기존 이벤트 조회
-        Event event = service.events().get("primary", eventId).execute();
+        // Google Calendar API 연동 로직
+        googleCalendarService.updateEventInGoogleCalendar(calendar.getGoogleEventId(), dto);
 
-        // 이벤트 정보 업데이트
-        event.setSummary(dto.getTitle());
-        event.setDescription(dto.getContent());
+        return CalendarResponseDto.fromEntity(calendar);
+    }
+    /* 이벤트 삭제 */
+    @Transactional
+    public void deleteCalendarEvent(Long calendarId) throws Exception {
+        User user = getAuthenticatedUser();//
+        Calendar calendar = calendarRepository.findById(calendarId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 이벤트가 없습니다."));
 
-        DateTime startDateTime = new DateTime(dto.getStartTime().toString() + ":00Z");
-        EventDateTime start = new EventDateTime()
-                .setDateTime(startDateTime)
-                .setTimeZone("Asia/Seoul");
-        event.setStart(start);
+        if (!calendar.getUser().getId().equals(user.getId())) {
+            throw new IllegalAccessException("삭제 권한이 없습니다.");
+        }
 
-        DateTime endDateTime = new DateTime(dto.getEndTime().toString() + ":00Z");
-        EventDateTime end = new EventDateTime()
-                .setDateTime(endDateTime)
-                .setTimeZone("Asia/Seoul");
-        event.setEnd(end);
+        // 로컬 데이터베이스에서 이벤트 삭제
+        calendarRepository.delete(calendar);
 
-        event = service.events().update("primary", eventId, event).execute();
-        return event.getId();
+        // Google Calendar API 연동 로직
+        googleCalendarService.deleteEventInGoogleCalendar(calendar.getGoogleEventId());
     }
 
-    /*  이벤트 삭제(일정삭제) */
-    public void deleteGoogleCalendarEvent(String eventId) throws Exception {
-        Calendar service = getCalendarService();
-        service.events().delete("primary", eventId).execute();
+    @Transactional(readOnly = true)
+    public List<CalendarResponseDto> getUserAndHolidayCalendars() throws GeneralSecurityException, IOException {
+        User user = getAuthenticatedUser();//
+        List<CalendarResponseDto> userCalendars = getUserCalendars(user.getId());
+        // googleCalendarService에서 한국 공휴일 목록
+        List<Event> holidayEvents = googleCalendarService.getHolidayEvents(
+                "ko.south_korea#holiday@group.v.calendar.google.com",
+                LocalDateTime.now().withDayOfYear(1), // 현 연도의 첫
+                LocalDateTime.now().withDayOfYear(365) // 현 연도의 막
+        );
+
+        List<CalendarResponseDto> holidayDtos = holidayEvents.stream()
+                .map(event -> {
+                    // localdateTime으로 이벤트를 저장할 수 없기 때문에 localDate 으로 파싱
+                    LocalDate startDate = event.getStart().getDate() != null ? LocalDate.parse(event.getStart().getDate().toString()) : null;
+                    LocalDate endDate = event.getEnd().getDate() != null ? LocalDate.parse(event.getEnd().getDate().toString()) : null;
+                    LocalDateTime startDateTime = startDate != null ? startDate.atStartOfDay() : null;
+                    LocalDateTime endDateTime = endDate != null ? endDate.atStartOfDay() : null;
+
+                    return new CalendarResponseDto(
+                            null,
+                            event.getSummary(),
+                            "공휴일",
+                            startDateTime,
+                            endDateTime,
+                            "HOLIDAY",
+                            "공휴일",
+                            null
+                    );
+                })
+                .collect(Collectors.toList());
+        // user가 생성한 events 을 불러와서 allEvents 저장
+        List<CalendarResponseDto> allEvents = new ArrayList<>(userCalendars);
+        allEvents.addAll(holidayDtos);
+        return allEvents;
+    }
+
+    @Transactional(readOnly = true)
+    public List<CalendarResponseDto> getUserCalendars(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("해당 사원은 없는 사원입니다"));
+        List<Calendar> calendars = calendarRepository.findByUserAndDelYn(user, "N");
+
+        return calendars.stream()
+                .map(CalendarResponseDto::fromEntity)
+                .collect(Collectors.toList());
     }
 }
