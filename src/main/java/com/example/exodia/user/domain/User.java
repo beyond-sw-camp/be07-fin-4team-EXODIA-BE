@@ -137,4 +137,3 @@ public class User extends BaseTimeEntity {
         super.softDelete();
     }
 }
-
