@@ -25,3 +25,5 @@ jwt:
   secretKeyRT: mySuperSuperSecretKey
   expirationRT: 3600000
 
+kurento:
+  uri: ws://localhost:8888/kurento

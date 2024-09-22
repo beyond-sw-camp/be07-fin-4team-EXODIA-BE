@@ -1,7 +1,10 @@
 package com.example.exodia.video.domain;
 
 import com.example.exodia.user.domain.User;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import javax.persistence.*;
 
 @Entity
@@ -18,6 +21,6 @@ public class VideoParticipant {
     private VideoRoom room;
 
     @ManyToOne
-    @JoinColumn(name = "user_num", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 }

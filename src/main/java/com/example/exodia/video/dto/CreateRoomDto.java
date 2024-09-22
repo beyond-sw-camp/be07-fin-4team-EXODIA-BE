@@ -1,15 +1,9 @@
 package com.example.exodia.video.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Data;
 
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
+@Data
 public class CreateRoomDto {
     private String roomName;
     private String password;
 }
-
-

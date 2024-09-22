@@ -29,4 +29,20 @@ public class VideoRoom {
 
     @Column(nullable = false)
     private Boolean isActive = true;
+
+    // 방에 입장한 참가자 수
+    @Column(nullable = false)
+    private int participantCount = 0;
+
+    public void increaseParticipantCount() {
+        this.participantCount += 1;
+    }
+
+    public void decreaseParticipantCount() {
+        this.participantCount -= 1;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
 }
