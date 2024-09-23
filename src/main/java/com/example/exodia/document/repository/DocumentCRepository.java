@@ -15,7 +15,7 @@ public interface DocumentCRepository extends JpaRepository<DocumentC,Long> {
 	List<DocumentC> findDocsWhereCreatedAtEqualUpdatedAt();
 
 	// 최근 열람 문서 조회 (열람 시간이 가장 최근인 문서)
-	List<DocumentC> findTopByOrderByViewedAtDesc();
+	List<DocumentC> findByOrderByViewedAtDesc();
 
 	// 최근 수정 문서 조회 (수정 시간이 가장 최근인 문서)
 	List<DocumentC> findTopByOrderByUpdatedAtDesc();
