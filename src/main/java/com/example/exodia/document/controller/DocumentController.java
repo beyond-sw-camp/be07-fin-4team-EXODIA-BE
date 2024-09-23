@@ -1,6 +1,7 @@
 package com.example.exodia.document.controller;
 
 import java.io.IOException;
+import java.nio.file.NoSuchFileException;
 import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.exodia.document.domain.DocumentC;
 import com.example.exodia.document.dto.DocDetailResDto;
 import com.example.exodia.document.dto.DocListResDto;
 import com.example.exodia.document.dto.DocReqDto;
@@ -62,10 +64,16 @@ public class DocumentController {
 		return ResponseEntity.ok(documentService.getDocList());
 	}
 
-	// 	전체 문서 조회
-	@GetMapping("/list/viewdAt")
+	// 	최근 열람 문서 조회
+	@GetMapping("/list/viewd")
 	public ResponseEntity<List<?>> docListByViewdAt() {
 		return ResponseEntity.ok(documentService.getDocListByViewdAt());
+	}
+
+	// 	최근 업데이트 문서 조회
+	@GetMapping("/list/updated")
+	public ResponseEntity<List<?>> docListByUpdatedAt() {
+		return ResponseEntity.ok(documentService.getDocListByUpdatedAt());
 	}
 
 	// 	문서 상세조회
@@ -97,9 +105,11 @@ public class DocumentController {
 
 
 	// 	문서 히스토리 조회
+	@GetMapping("/{documentId}/versions")
+	public ResponseEntity<List<DocumentC>> getDocumentVersions(@PathVariable Long documentId){
+		List<DocumentC> documentVersions = documentService.getDocumentVersions(documentId);
+		return ResponseEntity.ok(documentVersions);
+	}
 
-
-	// 	최근 열람 문서 조회
-	// 	최근 업데이트 문서 조회
 
 }

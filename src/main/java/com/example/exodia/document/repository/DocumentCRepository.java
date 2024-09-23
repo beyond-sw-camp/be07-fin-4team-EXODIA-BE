@@ -8,6 +8,8 @@ import org.springframework.stereotype.Repository;
 
 import com.example.exodia.document.domain.DocumentC;
 
+import io.lettuce.core.dynamic.annotation.Param;
+
 @Repository
 public interface DocumentCRepository extends JpaRepository<DocumentC,Long> {
 	// 전체 문서 조회
@@ -18,5 +20,5 @@ public interface DocumentCRepository extends JpaRepository<DocumentC,Long> {
 	List<DocumentC> findByOrderByViewedAtDesc();
 
 	// 최근 수정 문서 조회 (수정 시간이 가장 최근인 문서)
-	List<DocumentC> findTopByOrderByUpdatedAtDesc();
+	List<DocumentC> findByOrderByUpdatedAtDesc();
 }

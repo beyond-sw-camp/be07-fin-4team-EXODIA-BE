@@ -8,14 +8,11 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
 import org.hibernate.annotations.Where;
 
 import com.example.exodia.common.domain.DelYN;
-import com.example.exodia.document.dto.DocReqDto;
-import com.example.exodia.document.repository.DocumentPRepository;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

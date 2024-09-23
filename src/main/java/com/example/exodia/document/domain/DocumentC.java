@@ -1,7 +1,5 @@
 package com.example.exodia.document.domain;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 
 import javax.persistence.Column;
@@ -12,7 +10,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
 import org.hibernate.annotations.ColumnDefault;
@@ -20,7 +17,6 @@ import org.hibernate.annotations.Where;
 
 import com.example.exodia.common.domain.BaseTimeEntity;
 import com.example.exodia.common.domain.DelYN;
-import com.example.exodia.department.domain.Department;
 import com.example.exodia.document.dto.DocDetailResDto;
 import com.example.exodia.document.dto.DocListResDto;
 import com.example.exodia.document.dto.DocReqDto;
@@ -82,9 +78,11 @@ public class DocumentC extends BaseTimeEntity {
 	// @JoinColumn(name = "user_id", nullable = false)
 	// private User user;
 	//
+
 	@OneToOne
-	@JoinColumn(name = "document_p_id", nullable = true)
+	@JoinColumn(name = "document_p_id")
 	private DocumentP documentP;
+
 	//
 	// @ManyToOne
 	// @JoinColumn(name = "department_id", nullable = false)
@@ -143,9 +141,12 @@ public class DocumentC extends BaseTimeEntity {
 		this.updatedAt = LocalDateTime.now();
 	}
 
-	public void updateDocumentP(DocumentP documentP) {
-		this.documentP = documentP;
+	public void setParentDocument(DocumentP parent) {
+		this.documentP = parent;
+	}
 
+	public void updateDocumentP(DocumentP updateP) {
+		this.documentP = updateP;
 	}
 }
 

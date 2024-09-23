@@ -89,14 +89,14 @@ public class DocumentService {
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + doc.getFileName() + "\"")
 				.body(resource);
 		} else {
-			throw new IOException("File not found or not readable: " + doc.getFileName());
+			throw new IOException("파일을 읽어올 수 없음: " + doc.getFileName());
 		}
 	}
 
 	// 	전체 문서 조회
 	public List<DocListResDto> getDocList() {
 		// 생성시간 == 수정시간 doc만 조회 -> 수정되지 않은 모든 데이터
-		List<DocumentC> docs = documentCRepository.findDocsWhereCreatedAtEqualUpdatedAt();
+		List<DocumentC> docs = documentCRepository.findAll();
 		List<DocListResDto> docListResDtos = new ArrayList<>();
 		for (DocumentC doc : docs) {
 			docListResDtos.add(doc.fromEntityList());
@@ -114,6 +114,16 @@ public class DocumentService {
 		return docListResDtos;
 	}
 
+	// 최근 수정 문서 조회
+	public List<DocListResDto> getDocListByUpdatedAt() {
+		List<DocumentC> docs = documentCRepository.findByOrderByUpdatedAtDesc();
+		List<DocListResDto> docListResDtos = new ArrayList<>();
+		for (DocumentC doc : docs) {
+			docListResDtos.add(doc.fromEntityList());
+		}
+		return docListResDtos;
+	}
+
 	// 	문서 상세조회
 	public DocDetailResDto getDocDetail(Long id) {
 		DocumentC documentC = documentCRepository.findById(id)
@@ -124,7 +134,7 @@ public class DocumentService {
 
 	// 	문서 업데이트
 	public DocumentC updateDoc(MultipartFile file, DocUpdateReqDto docUpdateReqDto) throws IOException {
-		// 현재문서
+		// 현재 문서
 		DocumentC documentC = documentCRepository.findById(docUpdateReqDto.getId())
 			.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
 		documentC.updateUpdatedAt();    // 수정 시간 업데이트
@@ -141,14 +151,18 @@ public class DocumentService {
 		DocumentType documentType = documentTypeRepository.findByTypeName(docUpdateReqDto.getTypeName())
 			.orElseThrow(() -> new EntityNotFoundException("폴더가 존재하지 않습니다."));
 
-		// 자식 테이블에 추가
+		// 자식 문서 추가
 		DocumentC savedC = documentCRepository.save(DocumentC.updatetoEntity(docUpdateReqDto, path, fileContent, documentType));
+		// 부모 문서 추가
 		DocumentP updateP = documentP.updateEntity(docUpdateReqDto.getId(), documentP.getVersion());
+		// 자식 문서 업데이트
 		savedC.updateDocumentP(updateP);
-		// savedC.updateDocumentP(saveParentDoc(docUpdateReqDto.getId(), documentType));
 
+		documentCRepository.save(savedC);
+		documentPRepository.save(updateP);
 		return savedC;
 	}
+
 
 	// 문서 버전
 	//  public DocDetailResDto revertToVersion(DocRevertReqDto docRevertReqDto) {
@@ -163,10 +177,31 @@ public class DocumentService {
 	// }
 
 	// 	문서 히스토리 조회
+	public List<DocumentC> getDocumentVersions(Long documentId) {
+		DocumentC documentC = documentCRepository.findById(documentId)
+			.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
 
-	// 	최근 열람 문서 조회
-	// 	최근 업데이트 문서 조회
-
-
-
+		List<DocumentC> versions = new ArrayList<>();
+		versions.add(documentC);
+		// 모든 버전(부모 문서들) 조회
+		if (documentC != null && documentC.getDocumentP() != null) {
+			DocumentP documentP = documentC.getDocumentP();
+			documentC = documentCRepository.findById(documentP.getId())
+				.orElseThrow(() -> new EntityNotFoundException("히스토리가 존재하지 않습니다."));
+			versions.add(documentC);
+		}
+		return versions;
+	}
+	//
+	// private List<DocumentC> getAllVersions(DocumentC documentC) {
+	// 	List<DocumentC> versions = new ArrayList<>();
+	// 	DocumentC current = documentC;
+	//
+	// 	while (current != null) {
+	// 		versions.add(current);  // 현재 문서 추가
+	// 		current = current.getDocumentP();  // 부모 문서로 이동
+	// 	}
+	//
+	// 	return versions;
+	// }
 }
