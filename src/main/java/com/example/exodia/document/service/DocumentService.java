@@ -177,8 +177,8 @@ public class DocumentService {
 	// }
 
 	// 	문서 히스토리 조회
-	public List<DocumentC> getDocumentVersions(Long documentId) {
-		DocumentC documentC = documentCRepository.findById(documentId)
+	public List<DocumentC> getDocumentVersions(Long id) {
+		DocumentC documentC = documentCRepository.findById(id)
 			.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
 
 		List<DocumentC> versions = new ArrayList<>();
@@ -192,16 +192,12 @@ public class DocumentService {
 		}
 		return versions;
 	}
-	//
-	// private List<DocumentC> getAllVersions(DocumentC documentC) {
-	// 	List<DocumentC> versions = new ArrayList<>();
-	// 	DocumentC current = documentC;
-	//
-	// 	while (current != null) {
-	// 		versions.add(current);  // 현재 문서 추가
-	// 		current = current.getDocumentP();  // 부모 문서로 이동
-	// 	}
-	//
-	// 	return versions;
-	// }
+
+	// 문서 삭제 -> 해당 문서만 삭제
+	public void deleteDocument(Long id) {
+		DocumentC documentC = documentCRepository.findById(id)
+			.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
+		documentC.softDelete();
+		documentCRepository.save(documentC);
+	}
 }
