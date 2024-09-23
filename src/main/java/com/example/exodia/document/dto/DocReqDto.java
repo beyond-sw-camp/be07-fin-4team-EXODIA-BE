@@ -14,6 +14,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class DocReqDto {
-	private DocumentType documentType;
+	private String typeName;
 	private String fileName;
 }
