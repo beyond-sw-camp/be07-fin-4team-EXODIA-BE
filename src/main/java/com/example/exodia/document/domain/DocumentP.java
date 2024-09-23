@@ -8,12 +8,14 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
 import org.hibernate.annotations.Where;
 
 import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.document.dto.DocReqDto;
+import com.example.exodia.document.repository.DocumentPRepository;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,18 +35,31 @@ public class DocumentP {
 	@Column(nullable = false, length = 12)
 	private Long id;
 
+	private String version;
+
 	@OneToOne
+	@JoinColumn(name = "document_type_id", nullable = false)
 	private DocumentType documentType;
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "del_yn", nullable = false)
 	private DelYN delYn = DelYN.N;
 
-	public static DocumentP toEntity(DocReqDto docReqDto, Long id) {
+	public static DocumentP toEntity(Long id, DocumentType documentType) {
 		return DocumentP.builder()
 			.id(id)
+			.version("1")
+			.documentType(documentType)
 			.delYn(DelYN.N)
-			.documentType(docReqDto.getDocumentType())
+			.build();
+	}
+
+	public DocumentP updateEntity(Long id, String version) {
+		return DocumentP.builder()
+			.id(id)
+			.version(String.valueOf(Integer.parseInt(version) + 1))
+			.documentType(documentType)
+			.delYn(DelYN.N)
 			.build();
 	}
 }

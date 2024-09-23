@@ -2,6 +2,8 @@ package com.example.exodia.document.dto;
 
 import java.time.LocalDateTime;
 
+import com.example.exodia.common.domain.BaseTimeEntity;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,11 +13,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DocListResDto {
+public class DocListResDto extends BaseTimeEntity {
 	private Long id;
 	private String fileName;
 	private String type;
 	// private User user;
-	private LocalDateTime createAt;
+	private LocalDateTime updatedAt;
+	private LocalDateTime viewedAt;
 	private Long hits;
 }

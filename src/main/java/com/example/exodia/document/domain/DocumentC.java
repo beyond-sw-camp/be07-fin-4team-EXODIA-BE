@@ -11,6 +11,8 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
 import org.hibernate.annotations.ColumnDefault;
@@ -18,9 +20,12 @@ import org.hibernate.annotations.Where;
 
 import com.example.exodia.common.domain.BaseTimeEntity;
 import com.example.exodia.common.domain.DelYN;
+import com.example.exodia.department.domain.Department;
 import com.example.exodia.document.dto.DocDetailResDto;
 import com.example.exodia.document.dto.DocListResDto;
 import com.example.exodia.document.dto.DocReqDto;
+import com.example.exodia.document.dto.DocUpdateReqDto;
+import com.example.exodia.user.domain.User;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.AllArgsConstructor;
@@ -76,20 +81,21 @@ public class DocumentC extends BaseTimeEntity {
 	// @ManyToOne
 	// @JoinColumn(name = "user_id", nullable = false)
 	// private User user;
-
-	// @OneToOne
-	// @JoinColumn(name = "document_p_id", nullable = false)
-	// private DocumentP documentP;
+	//
+	@OneToOne
+	@JoinColumn(name = "document_p_id", nullable = true)
+	private DocumentP documentP;
 	//
 	// @ManyToOne
 	// @JoinColumn(name = "department_id", nullable = false)
 	// private Department department;
 
-	public static DocumentC toEntity(DocReqDto docReqDto, String path, String contents) {
+	public static DocumentC toEntity(DocReqDto docReqDto, String path, String contents, DocumentType documentType) {
 		return DocumentC.builder()
 			.fileName(docReqDto.getFileName())
 			.filePath(path)
 			.contents(contents)
+			.documentType(documentType)
 			.updatedAt(LocalDateTime.now())
 			.viewedAt(LocalDateTime.now())
 			.delYn(DelYN.N)
@@ -100,7 +106,8 @@ public class DocumentC extends BaseTimeEntity {
 		return DocDetailResDto.builder()
 			.fileName(this.fileName)
 			.fileExtension(this.fileName.substring(fileName.lastIndexOf(".") + 1))
-			.createdAt(this.getCreatedAt())
+			.updatedAt(this.getUpdatedAt())
+			.viewedAt(this.getViewedAt())
 			.description(this.description).build();
 	}
 
@@ -109,9 +116,24 @@ public class DocumentC extends BaseTimeEntity {
 			.id(this.id)
 			.fileName(this.fileName)
 			// .User(this.user)
-			.createAt(this.getCreatedAt())
+			.updatedAt(this.getUpdatedAt())
+			.viewedAt(this.getViewedAt())
 			.build();
 	}
+
+	public static DocumentC updatetoEntity(DocUpdateReqDto docUpdateReqDto, String path, String contents,
+		DocumentType documentType){
+		return DocumentC.builder()
+			.fileName(docUpdateReqDto.getFileName())
+			.contents(contents)
+			.filePath(path)
+			.documentType(documentType)
+			.updatedAt(LocalDateTime.now())
+			.viewedAt(LocalDateTime.now())
+			.delYn(DelYN.N)
+			.build();
+	}
+
 
 	public void updateViewdAt(){
 		this.viewedAt = LocalDateTime.now();
@@ -119,6 +141,11 @@ public class DocumentC extends BaseTimeEntity {
 
 	public void updateUpdatedAt(){
 		this.updatedAt = LocalDateTime.now();
+	}
+
+	public void updateDocumentP(DocumentP documentP) {
+		this.documentP = documentP;
+
 	}
 }
 

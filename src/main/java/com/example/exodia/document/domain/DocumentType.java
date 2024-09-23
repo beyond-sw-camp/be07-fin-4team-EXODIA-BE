@@ -15,6 +15,7 @@ import org.hibernate.annotations.Where;
 import com.example.exodia.common.domain.DelYN;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -22,6 +23,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Builder
 @Where(clause = "del_yn = 'N'")
 public class DocumentType {
 
@@ -29,6 +31,9 @@ public class DocumentType {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(nullable = false, length = 12)
 	private Long id;
+
+	@Column(nullable = false)
+	private String typeName;
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "del_yn", nullable = false)
