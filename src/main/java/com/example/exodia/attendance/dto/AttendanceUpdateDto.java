@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-
+/* 출근 기록 DTO */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

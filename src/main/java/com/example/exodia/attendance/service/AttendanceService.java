@@ -1,8 +1,6 @@
-package com.example.exodia.attendance;
+package com.example.exodia.attendance.service;
 
 import com.example.exodia.attendance.domain.Attendance;
-import com.example.exodia.attendance.domain.DayStatus;
-import com.example.exodia.attendance.dto.AttendanceDto;
 import com.example.exodia.attendance.dto.AttendanceSaveDto;
 import com.example.exodia.attendance.dto.AttendanceUpdateDto;
 import com.example.exodia.attendance.dto.WeeklySumDto;
