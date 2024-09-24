@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -15,6 +16,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
+
 import org.hibernate.annotations.Where;
 
 import com.example.exodia.common.domain.BaseTimeEntity;
@@ -23,6 +25,7 @@ import com.example.exodia.user.domain.User;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -33,9 +36,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @Where(clause = "del_yn = 'N'")
 public class Submit extends BaseTimeEntity {
+  
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
@@ -65,3 +70,4 @@ public class Submit extends BaseTimeEntity {
 		this.submitStatus = status;
 	}
 }
+
