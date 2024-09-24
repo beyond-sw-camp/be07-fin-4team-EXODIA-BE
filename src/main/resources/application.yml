@@ -27,3 +27,9 @@ jwt:
 
 kurento:
   uri: ws://localhost:8888/kurento
+
+janus:
+  url: http://ec2-3-39-254-7.ap-northeast-2.compute.amazonaws.com:8088/janus
+
+nginx:
+  proxy-port: 8080
