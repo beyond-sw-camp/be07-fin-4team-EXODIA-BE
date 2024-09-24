@@ -76,6 +76,14 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
 
+	// JUnit
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	// Mockito
+	testImplementation 'org.mockito:mockito-core:3.12.4'
+
+	// Kurento Client
+	implementation 'org.kurento:kurento-client:6.16.0'
+
 }
 
 
