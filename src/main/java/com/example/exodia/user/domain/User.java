@@ -137,6 +137,7 @@ public class User extends BaseTimeEntity {
         super.softDelete();
     }
 
+
 //    test코드
     public void setUserNum(String userNum) {
         this.userNum = userNum;
