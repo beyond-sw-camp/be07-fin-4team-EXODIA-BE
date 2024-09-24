@@ -12,11 +12,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.DayOfWeek;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.*;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class AttendanceService {
@@ -51,31 +52,70 @@ public class AttendanceService {
         return attendanceRepository.save(attendance);
     }
 
-    public WeeklySumDto getWeeklySum() {
+//    public WeeklySumDto getWeeklySum() {
+//        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+//        User user = userRepository.findByUserNum(userNum).orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
+//
+//        LocalDateTime startOfWeek = LocalDate.now().with(DayOfWeek.MONDAY).atStartOfDay();
+//        LocalDateTime endOfWeek = startOfWeek.plusDays(7);
+//
+//        List<Attendance> weeklyAttendance = attendanceRepository.findAllByUserAndWeek(user, startOfWeek, endOfWeek);
+//        return calculateWeeklySum(weeklyAttendance);
+//    }
+
+//    public WeeklySumDto calculateWeeklySum(List<Attendance> weeklyAttendance) {
+//        WeeklySumDto weeklySumDto = new WeeklySumDto();
+//        double totalHours = 0;
+//        double overallHours = 0;
+//
+//        for (Attendance attendance : weeklyAttendance) {
+//            if (attendance.getInTime() != null && attendance.getOutTime() != null) {
+//                double workHour = Duration.between(attendance.getInTime(), attendance.getOutTime()).toHours();
+//                totalHours += workHour -1; // 점심시간 빼고 계산
+//                if(workHour > 8) { // 8시간을 초과할경우 초과로 처리
+//                    overallHours += (workHour - 8);
+//                }
+//            }
+//        }
+//        return new WeeklySumDto(totalHours, overallHours);
+//    }
+
+    // 주어진 기간의 주차별 근무 시간 합산 정보 조회
+    @Transactional
+    public List<WeeklySumDto> getWeeklySummaries(LocalDate startDate, LocalDate endDate) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUserNum(userNum).orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
 
-        LocalDateTime startOfWeek = LocalDate.now().with(DayOfWeek.MONDAY).atStartOfDay();
-        LocalDateTime endOfWeek = startOfWeek.plusDays(7);
+        // 출퇴근 시간 데이터 가져오기
+        List<Attendance> attendances = attendanceRepository.findAllByMemberAndInTimeBetween(user, startDate.atStartOfDay(), endDate.atTime(LocalTime.MAX));
+        // 주차별 근무 시간 합산
+        Map<LocalDate, WeeklySumDto> weeklySummaryMap = new HashMap<>();
 
-        List<Attendance> weeklyAttendance = attendanceRepository.findAllByUserAndWeek(user, startOfWeek, endOfWeek);
-        return calculateWeeklySum(weeklyAttendance);
-    }
+        for (Attendance attendance : attendances) {
+            // 해당 출근 시간이 속한 주차(목요일 기준) 계산 * 국제 표준 ISO-8601 기준으로 계산
+            LocalDate weekOfYear = WeekUtils.getWeekOfYear(attendance.getInTime().toLocalDate());
+            // 해당 주차가 주차 맵에 없으면 새로 생성
+            weeklySummaryMap.putIfAbsent(weekOfYear, new WeeklySumDto(0, 0, weekOfYear, weekOfYear.plusDays(6)));
 
-    public WeeklySumDto calculateWeeklySum(List<Attendance> weeklyAttendance) {
-        WeeklySumDto weeklySumDto = new WeeklySumDto();
-        double totalHours = 0;
-        double overallHours = 0;
-
-        for (Attendance attendance : weeklyAttendance) {
-            if (attendance.getInTime() != null && attendance.getOutTime() != null) {
-                double workHour = Duration.between(attendance.getInTime(), attendance.getOutTime()).toHours();
-                totalHours += workHour -1; // 점심시간 빼고 계산
-                if(workHour > 8) { // 8시간을 초과할경우 초과로 처리
-                    overallHours += (workHour - 8);
-                }
+            // 근무시간 + 초과시간 계산
+            WeeklySumDto weeklySummary = weeklySummaryMap.get(weekOfYear);
+            double hoursWorked = calculateWorkHours(attendance);
+            weeklySummary.setTotalHours(weeklySummary.getTotalHours() + hoursWorked - 1);
+            if (hoursWorked > 8) {
+                weeklySummary.setOvertimeHours(weeklySummary.getOvertimeHours() + (hoursWorked - 8));
             }
         }
-        return new WeeklySumDto(totalHours, overallHours);
+
+        return weeklySummaryMap.values().stream()
+                .sorted(Comparator.comparing(WeeklySumDto::getStartOfWeek))
+                .collect(Collectors.toList());
     }
+    // 근무 시간 계산 (출근 시간과 퇴근 시간 차이)
+    private double calculateWorkHours(Attendance attendance) {
+        if (attendance.getInTime() != null && attendance.getOutTime() != null) {
+            return Duration.between(attendance.getInTime(), attendance.getOutTime()).toHours();
+        }
+        return 0;
+    }
+
 }

@@ -12,6 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.util.List;
+
 @RestController
 @RequestMapping("/attendance")
 public class AttendanceController {
@@ -41,11 +44,17 @@ public class AttendanceController {
 
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/weekly-summary")
-    //@Operation(summary = "[일반 사용자] 주간 근무 시간 요약 API")
-    public ResponseEntity<?> getWeeklySummary() {
-        WeeklySumDto sumDto = attendanceService.getWeeklySum();
-        return new ResponseEntity<>(new CommonResDto(HttpStatus.OK, "주간 근무 시간 정보 조회 완료", sumDto), HttpStatus.OK);
+    //@Operation(summary = "[일반 사용자] 주차별 근무 시간 정보 조회 API")
+    public ResponseEntity<?> getWeeklySummary(
+            @RequestParam("startDate") String startDate,
+            @RequestParam("endDate") String endDate) {
+        LocalDate start = LocalDate.parse(startDate);
+        LocalDate end = LocalDate.parse(endDate);
+
+        List<WeeklySumDto> weeklySummaries = attendanceService.getWeeklySummaries(start, end);
+        return new ResponseEntity<>(new CommonResDto(HttpStatus.OK, "주차별 근무 시간 정보 조회 완료", weeklySummaries), HttpStatus.OK);
     }
-
-
 }
+
+
+
