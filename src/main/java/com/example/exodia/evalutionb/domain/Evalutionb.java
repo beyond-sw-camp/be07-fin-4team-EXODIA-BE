@@ -22,6 +22,7 @@ public class Evalutionb {
 
     private String bName; // 대분류 명
 
+
 //    @OneToMany(mappedBy = "evalutionb", cascade = CascadeType.ALL, orphanRemoval = true)
 //    private List<Evalutionm> evalutionms = new ArrayList<>();
 
