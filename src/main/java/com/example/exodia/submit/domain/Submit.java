@@ -12,7 +12,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
@@ -20,7 +19,6 @@ import org.hibernate.annotations.Where;
 
 import com.example.exodia.common.domain.BaseTimeEntity;
 import com.example.exodia.common.domain.DelYN;
-import com.example.exodia.submit.dto.SubmitSaveReqDto;
 import com.example.exodia.user.domain.User;
 
 import lombok.AllArgsConstructor;
@@ -63,4 +61,7 @@ public class Submit extends BaseTimeEntity {
 	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 
+	public void updateStatus(SubmitStatus status) {
+		this.submitStatus = status;
+	}
 }

@@ -37,10 +37,10 @@ public class SubmitSaveReqDto {
 
 	public Submit toEntity(User user) {
 		return Submit.builder()
-			.user(user)
 			.submitStatus(SubmitStatus.WAITING)
 			.submitType(this.getSubmitType())
 			.contents(this.getContents())
+			.user(user)
 			.submitLines(new ArrayList<>())
 			.department_id(user.getDepartment().getId())
 			.delYn(DelYN.N)

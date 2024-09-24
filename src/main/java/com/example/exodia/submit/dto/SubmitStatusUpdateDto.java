@@ -14,7 +14,5 @@ import lombok.NoArgsConstructor;
 public class SubmitStatusUpdateDto {
 	private Long submitId;
 	private SubmitStatus status;
-
-
 }
 

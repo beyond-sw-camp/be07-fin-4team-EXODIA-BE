@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.exodia.common.dto.CommonErrorDto;
 import com.example.exodia.submit.dto.SubmitSaveReqDto;
+import com.example.exodia.submit.dto.SubmitStatusUpdateDto;
 import com.example.exodia.submit.service.SubmitService;
 
 @RestController
@@ -35,6 +36,17 @@ public class SubmitController {
 			submitService.createSubmit(submitSaveReqDto);
 			return ResponseEntity.ok("결재 요청 성공");
 		} catch (EntityNotFoundException e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()), HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	@PostMapping("/update")
+	public ResponseEntity<?> updateSubmit(@RequestBody SubmitStatusUpdateDto submitStatusUpdateDto) {
+		try {
+			submitService.updateSubmit(submitStatusUpdateDto);
+			return ResponseEntity.ok("결재 상태 변경 성공");
+		}catch(EntityNotFoundException e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()), HttpStatus.BAD_REQUEST);
 		}
