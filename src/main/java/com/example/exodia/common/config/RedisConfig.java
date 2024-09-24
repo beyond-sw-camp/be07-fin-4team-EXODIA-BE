@@ -1,53 +1,62 @@
 package com.example.exodia.common.config;
 
-import org.redisson.Redisson;
-import org.redisson.api.RedissonClient;
-import org.redisson.config.Config;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.listener.ChannelTopic;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
+@EnableCaching
 @Configuration
 public class RedisConfig {
 
-    @Value("${spring.redis.host}")
-    private String host;
+    private final RedisConnectionFactory redisConnectionFactory;
 
-    @Value("${spring.redis.port}")
-    private int port;
-
-
-    public LettuceConnectionFactory redisConnectionFactory(int index) {
-        RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
-        redisStandaloneConfiguration.setHostName(host);
-        redisStandaloneConfiguration.setPort(port);
-        redisStandaloneConfiguration.setDatabase(index);
-        return new LettuceConnectionFactory(redisStandaloneConfiguration);
-    }
-
-    // 차량 예약 시스템 (0번 데이터베이스)
-    @Bean
-    @Qualifier("1")
-    LettuceConnectionFactory connectionFactoryCarReservation() {
-        return redisConnectionFactory(0);
+    public RedisConfig(RedisConnectionFactory redisConnectionFactory) {
+        this.redisConnectionFactory = redisConnectionFactory;
     }
 
     @Bean
-    @Qualifier("1")
-    public RedisTemplate<String, Object> redisTemplate0() {
+    public RedisTemplate<String, Object> redisTemplate() {
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
-        redisTemplate.setConnectionFactory(connectionFactoryCarReservation());
+        redisTemplate.setConnectionFactory(redisConnectionFactory);
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         return redisTemplate;
+    }
+
+    @Bean
+    public ChannelTopic roomEventsTopic() {
+        return new ChannelTopic("room-events");
+    }
+
+    @Bean
+    public ChannelTopic userEventsTopic() {
+        return new ChannelTopic("user-events");
+    }
+
+    @Bean
+    public MessageListenerAdapter messageListenerAdapter(RedisMessageSubscriber redisMessageSubscriber) {
+        return new MessageListenerAdapter(redisMessageSubscriber);
+    }
+
+    @Bean
+    public RedisMessageListenerContainer redisMessageListenerContainer(
+            MessageListenerAdapter messageListenerAdapter,
+            RedisConnectionFactory redisConnectionFactory,
+            ChannelTopic roomEventsTopic,
+            ChannelTopic userEventsTopic) {
+        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+        container.setConnectionFactory(redisConnectionFactory);
+        container.addMessageListener(messageListenerAdapter, roomEventsTopic);
+        container.addMessageListener(messageListenerAdapter, userEventsTopic);
+        return container;
     }
 
 }
