@@ -58,4 +58,5 @@ public class RedisConfig {
         container.addMessageListener(messageListenerAdapter, userEventsTopic);
         return container;
     }
+
 }
