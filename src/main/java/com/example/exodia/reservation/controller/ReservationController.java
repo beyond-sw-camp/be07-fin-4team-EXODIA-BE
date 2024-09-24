@@ -14,41 +14,35 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
 @RequestMapping("/reservation")
 public class ReservationController {
-
     @Autowired
     private ReservationService reservationService;
 
+    /* 차량 예약 생성 API */
+    @PostMapping("/car/create")
+    public ResponseEntity<CommonResDto> reservationCreate(@RequestBody ReservationCreateDto dto) {
+        ReservationDto reservationDto = reservationService.carReservation(dto);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.CREATED, "차량 예약 신청을 완료하였습니다.", reservationDto);
+        return new ResponseEntity<>(commonResDto, HttpStatus.CREATED);
+    }
 
-//    public ResponseEntity<?> createReservation(@RequestBody ReservationCreateDto createDto) {
-//        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "예약 취소가 완료되었습니다.", canceledReservation.getId());
-//
-//        ReservationDto createdReservation = reservationService.createReservation(createDto);
-//        return ResponseEntity.ok(createdReservation);
-//    }
-//    @PostMapping("/car/create")
-//    public ResponseEntity<?> reservationCreate(@RequestBody ReservationCreateDto dto) {
-//        ReservationDto reservationDto = reservationService.carReservation(dto);
-//        CommonResDto commonResDto = new CommonResDto(HttpStatus.CREATED, "차량 예약 신청을 완료하였습니다.", reservationDto);
-//        return new ResponseEntity<>(commonResDto, HttpStatus.CREATED);
-//    }
-//
-//
-//
-//    @GetMapping("/car/day")
-//    public ResponseEntity<List<ReservationDto>> getReservationsForDay(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime date) {
-//        List<ReservationDto> reservations = reservationService.getReservationsForDay(date);
-//        return ResponseEntity.ok(reservations);
-//    }
-//
-//    @GetMapping("/car/alllist")
-//    @PreAuthorize("hasRole('ADMIN')")
-//    public ResponseEntity<List<ReservationDto>> getAllReservations() {
-//        List<ReservationDto> reservations = reservationService.getAllReservations();
-//        return ResponseEntity.ok(reservations);
-//    }
+    /* 특정 날짜의 예약 조회 API */
+    @GetMapping("/car/day")
+    public ResponseEntity<List<ReservationDto>> getReservationsForDay(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        List<ReservationDto> reservations = reservationService.getReservationsForDay(date.atStartOfDay());
+        return ResponseEntity.ok(reservations);
+    }
+
+    // 모든 예약 조회 API (관리자 권한 필요)
+    @GetMapping("/car/alllist")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<ReservationDto>> getAllReservations() {
+        List<ReservationDto> reservations = reservationService.getAllReservations();
+        return ResponseEntity.ok(reservations);
+    }
 }

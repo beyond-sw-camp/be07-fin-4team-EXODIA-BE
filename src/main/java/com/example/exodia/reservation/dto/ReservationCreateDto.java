@@ -9,7 +9,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Data
 @Builder
@@ -18,15 +20,19 @@ import java.time.LocalDateTime;
 public class ReservationCreateDto {
 
     private Long carId;
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
+    private LocalDate startDate; // 날짜만 입력 받음
 
     public Reservation toEntity(Car car, User user) {
+        // 하루 예약 처리: 해당 날짜의 시작과 끝 시간 설정
+        LocalDateTime startTime = startDate.atStartOfDay();
+        LocalDateTime endTime = startDate.atTime(LocalTime.MAX);
+
+
         return Reservation.builder()
                 .car(car)
                 .user(user)
-                .startTime(this.startTime)
-                .endTime(this.endTime)
+                .startTime(startTime)
+                .endTime(endTime)
                 .status(Status.RESERVED)
                 .build();
     }
