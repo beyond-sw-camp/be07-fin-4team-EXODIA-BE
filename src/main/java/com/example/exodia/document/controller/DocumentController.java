@@ -27,6 +27,7 @@ import com.example.exodia.common.dto.CommonErrorDto;
 import com.example.exodia.common.dto.CommonResDto;
 import com.example.exodia.document.domain.DocumentC;
 import com.example.exodia.document.dto.DocDetailResDto;
+import com.example.exodia.document.dto.DocHistoryResDto;
 import com.example.exodia.document.dto.DocListResDto;
 import com.example.exodia.document.dto.DocReqDto;
 import com.example.exodia.document.dto.DocRevertReqDto;
@@ -48,13 +49,15 @@ public class DocumentController {
 
 	// 	문서 업로드
 	@PostMapping("/uploadFile")
-	public ResponseEntity<?> uploadDocument(@RequestPart(value = "file", required = false) MultipartFile file, @RequestPart(value = "data") DocReqDto docReqDto) {
+	public ResponseEntity<?> uploadDocument(
+		@RequestPart(value = "file", required = true) MultipartFile file,
+		@RequestPart(value = "data") DocReqDto docReqDto) {
 		try {
+			System.out.println(docReqDto);
 			documentService.saveDoc(file, docReqDto);
 			return ResponseEntity.ok("파일 저장 성공");
 		} catch (IOException e) {
-			e.printStackTrace();
-			return ResponseEntity.status(500).body("파일 저장 실패: " + e.getMessage());
+			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage()), HttpStatus.NOT_FOUND);
 		}
 	}
 
@@ -83,7 +86,6 @@ public class DocumentController {
 	public ResponseEntity<?> docListByUpdatedAt() {
 		List<DocListResDto> docListResDtos = documentService.getDocListByUpdatedAt();
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "최근 업데이트 문서 조회 성공", docListResDtos));
-
 	}
 
 	// 	문서 상세조회
@@ -118,7 +120,7 @@ public class DocumentController {
 	// 	문서 히스토리 조회
 	@GetMapping("/{id}/versions")
 	public ResponseEntity<?> getDocumentVersions(@PathVariable Long id){
-		List<DocumentC> documentVersions = documentService.getDocumentVersions(id);
+		List<DocHistoryResDto> documentVersions = documentService.getDocumentVersions(id);
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "문서 히스토리 조회 성공", documentVersions));
 	}
 
