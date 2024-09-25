@@ -9,6 +9,7 @@ import com.example.exodia.reservation.dto.ReservationDto;
 import com.example.exodia.reservation.repository.ReservationRepository;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
+import com.example.exodia.user.service.UserService;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,9 @@ public class ReservationService {
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+
+    @Autowired
+    private UserService userService;
 
     // 차량 예약 메서드
     public ReservationDto carReservation(ReservationCreateDto dto) {
@@ -88,6 +92,10 @@ public class ReservationService {
 
     // 특정 날짜의 예약 조회 메서드
     public List<ReservationDto> getReservationsForDay(LocalDateTime date) {
+        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUserNum(userNum)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
         return reservationRepository.findByStartTimeBetween(date, date.plusDays(1))
                 .stream()
                 .map(ReservationDto::fromEntity)
@@ -96,6 +104,12 @@ public class ReservationService {
 
     // 모든 예약 조회 메서드
     public List<ReservationDto> getAllReservations() {
+        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUserNum(userNum)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        userService.checkHrAuthority(user.getDepartment().getId().toString());
+
         return reservationRepository.findAll().stream()
                 .map(ReservationDto::fromEntity)
                 .collect(Collectors.toList());

@@ -44,21 +44,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
             if (jwtTokenProvider.validateToken(jwt)) {
-//                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-//                        userDetails, null, userDetails.getAuthorities());
-
-                String departmentId = jwtTokenProvider.getDepartmentIdFromToken(jwt);
-                UsernamePasswordAuthenticationToken authentication;
-
-                if ("1".equals(departmentId)) {
-                    // 인사팀이면 ROLE_HR 권한 추가
-                    authentication = new UsernamePasswordAuthenticationToken(
-                            userDetails, null, List.of(new SimpleGrantedAuthority("ROLE_HR"), new SimpleGrantedAuthority("ROLE_USER")));
-                } else {
-                    // 인사팀이 아니면 기본 권한만
-                    authentication = new UsernamePasswordAuthenticationToken(
-                            userDetails, null, userDetails.getAuthorities());
-                }
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         }

@@ -27,7 +27,6 @@ public class ReservationCreateDto {
         LocalDateTime startTime = startDate.atStartOfDay();
         LocalDateTime endTime = startDate.atTime(LocalTime.MAX);
 
-
         return Reservation.builder()
                 .car(car)
                 .user(user)
