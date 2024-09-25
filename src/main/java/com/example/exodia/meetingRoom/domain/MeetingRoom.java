@@ -1,5 +1,6 @@
 package com.example.exodia.meetingRoom.domain;
 
+import com.example.exodia.meetingRoom.dto.MeetingRoomUpdateDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,5 +19,5 @@ public class MeetingRoom {
     private Long id;
 
     @Column(nullable = false)
-    private String name; // 회의실명
+    private String name;
 }
