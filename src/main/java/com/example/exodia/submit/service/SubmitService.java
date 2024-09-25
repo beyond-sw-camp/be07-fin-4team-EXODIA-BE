@@ -1,6 +1,6 @@
 package com.example.exodia.submit.service;
 
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.List;
 
 import javax.persistence.EntityNotFoundException;
@@ -8,8 +8,6 @@ import javax.persistence.EntityNotFoundException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import com.example.exodia.common.auth.JwtTokenProvider;
-import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.position.domain.Position;
 import com.example.exodia.position.repository.PositionRepository;
 import com.example.exodia.submit.domain.Submit;
@@ -31,8 +29,7 @@ public class SubmitService {
 	private final SubmitLineRepository submitLineRepository;
 
 	public SubmitService(SubmitRepository submitRepository, UserRepository userRepository,
-		PositionRepository positionRepository, SubmitLineRepository submitLineRepository,
-		JwtTokenProvider jwtTokenProvider) {
+		PositionRepository positionRepository, SubmitLineRepository submitLineRepository) {
 		this.submitRepository = submitRepository;
 		this.userRepository = userRepository;
 		this.positionRepository = positionRepository;
@@ -68,29 +65,48 @@ public class SubmitService {
 	}
 
 	// 결재 상태 변경
-	public SubmitLine updateSubmit(SubmitStatusUpdateDto dto) {
-		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();	// 사용자
-		SubmitLine submitLine = submitLineRepository.findByUserNumAndSubmitId(userNum, dto.getSubmitId())
+	public List<SubmitLine> updateSubmit(SubmitStatusUpdateDto dto) throws IOException, EntityNotFoundException {
+		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();    // 사용자
+		List<SubmitLine> submitLines = submitLineRepository.findBySubmitIdOrderByUserNumDesc(dto.getSubmitId());
+		Submit submit = submitRepository.findById(dto.getSubmitId())
 			.orElseThrow(() -> new EntityNotFoundException("결재 정보가 존재하지 않습니다."));
-		Submit submit = submitLine.getSubmit();
 
-		if (dto.getStatus() == SubmitStatus.ACCEPT) {
-			// 이전 레벨의 결재가 완료된건지 확인 조건문 필요
-			submitLine.updateStatus(dto.getStatus());
-			submitLineRepository.save(submitLine);
-		}else if(dto.getStatus() == SubmitStatus.REJECT) {
-			List<SubmitLine> submitLines = submitLineRepository.findBySubmitId(dto.getSubmitId());
-			for(SubmitLine line : submitLines) {
-				submitLineRepository.save(line);
-				line.updateStatus(dto.getStatus());
-				submitLineRepository.save(line);
+		for (SubmitLine line : submitLines) {
+			if (line.getUserNum().compareTo(userNum) == 0) {
+				if (line.getSubmitStatus() == SubmitStatus.WAITING) {
+					if (dto.getStatus() == SubmitStatus.REJECT) {
+						// 	관련된 모든 결재 REJECT
+						submit.updateStatus(SubmitStatus.REJECT);
+						changeToReject(dto.getSubmitId());
+					} else if (dto.getStatus() == SubmitStatus.ACCEPT) {
+						line.updateStatus(dto.getStatus());
+						submitLineRepository.save(line);
+					}
+				} else if (line.getSubmitStatus() == SubmitStatus.REJECT) {
+					throw new IOException("이미 반려 된 결재입니다.");
+				}
+				break;
+			} else if (line.getUserNum().compareTo(userNum) > 0) {
+				// 	이전 결재자
+				if (line.getSubmitStatus() == SubmitStatus.ACCEPT) {
+					continue;
+				} else if (line.getSubmitStatus() == SubmitStatus.WAITING) {
+					throw new IOException("이전 결재자의 결재가 필요합니다.");
+				}
 			}
-			submit.updateStatus(dto.getStatus());
 		}
-		submitRepository.save(submit);
-		return submitLine;
+		return submitLines;
 	}
 
-	// 모든 결제 상대에게 결재 받으면 submit의 submitStatus상태 변경
+	public void changeToReject(Long submitId) {
+		List<SubmitLine> submitLines = submitLineRepository.findBySubmitIdOrderByUserNumDesc(submitId);
+		for(SubmitLine line : submitLines) {
+			line.updateStatus(SubmitStatus.REJECT);
+			submitLineRepository.save(line);
+		}
+	}
+
+
+
 
 }

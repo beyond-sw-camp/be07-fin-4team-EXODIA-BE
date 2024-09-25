@@ -49,6 +49,10 @@ public class SubmitController {
 		}catch(EntityNotFoundException e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()), HttpStatus.BAD_REQUEST);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()), HttpStatus.BAD_REQUEST);
+
 		}
 	}
 

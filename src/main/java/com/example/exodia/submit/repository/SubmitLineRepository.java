@@ -10,7 +10,7 @@ import com.example.exodia.submit.domain.SubmitLine;
 
 @Repository
 public interface SubmitLineRepository extends JpaRepository<SubmitLine, Long> {
-	Optional<SubmitLine> findByUserNumAndSubmitId(String userNum, Long submitId);
-	List<SubmitLine> findBySubmitId(Long submitId);
+	// Optional<SubmitLine> findByUserNumAndSubmitId(String userNum, Long submitId);
+	List<SubmitLine> findBySubmitIdOrderByUserNumDesc(Long submitId);
 
 }
