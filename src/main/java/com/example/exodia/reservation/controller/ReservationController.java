@@ -20,6 +20,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/reservation")
 public class ReservationController {
+
     @Autowired
     private ReservationService reservationService;
 
@@ -29,6 +30,24 @@ public class ReservationController {
         ReservationDto reservationDto = reservationService.carReservation(dto);
         CommonResDto commonResDto = new CommonResDto(HttpStatus.CREATED, "차량 예약 신청을 완료하였습니다.", reservationDto);
         return new ResponseEntity<>(commonResDto, HttpStatus.CREATED);
+    }
+
+    // 예약 승인 API (관리자만 접근 가능)
+    @PutMapping("/car/approve/{reservationId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<CommonResDto> approveReservation(@PathVariable Long reservationId) {
+        ReservationDto reservationDto = reservationService.approveReservation(reservationId);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "예약이 승인되었습니다.", reservationDto);
+        return ResponseEntity.ok(commonResDto);
+    }
+
+    // 예약 거절 API (관리자만 접근 가능)
+    @PutMapping("/car/reject/{reservationId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<CommonResDto> rejectReservation(@PathVariable Long reservationId) {
+        ReservationDto reservationDto = reservationService.rejectReservation(reservationId);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "예약이 거절되었습니다.", reservationDto);
+        return ResponseEntity.ok(commonResDto);
     }
 
     /* 특정 날짜의 예약 조회 API */

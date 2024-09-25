@@ -25,14 +25,14 @@ public class ReservationCreateDto {
     public Reservation toEntity(Car car, User user) {
         // 하루 예약 처리: 해당 날짜의 시작과 끝 시간 설정
         LocalDateTime startTime = startDate.atStartOfDay();
-        LocalDateTime endTime = startDate.atTime(LocalTime.MAX);
+        LocalDateTime endTime = startDate.atTime(LocalTime.MAX); // 59:59:9999
 
         return Reservation.builder()
                 .car(car)
                 .user(user)
                 .startTime(startTime)
                 .endTime(endTime)
-                .status(Status.RESERVED)
+                .status(Status.WAITING) // AVAILABLE -> WAITING
                 .build();
     }
 }
