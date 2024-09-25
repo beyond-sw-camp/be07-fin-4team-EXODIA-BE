@@ -1,4 +1,4 @@
-package com.example.exodia.reservation.domain;
+package com.example.exodia.reservationVehicle.domain;
 
 import com.example.exodia.car.domain.Car;
 import com.example.exodia.common.domain.BaseTimeEntity;

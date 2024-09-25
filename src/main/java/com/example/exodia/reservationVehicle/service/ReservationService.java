@@ -1,13 +1,13 @@
-package com.example.exodia.reservation.service;
+package com.example.exodia.reservationVehicle.service;
 
 import com.example.exodia.car.domain.Car;
 import com.example.exodia.car.repository.CarRepository;
 import com.example.exodia.common.auth.JwtTokenProvider;
-import com.example.exodia.reservation.domain.Reservation;
-import com.example.exodia.reservation.domain.Status;
-import com.example.exodia.reservation.dto.ReservationCreateDto;
-import com.example.exodia.reservation.dto.ReservationDto;
-import com.example.exodia.reservation.repository.ReservationRepository;
+import com.example.exodia.reservationVehicle.domain.Reservation;
+import com.example.exodia.reservationVehicle.domain.Status;
+import com.example.exodia.reservationVehicle.dto.ReservationCreateDto;
+import com.example.exodia.reservationVehicle.dto.ReservationDto;
+import com.example.exodia.reservationVehicle.repository.ReservationRepository;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 import com.example.exodia.user.service.UserService;

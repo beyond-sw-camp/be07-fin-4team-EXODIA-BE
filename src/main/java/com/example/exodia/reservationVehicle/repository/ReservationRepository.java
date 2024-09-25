@@ -1,6 +1,6 @@
-package com.example.exodia.reservation.repository;
+package com.example.exodia.reservationVehicle.repository;
 
-import com.example.exodia.reservation.domain.Reservation;
+import com.example.exodia.reservationVehicle.domain.Reservation;
 import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

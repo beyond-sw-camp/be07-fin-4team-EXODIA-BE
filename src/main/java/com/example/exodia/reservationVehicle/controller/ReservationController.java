@@ -1,17 +1,14 @@
-package com.example.exodia.reservation.controller;
+package com.example.exodia.reservationVehicle.controller;
 
 import com.example.exodia.common.dto.CommonResDto;
-import com.example.exodia.reservation.domain.Reservation;
-import com.example.exodia.reservation.dto.ReservationCreateDto;
-import com.example.exodia.reservation.dto.ReservationDto;
-import com.example.exodia.reservation.service.ReservationService;
-import com.example.exodia.user.repository.UserRepository;
+import com.example.exodia.reservationVehicle.dto.ReservationCreateDto;
+import com.example.exodia.reservationVehicle.dto.ReservationDto;
+import com.example.exodia.reservationVehicle.service.ReservationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
