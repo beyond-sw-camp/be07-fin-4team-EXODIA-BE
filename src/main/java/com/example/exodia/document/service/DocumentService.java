@@ -13,9 +13,12 @@ import java.util.List;
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletResponse;
 
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.exodia.common.domain.DelYN;
+import com.example.exodia.common.service.RedisService;
 import com.example.exodia.document.domain.DocumentC;
 import com.example.exodia.document.domain.DocumentP;
 import com.example.exodia.document.domain.DocumentType;
@@ -47,14 +51,16 @@ public class DocumentService {
 	private final DocumentPRepository documentPRepository;
 	private final DocumentTypeRepository documentTypeRepository;
 	private final UserRepository userRepository;
+	private final RedisService redisService;
 
 	@Autowired
 	public DocumentService(DocumentCRepository documentCRepository, DocumentPRepository documentPRepository,
-		DocumentTypeRepository documentTypeRepository, UserRepository userRepository) {
+		DocumentTypeRepository documentTypeRepository, UserRepository userRepository, RedisService redisService) {
 		this.documentCRepository = documentCRepository;
 		this.documentPRepository = documentPRepository;
 		this.documentTypeRepository = documentTypeRepository;
 		this.userRepository = userRepository;
+		this.redisService = redisService;
 	}
 
 	// 	문서 업로드 -> s3로 변경해야함
@@ -73,14 +79,15 @@ public class DocumentService {
 		String path = filePath.toString();
 		String fileContent = new String(file.getBytes(), StandardCharsets.UTF_8);
 
-		 // 없으면 생성
+		// 없으면 생성
 		DocumentType documentType = documentTypeRepository.findByTypeName(docReqDto.getTypeName())
 			.orElseGet(() -> {
 				return documentTypeRepository.save(
 					DocumentType.builder()
-					.typeName(docReqDto.getTypeName()).delYn(DelYN.N).build());
+						.typeName(docReqDto.getTypeName()).delYn(DelYN.N).build());
 			});
-		DocumentC savedC = documentCRepository.save(DocumentC.toEntity(docReqDto, user, path, fileContent, documentType));
+		DocumentC savedC = documentCRepository.save(
+			DocumentC.toEntity(docReqDto, user, path, fileContent, documentType));
 		savedC.updateDocumentP(saveParentDoc(savedC.getId(), documentType));
 		documentCRepository.save(savedC);
 		return savedC;
@@ -122,11 +129,18 @@ public class DocumentService {
 	// 최근 열람 문서 조회
 	public List<DocListResDto> getDocListByViewdAt() {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
-		User user = userRepository.findByUserNum(userNum)
-			.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
+		// User user = userRepository.findByUserNum(userNum)
+		// 	.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
 
-		List<DocumentC> docs = documentCRepository.findByOrderByViewedAtDesc();
+		List<Object> docIds = redisService.getListValue(userNum);
+		List<DocumentC> docs = new ArrayList<>();
 		List<DocListResDto> docListResDtos = new ArrayList<>();
+
+		for (Object docId : docIds) {
+			DocumentC doc = documentCRepository.findById(((Integer) docId).longValue())
+				.orElseThrow(() -> new EntityNotFoundException("문서를 찾을 수 없습니다."));
+			docs.add(doc);
+		}
 		for (DocumentC doc : docs) {
 			docListResDtos.add(doc.fromEntityList());
 		}
@@ -152,6 +166,10 @@ public class DocumentService {
 		DocumentC documentC = documentCRepository.findById(id)
 			.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
 		documentC.updateViewdAt();    // 조회 시간 업데이트
+
+		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+		redisService.setListValue(userNum, documentC.getId());
+
 		return documentC.fromEntity();
 	}
 
@@ -179,7 +197,8 @@ public class DocumentService {
 			.orElseThrow(() -> new EntityNotFoundException("폴더가 존재하지 않습니다."));
 
 		// 자식 문서 추가
-		DocumentC savedC = documentCRepository.save(DocumentC.updatetoEntity(docUpdateReqDto, user, path, fileContent, documentType));
+		DocumentC savedC = documentCRepository.save(
+			DocumentC.updatetoEntity(docUpdateReqDto, user, path, fileContent, documentType));
 		// 부모 문서 추가
 		DocumentP updateP = documentP.updateEntity(docUpdateReqDto.getId(), documentP.getVersion());
 		// 자식 문서 업데이트
@@ -189,7 +208,6 @@ public class DocumentService {
 		documentPRepository.save(updateP);
 		return savedC;
 	}
-
 
 	// 문서 버전
 	//  public DocDetailResDto revertToVersion(DocRevertReqDto docRevertReqDto) {

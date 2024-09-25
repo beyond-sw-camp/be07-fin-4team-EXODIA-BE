@@ -83,13 +83,13 @@ public class RedisConfig {
     }
 
     @Bean
-    @Qualifier("7")
+    @Qualifier("documentRedisTemplate")
     LettuceConnectionFactory connectionFactoryReservation() {
         return redisConnectionFactory(6);
     }
 
     @Bean
-    @Qualifier("7")
+    @Qualifier("documentRedisTemplate")
     public RedisTemplate<String, Object> documentRedisTemplate() {
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(connectionFactoryReservation());

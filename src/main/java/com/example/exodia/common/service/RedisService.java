@@ -3,6 +3,7 @@ package com.example.exodia.common.service;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -20,10 +21,11 @@ public class RedisService {
 	private final RedisTemplate<String, Object> redisTemplate;
 	private static final String RESERVATION_LOCK_PREFIX = "reservation:lock:";
 
+	@Qualifier("documentRedisTemplate")
 	private final RedisTemplate<String, Object> documentRedisTemplate;
 
 	@Autowired
-	public RedisService(RedisTemplate<String, Object> redisTemplate, RedisTemplate<String, Object> documentRedisTemplate) {
+	public RedisService(RedisTemplate<String, Object> redisTemplate, @Qualifier("documentRedisTemplate") RedisTemplate<String, Object> documentRedisTemplate) {
 		this.redisTemplate = redisTemplate;
 		this.documentRedisTemplate = documentRedisTemplate;
 	}
@@ -63,14 +65,6 @@ public class RedisService {
 			return Collections.emptyList();
 		}
 		return listOps.range(key, 0, size - 1);
-	}
-
-
-	private void addDocumentToUserList(String userNum, Long documentId) {
-		ListOperations<String, Object> listOps = documentRedisTemplate.opsForList();
-
-		// 문서 ID를 리스트에 추가
-		listOps.leftPush(userNum, documentId);
 	}
 }
 
