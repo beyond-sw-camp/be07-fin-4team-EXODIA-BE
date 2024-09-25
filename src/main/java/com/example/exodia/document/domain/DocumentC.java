@@ -61,7 +61,7 @@ public class DocumentC extends BaseTimeEntity {
 	// @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
 	// @Column(name = "updated_at")
 	// private LocalDateTime updatedAt;	// 최근 수정 시간
-
+	//
 	// @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
 	// @Column(name = "viewed_at")
 	// private LocalDateTime viewedAt;	// 최근 열람 시간
@@ -69,9 +69,6 @@ public class DocumentC extends BaseTimeEntity {
 	@Enumerated(EnumType.STRING)
 	@Column(name = "del_yn", nullable = false)
 	private DelYN delYn = DelYN.N;
-
-	@ColumnDefault("0")
-	private Long hits;
 
 	@OneToOne
 	private DocumentType documentType;
@@ -104,15 +101,21 @@ public class DocumentC extends BaseTimeEntity {
 		return DocDetailResDto.builder()
 			.fileName(this.fileName)
 			.fileExtension(this.fileName.substring(fileName.lastIndexOf(".") + 1))
-			.user(this.user)
-			.description(this.description).build();
+			.documentType(this.getDocumentType().getTypeName())
+			.userName(this.user.getName())
+			.description(this.description)
+			// .updatedAt(this.)	// redis에서 가져와서
+			.build();
 	}
 
 	public DocListResDto fromEntityList(){
 		return DocListResDto.builder()
 			.id(this.id)
 			.fileName(this.fileName)
-			.hits(this.hits)
+			.type(this.documentType.getTypeName())
+			.departmentName(this.user.getDepartment().getName())
+			.userName(this.user.getName())
+			.createdAt(this.getCreatedAt())
 			.build();
 	}
 
@@ -133,6 +136,7 @@ public class DocumentC extends BaseTimeEntity {
 			.id(this.getId())
 			.fileName(this.getFileName())
 			.userName(this.getUser().getName())
+			// .updatedAt()
 			.build();
 	}
 
