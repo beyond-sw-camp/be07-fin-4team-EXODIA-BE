@@ -168,8 +168,12 @@ public class DocumentService {
 		documentC.updateViewdAt();    // 조회 시간 업데이트
 
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
-		redisService.setListValue(userNum, documentC.getId());
 
+		List<Object> docIds = redisService.getListValue(userNum);
+		if (docIds.contains(id.intValue())) {
+			redisService.removeListValue(userNum, id);
+		}
+		redisService.setListValue(userNum, documentC.getId());
 		return documentC.fromEntity();
 	}
 

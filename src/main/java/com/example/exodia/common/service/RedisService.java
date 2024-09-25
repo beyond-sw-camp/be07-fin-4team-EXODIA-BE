@@ -66,5 +66,18 @@ public class RedisService {
 		}
 		return listOps.range(key, 0, size - 1);
 	}
+
+	public void removeListValue(String key, Long value) {
+		ListOperations<String, Object> listOps = documentRedisTemplate.opsForList();
+		Long size = listOps.size(key);
+
+		for (long i = 0; i < size; i++) {
+			Object listValue = listOps.index(key, i);
+			if (listValue != null && listValue.equals(value.intValue())) {
+				listOps.remove(key, 1, value);
+				break;
+			}
+		}
+	}
 }
 
