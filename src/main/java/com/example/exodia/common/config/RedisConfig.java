@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -46,9 +47,16 @@ public class RedisConfig {
     }
 
     @Bean
+    @Primary
+    LettuceConnectionFactory connectionFactory() {
+        return redisConnectionFactory(0);
+    }
+
+    @Bean
+    @Primary
     public RedisTemplate<String, Object> redisTemplate() {
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
-        redisTemplate.setConnectionFactory(redisConnectionFactory(0));
+        redisTemplate.setConnectionFactory(connectionFactory());
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         return redisTemplate;
@@ -82,17 +90,35 @@ public class RedisConfig {
         return container;
     }
 
+    // 최근 조회 문서
     @Bean
-    @Qualifier("documentRedisTemplate")
-    LettuceConnectionFactory connectionFactoryReservation() {
+    @Qualifier("7")
+    LettuceConnectionFactory connectionFactoryViewdDoc() {
         return redisConnectionFactory(6);
     }
 
     @Bean
-    @Qualifier("documentRedisTemplate")
-    public RedisTemplate<String, Object> documentRedisTemplate() {
+    @Qualifier("7")
+    public RedisTemplate<String, Object> docViewdRedisTemplate() {
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
-        redisTemplate.setConnectionFactory(connectionFactoryReservation());
+        redisTemplate.setConnectionFactory(connectionFactoryViewdDoc());
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        return redisTemplate;
+    }
+
+    // 최근 업데이트 문서
+    @Bean
+    @Qualifier("8")
+    LettuceConnectionFactory connectionFactoryUpdatedDoc() {
+        return redisConnectionFactory(7);
+    }
+
+    @Bean
+    @Qualifier("8")
+    public RedisTemplate<String, Object> docUpdatedRedisTemplate() {
+        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(connectionFactoryUpdatedDoc());
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         return redisTemplate;

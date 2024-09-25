@@ -58,13 +58,13 @@ public class DocumentC extends BaseTimeEntity {
 	// @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
 	// private LocalDateTime saveDate;
 
-	@JsonFormat(pattern = "yyyy-MM-dd HH:mm")
-	@Column(name = "updated_at")
-	private LocalDateTime updatedAt;	// 최근 수정 시간
+	// @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
+	// @Column(name = "updated_at")
+	// private LocalDateTime updatedAt;	// 최근 수정 시간
 
-	@JsonFormat(pattern = "yyyy-MM-dd HH:mm")
-	@Column(name = "viewed_at")
-	private LocalDateTime viewedAt;	// 최근 열람 시간
+	// @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
+	// @Column(name = "viewed_at")
+	// private LocalDateTime viewedAt;	// 최근 열람 시간
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "del_yn", nullable = false)
@@ -96,8 +96,6 @@ public class DocumentC extends BaseTimeEntity {
 			.contents(contents)
 			.documentType(documentType)
 			.user(user)
-			.updatedAt(LocalDateTime.now())
-			.viewedAt(LocalDateTime.now())
 			.delYn(DelYN.N)
 			.build();
 	}
@@ -106,8 +104,6 @@ public class DocumentC extends BaseTimeEntity {
 		return DocDetailResDto.builder()
 			.fileName(this.fileName)
 			.fileExtension(this.fileName.substring(fileName.lastIndexOf(".") + 1))
-			.updatedAt(this.getUpdatedAt())
-			.viewedAt(this.getViewedAt())
 			.user(this.user)
 			.description(this.description).build();
 	}
@@ -117,8 +113,6 @@ public class DocumentC extends BaseTimeEntity {
 			.id(this.id)
 			.fileName(this.fileName)
 			.hits(this.hits)
-			.updatedAt(this.getUpdatedAt())
-			.viewedAt(this.getViewedAt())
 			.build();
 	}
 
@@ -130,8 +124,6 @@ public class DocumentC extends BaseTimeEntity {
 			.filePath(path)
 			.documentType(documentType)
 			.user(user)
-			.updatedAt(LocalDateTime.now())
-			.viewedAt(LocalDateTime.now())
 			.delYn(DelYN.N)
 			.build();
 	}
@@ -141,18 +133,9 @@ public class DocumentC extends BaseTimeEntity {
 			.id(this.getId())
 			.fileName(this.getFileName())
 			.userName(this.getUser().getName())
-			.updatedAt(this.getUpdatedAt())
 			.build();
 	}
 
-
-	public void updateViewdAt(){
-		this.viewedAt = LocalDateTime.now();
-	}
-
-	public void updateUpdatedAt(){
-		this.updatedAt = LocalDateTime.now();
-	}
 
 	public void updateDocumentP(DocumentP updateP) {
 		this.documentP = updateP;

@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -19,15 +20,18 @@ import java.util.List;
 public class RedisService {
 
 	private final RedisTemplate<String, Object> redisTemplate;
+	private final RedisTemplate<String, Object> docViewdRedisTemplate;
+	private final RedisTemplate<String, Object> docUpdatedRedisTemplate;
 	private static final String RESERVATION_LOCK_PREFIX = "reservation:lock:";
 
-	@Qualifier("documentRedisTemplate")
-	private final RedisTemplate<String, Object> documentRedisTemplate;
-
 	@Autowired
-	public RedisService(RedisTemplate<String, Object> redisTemplate, @Qualifier("documentRedisTemplate") RedisTemplate<String, Object> documentRedisTemplate) {
+	public RedisService(
+		RedisTemplate<String, Object> redisTemplate,
+		@Qualifier("7") RedisTemplate<String, Object> docViewdRedisTemplate,
+		@Qualifier("8") RedisTemplate<String, Object> docUpdatedRedisTemplate) {
 		this.redisTemplate = redisTemplate;
-		this.documentRedisTemplate = documentRedisTemplate;
+		this.docViewdRedisTemplate = docViewdRedisTemplate;
+		this.docUpdatedRedisTemplate = docUpdatedRedisTemplate;
 	}
 
 	public void setValues(String key, String data, Duration duration) {
@@ -53,13 +57,13 @@ public class RedisService {
 		return !value.equals("false");
 	}
 
-	public void setListValue(String key, Long value) {
-		ListOperations<String, Object> listValues = documentRedisTemplate.opsForList();
+	public void setViewdListValue(String key, Long value) {
+		ListOperations<String, Object> listValues = docViewdRedisTemplate.opsForList();
 		listValues.leftPush(key, value);
 	}
 
-	public List<Object> getListValue(String key) {
-		ListOperations<String, Object> listOps = documentRedisTemplate.opsForList();
+	public List<Object> getViewdListValue(String key) {
+		ListOperations<String, Object> listOps = docViewdRedisTemplate.opsForList();
 		Long size = listOps.size(key);
 		if (size == null || size == 0) {
 			return Collections.emptyList();
@@ -67,8 +71,35 @@ public class RedisService {
 		return listOps.range(key, 0, size - 1);
 	}
 
-	public void removeListValue(String key, Long value) {
-		ListOperations<String, Object> listOps = documentRedisTemplate.opsForList();
+	public void removeViewdListValue(String key, Long value) {
+		ListOperations<String, Object> listOps = docViewdRedisTemplate.opsForList();
+		Long size = listOps.size(key);
+
+		for (long i = 0; i < size; i++) {
+			Object listValue = listOps.index(key, i);
+			if (listValue != null && listValue.equals(value.intValue())) {
+				listOps.remove(key, 1, value);
+				break;
+			}
+		}
+	}
+
+	public void setUpdatedListValue(String key, Long value) {
+		ListOperations<String, Object> listValues = docUpdatedRedisTemplate.opsForList();
+		listValues.leftPush(key, value);
+	}
+
+	public List<Object> getUpdatedListValue(String key) {
+		ListOperations<String, Object> listOps = docUpdatedRedisTemplate.opsForList();
+		Long size = listOps.size(key);
+		if (size == null || size == 0) {
+			return Collections.emptyList();
+		}
+		return listOps.range(key, 0, size - 1);
+	}
+
+	public void removeUpdatedListValue(String key, Long value) {
+		ListOperations<String, Object> listOps = docUpdatedRedisTemplate.opsForList();
 		Long size = listOps.size(key);
 
 		for (long i = 0; i < size; i++) {

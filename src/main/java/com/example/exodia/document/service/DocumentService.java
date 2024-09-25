@@ -63,6 +63,14 @@ public class DocumentService {
 		this.redisService = redisService;
 	}
 
+	@Autowired
+	@Qualifier("docUpdatedRedisTemplate")
+	private RedisTemplate<String, Object> docUpdatedRedisTemplate;
+
+	@Autowired
+	@Qualifier("docViewdRedisTemplate")
+	private RedisTemplate<String, Object> docViewdRedisTemplate;
+
 	// 	문서 업로드 -> s3로 변경해야함
 	private String uploadDir = "/Users/suhyun/Documents/pot_doc";
 
@@ -132,7 +140,7 @@ public class DocumentService {
 		// User user = userRepository.findByUserNum(userNum)
 		// 	.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
 
-		List<Object> docIds = redisService.getListValue(userNum);
+		List<Object> docIds = redisService.getViewdListValue(userNum);
 		List<DocumentC> docs = new ArrayList<>();
 		List<DocListResDto> docListResDtos = new ArrayList<>();
 
@@ -150,11 +158,16 @@ public class DocumentService {
 	// 최근 수정 문서 조회
 	public List<DocListResDto> getDocListByUpdatedAt() {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
-		User user = userRepository.findByUserNum(userNum)
-			.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
 
-		List<DocumentC> docs = documentCRepository.findByOrderByUpdatedAtDesc();
+		List<Object> docIds = redisService.getUpdatedListValue(userNum);
+		List<DocumentC> docs = new ArrayList<>();
 		List<DocListResDto> docListResDtos = new ArrayList<>();
+
+		for (Object docId : docIds) {
+			DocumentC doc = documentCRepository.findById(((Integer) docId).longValue())
+				.orElseThrow(() -> new EntityNotFoundException("문서를 찾을 수 없습니다."));
+			docs.add(doc);
+		}
 		for (DocumentC doc : docs) {
 			docListResDtos.add(doc.fromEntityList());
 		}
@@ -165,15 +178,14 @@ public class DocumentService {
 	public DocDetailResDto getDocDetail(Long id) {
 		DocumentC documentC = documentCRepository.findById(id)
 			.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
-		documentC.updateViewdAt();    // 조회 시간 업데이트
 
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 
-		List<Object> docIds = redisService.getListValue(userNum);
+		List<Object> docIds = redisService.getViewdListValue(userNum);
 		if (docIds.contains(id.intValue())) {
-			redisService.removeListValue(userNum, id);
+			redisService.removeViewdListValue(userNum, id);
 		}
-		redisService.setListValue(userNum, documentC.getId());
+		redisService.setViewdListValue(userNum, documentC.getId());
 		return documentC.fromEntity();
 	}
 
@@ -186,7 +198,12 @@ public class DocumentService {
 		// 현재 문서
 		DocumentC documentC = documentCRepository.findById(docUpdateReqDto.getId())
 			.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
-		documentC.updateUpdatedAt();    // 수정 시간 업데이트
+
+		List<Object> docIds = redisService.getUpdatedListValue(userNum);
+		if (docIds.contains(docUpdateReqDto.getId().intValue())) {
+			redisService.removeUpdatedListValue(userNum, docUpdateReqDto.getId());
+		}
+		redisService.setUpdatedListValue(userNum, documentC.getId());
 		DocumentP documentP = documentC.getDocumentP();
 
 		// 새로운 파일로 수정
