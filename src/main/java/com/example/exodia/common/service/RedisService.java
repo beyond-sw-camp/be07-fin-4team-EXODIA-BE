@@ -22,6 +22,7 @@ public class RedisService {
 	private final RedisTemplate<String, Object> redisTemplate;
 	private final RedisTemplate<String, Object> docViewdRedisTemplate;
 	private final RedisTemplate<String, Object> docUpdatedRedisTemplate;
+	private static final int MAX_LIST_SIZE = 50;
 	private static final String RESERVATION_LOCK_PREFIX = "reservation:lock:";
 
 	@Autowired
@@ -60,6 +61,8 @@ public class RedisService {
 	public void setViewdListValue(String key, Long value) {
 		ListOperations<String, Object> listValues = docViewdRedisTemplate.opsForList();
 		listValues.leftPush(key, value);
+		trimListToMaxSize(docViewdRedisTemplate, key);
+
 	}
 
 	public List<Object> getViewdListValue(String key) {
@@ -87,6 +90,7 @@ public class RedisService {
 	public void setUpdatedListValue(String key, Long value) {
 		ListOperations<String, Object> listValues = docUpdatedRedisTemplate.opsForList();
 		listValues.leftPush(key, value);
+		trimListToMaxSize(docUpdatedRedisTemplate, key);
 	}
 
 	public List<Object> getUpdatedListValue(String key) {
@@ -108,6 +112,15 @@ public class RedisService {
 				listOps.remove(key, 1, value);
 				break;
 			}
+		}
+	}
+
+	private void trimListToMaxSize(RedisTemplate<String, Object> redisTemplate, String key) {
+		ListOperations<String, Object> listOps = redisTemplate.opsForList();
+		Long size = listOps.size(key);
+
+		if (size != null && size > MAX_LIST_SIZE) {
+			listOps.trim(key, 0, MAX_LIST_SIZE - 1);
 		}
 	}
 }
