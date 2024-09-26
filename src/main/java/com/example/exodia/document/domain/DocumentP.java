@@ -12,6 +12,7 @@ import javax.persistence.OneToOne;
 
 import org.hibernate.annotations.Where;
 
+import com.example.exodia.common.domain.BaseTimeEntity;
 import com.example.exodia.common.domain.DelYN;
 
 import lombok.AllArgsConstructor;

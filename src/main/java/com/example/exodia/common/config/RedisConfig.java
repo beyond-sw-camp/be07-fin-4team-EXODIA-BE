@@ -1,12 +1,13 @@
 package com.example.exodia.common.config;
 
-import org.redisson.Redisson;
-import org.redisson.api.RedissonClient;
-import org.redisson.config.Config;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
@@ -19,16 +20,37 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @Configuration
 public class RedisConfig {
 
-    private final RedisConnectionFactory redisConnectionFactory;
+    @Value("${spring.redis.host}")
+    private String host;
 
-    public RedisConfig(RedisConnectionFactory redisConnectionFactory) {
-        this.redisConnectionFactory = redisConnectionFactory;
+    @Value("${spring.redis.port}")
+    private int port;
+
+    // private final RedisConnectionFactory redisConnectionFactory;
+
+    // public RedisConfig(RedisConnectionFactory redisConnectionFactory) {
+    //     this.redisConnectionFactory = redisConnectionFactory;
+    // }
+
+    public LettuceConnectionFactory redisConnectionFactory(int index) {
+        RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
+        redisStandaloneConfiguration.setHostName(host);
+        redisStandaloneConfiguration.setPort(port);
+        redisStandaloneConfiguration.setDatabase(index);
+        return new LettuceConnectionFactory(redisStandaloneConfiguration);
     }
 
     @Bean
+    @Primary
+    LettuceConnectionFactory connectionFactory() {
+        return redisConnectionFactory(0);
+    }
+
+    @Bean
+    @Primary
     public RedisTemplate<String, Object> redisTemplate() {
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
-        redisTemplate.setConnectionFactory(redisConnectionFactory);
+        redisTemplate.setConnectionFactory(connectionFactory());
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         return redisTemplate;
@@ -60,6 +82,40 @@ public class RedisConfig {
         container.addMessageListener(messageListenerAdapter, roomEventsTopic);
         container.addMessageListener(messageListenerAdapter, userEventsTopic);
         return container;
+    }
+
+    // 최근 조회 문서
+    @Bean
+    @Qualifier("7")
+    LettuceConnectionFactory connectionFactoryViewdDoc() {
+        return redisConnectionFactory(6);
+    }
+
+    @Bean
+    @Qualifier("7")
+    public RedisTemplate<String, Object> docViewdRedisTemplate() {
+        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(connectionFactoryViewdDoc());
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        return redisTemplate;
+    }
+
+    // 최근 업데이트 문서
+    @Bean
+    @Qualifier("8")
+    LettuceConnectionFactory connectionFactoryUpdatedDoc() {
+        return redisConnectionFactory(7);
+    }
+
+    @Bean
+    @Qualifier("8")
+    public RedisTemplate<String, Object> docUpdatedRedisTemplate() {
+        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(connectionFactoryUpdatedDoc());
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        return redisTemplate;
     }
 
 }

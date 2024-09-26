@@ -2,6 +2,8 @@ package com.example.exodia.document.dto;
 
 import java.time.LocalDateTime;
 
+import com.example.exodia.document.domain.DocumentC;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,11 +13,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DocListResDto {
+public class DocHistoryResDto {
 	private Long id;
 	private String fileName;
-	private String type;
-	private String departmentName;
 	private String userName;
-	private LocalDateTime createdAt;
+	private LocalDateTime updatedAt;
 }
