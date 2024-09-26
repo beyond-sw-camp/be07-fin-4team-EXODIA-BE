@@ -39,15 +39,17 @@ public class BoardService {
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
     private final BoardHitsService boardHitsService;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
-    public BoardService(BoardRepository boardRepository, UploadAwsFileService uploadAwsFileService, BoardFileRepository boardFileRepository, UserRepository userRepository, CommentRepository commentRepository, BoardHitsService boardHitsService) {
+    public BoardService(@Qualifier("hits") RedisTemplate<String, Object> redisTemplate,BoardRepository boardRepository, UploadAwsFileService uploadAwsFileService, BoardFileRepository boardFileRepository, UserRepository userRepository, CommentRepository commentRepository, BoardHitsService boardHitsService) {
         this.boardRepository = boardRepository;
         this.uploadAwsFileService = uploadAwsFileService;
         this.boardFileRepository = boardFileRepository;
         this.userRepository = userRepository;
         this.commentRepository = commentRepository;
         this.boardHitsService = boardHitsService;
+        this.redisTemplate = redisTemplate;
     }
 
 
@@ -69,11 +71,13 @@ public class BoardService {
         Board board = dto.toEntity(user, category);
         board = boardRepository.save(board);
 
+        // Redis 조회수 초기화
+        String hitsKey = "board_hits:" + board.getId();
+        redisTemplate.opsForValue().set(hitsKey, 1L);
+
         // 파일이 있는 경우 파일 처리
         if (files != null && !files.isEmpty()) {
-            // S3 파일 업로드 후 파일 경로 및 Presigned URL 반환
             List<String> s3FilePaths = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files);
-
 
             // BoardFile 엔티티를 생성하여 저장
             for (int i = 0; i < files.size(); i++) {
@@ -97,6 +101,7 @@ public class BoardService {
         // 최종적으로 저장된 Board 엔티티 반환
         return board;
     }
+
 
 
 
@@ -144,8 +149,9 @@ public class BoardService {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("게시물을 찾을 수 없습니다."));
 
+        String user_num = SecurityContextHolder.getContext().getAuthentication().getName();
         // 조회수 증가
-        Long updatedHits = boardHitsService.incrementBoardHits(id);
+        Long updatedHits = boardHitsService.incrementBoardHits(id,user_num);
         board.updateBoardHitsFromRedis(updatedHits);  // 게시글 엔티티에 조회수 업데이트
 
         // Redis에서 조회수 가져오기
@@ -167,7 +173,7 @@ public class BoardService {
         BoardDetailDto boardDetailDto = board.detailFromEntity(filePaths);
         boardDetailDto.setComments(commentResDto);  // 댓글 리스트 추가
 
-        String user_num = board.getUser().getUserNum();
+
         // 조회수 추가
         boardDetailDto.setHits(currentHits);
         boardDetailDto.setUser_num(user_num);
