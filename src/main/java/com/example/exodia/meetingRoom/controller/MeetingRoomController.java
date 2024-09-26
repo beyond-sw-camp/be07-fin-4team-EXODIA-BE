@@ -2,6 +2,8 @@ package com.example.exodia.meetingRoom.controller;
 
 import com.example.exodia.common.dto.CommonResDto;
 import com.example.exodia.meetingRoom.domain.MeetingRoom;
+import com.example.exodia.meetingRoom.dto.MeetingRoomCreateDto;
+import com.example.exodia.meetingRoom.dto.MeetingRoomUpdateDto;
 import com.example.exodia.meetingRoom.service.MeetingRoomService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,10 +21,10 @@ public class MeetingRoomController {
     private MeetingRoomService meetingRoomService;
 
     /* 회의실 삭제 */
-    @PostMapping("/add")
+    @PostMapping("/create")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CommonResDto> addMeetingRoom(@RequestParam String name) {
-        MeetingRoom meetingRoom = meetingRoomService.createMeetRoom(name);
+    public ResponseEntity<CommonResDto> addMeetingRoom(@RequestBody MeetingRoomCreateDto dto) {
+        MeetingRoom meetingRoom = meetingRoomService.createMeetRoom(dto);
         return new ResponseEntity<>(new CommonResDto(HttpStatus.CREATED, "회의실이 추가되었습니다.", meetingRoom), HttpStatus.CREATED);
     }
 
@@ -34,10 +36,11 @@ public class MeetingRoomController {
     }
 
     /* 회의실 이름변경 */
+
     @PutMapping("/update/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CommonResDto> updateMeetingRoom(@PathVariable Long id, @RequestParam String newName) {
-        MeetingRoom updatedMeetingRoom = meetingRoomService.updateMeetRoom(id, newName);
+    public ResponseEntity<CommonResDto> updateMeetingRoom(@PathVariable Long id, @RequestBody MeetingRoomUpdateDto meetingRoomUpdateDto) {
+        MeetingRoom updatedMeetingRoom = meetingRoomService.updateMeetRoom(id, meetingRoomUpdateDto);
         return new ResponseEntity<>(new CommonResDto(HttpStatus.OK, "회의실 이름이 변경되었습니다.", updatedMeetingRoom), HttpStatus.OK);
     }
 

@@ -6,6 +6,8 @@ import com.example.exodia.evalutionb.domain.Evalutionb;
 import com.example.exodia.evalutionb.repository.EvalutionbRepository;
 import com.example.exodia.evalutionm.domain.Evalutionm;
 import com.example.exodia.evalutionm.repository.EvalutionmRepository;
+import com.example.exodia.meetingRoom.domain.MeetingRoom;
+import com.example.exodia.meetingRoom.repository.MeetingRoomRepository;
 import com.example.exodia.position.domain.Position;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.domain.Gender;
@@ -20,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class InitialDataLoader implements CommandLineRunner {
@@ -30,17 +33,19 @@ public class InitialDataLoader implements CommandLineRunner {
     private final EvalutionbRepository evalutionbRepository;
     private final EvalutionmRepository evalutionmRepository;
     private final PasswordEncoder passwordEncoder;
+    private final MeetingRoomRepository meetingRoomRepository;
 
     public InitialDataLoader(DepartmentRepository departmentRepository,
                              PositionRepository positionRepository,
                              UserRepository userRepository, EvalutionbRepository evalutionbRepository, EvalutionmRepository evalutionmRepository,
-                             PasswordEncoder passwordEncoder) {
+                             PasswordEncoder passwordEncoder, MeetingRoomRepository meetingRoomRepository) {
         this.departmentRepository = departmentRepository;
         this.positionRepository = positionRepository;
         this.userRepository = userRepository;
         this.evalutionbRepository = evalutionbRepository;
         this.evalutionmRepository = evalutionmRepository;
         this.passwordEncoder = passwordEncoder;
+        this.meetingRoomRepository = meetingRoomRepository;
     }
 
     @Override
@@ -135,6 +140,14 @@ public class InitialDataLoader implements CommandLineRunner {
         evalutionmRepository.save(teamwork);
         evalutionmRepository.save(communication);
 
-        System.out.println("Initial Evalution data loaded.");
+        /* 회의실 기본 제공 데이터 */
+        List<MeetingRoom> initialMeetingRooms = new ArrayList<>();
+        for (int i = 1; i <= 5; i++) {
+            MeetingRoom meetingRoom = MeetingRoom.builder()
+                    .name("회의실 " + i)
+                    .build();
+            initialMeetingRooms.add(meetingRoom);
+        }
+        meetingRoomRepository.saveAll(initialMeetingRooms);
     }
 }
