@@ -21,6 +21,7 @@ public class BoardSaveReqDto {
     private String userNum;
     private List<MultipartFile> files;
     private boolean isPinned;
+    private Long hits = 0L;
 
     @Builder.Default
     private DelYN delYn = DelYN.N;
@@ -34,6 +35,7 @@ public class BoardSaveReqDto {
                 .delYn(this.delYn != null ? this.delYn : DelYN.N)
                 .isPinned(this.isPinned)
                 .user(user)
+                .hits(this.hits)
                 .build();
     }
 }

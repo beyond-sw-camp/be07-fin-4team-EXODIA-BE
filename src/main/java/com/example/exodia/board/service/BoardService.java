@@ -71,9 +71,8 @@ public class BoardService {
         Board board = dto.toEntity(user, category);
         board = boardRepository.save(board);
 
-        // Redis 조회수 초기화
-        String hitsKey = "board_hits:" + board.getId();
-        redisTemplate.opsForValue().set(hitsKey, 1L);
+        // Redis 조회수 및 사용자 조회 기록 초기화
+        boardHitsService.resetBoardHits(board.getId());
 
         // 파일이 있는 경우 파일 처리
         if (files != null && !files.isEmpty()) {
@@ -105,43 +104,46 @@ public class BoardService {
 
 
 
-    // 게시물 목록 조회 (검색 가능)
-    public Page<BoardListResDto> BoardListWithSearch(Pageable pageable, String searchType, String searchQuery) {
-        if (searchQuery != null && !searchQuery.isEmpty()) {
 
+    public Page<BoardListResDto> BoardListWithSearch(Pageable pageable, String searchType, String searchQuery) {
+        Page<Board> boards;
+
+        if (searchQuery != null && !searchQuery.isEmpty()) {
             switch (searchType) {
                 case "title":
-                    return boardRepository.findByTitleContainingIgnoreCase(searchQuery, DelYN.N, pageable)
-                            .map(Board::listFromEntity);
+                    boards = boardRepository.findByTitleContainingIgnoreCase(searchQuery, DelYN.N, pageable);
+                    break;
                 case "content":
-                    return boardRepository.findByContentContainingIgnoreCase(searchQuery, DelYN.N, pageable)
-                            .map(Board::listFromEntity);
+                    boards = boardRepository.findByContentContainingIgnoreCase(searchQuery, DelYN.N, pageable);
+                    break;
                 case "title+content":
-                    return boardRepository.findByTitleContainingIgnoreCaseOrContentContainingIgnoreCase(
-                                    searchQuery, searchQuery, DelYN.N, pageable)
-                            .map(Board::listFromEntity);
+                    boards = boardRepository.findByTitleContainingIgnoreCaseOrContentContainingIgnoreCase(
+                            searchQuery, searchQuery, DelYN.N, pageable);
+                    break;
                 case "user_num":
-                    // 사번이 12자리인지 확인하는 로직
                     if (searchQuery.length() != 12) {
                         throw new IllegalArgumentException("사번은 12자리 문자열이어야 합니다.");
                     }
-                    return boardRepository.findByUser_UserNumAndDelYn(searchQuery, DelYN.N, pageable)
-                            .map(Board::listFromEntity);
+                    boards = boardRepository.findByUser_UserNumAndDelYn(searchQuery, DelYN.N, pageable);
+                    break;
                 case "name":
-                    return boardRepository.findByUser_NameContainingIgnoreCase(searchQuery, DelYN.N, pageable)
-                            .map(Board::listFromEntity);
+                    boards = boardRepository.findByUser_NameContainingIgnoreCase(searchQuery, DelYN.N, pageable);
+                    break;
                 default:
-                    return boardRepository.findAllWithPinned(pageable).map(Board::listFromEntity);  // 상단 고정 적용된 쿼리
+                    boards = boardRepository.findAllWithPinned(pageable);  // 상단 고정 적용된 쿼리
+                    break;
             }
         } else {
-            return boardRepository.findAllWithPinned(pageable).map(Board::listFromEntity);  // 상단 고정 적용된 쿼리
+            boards = boardRepository.findAllWithPinned(pageable);  // 상단 고정 적용된 쿼리
         }
+
+        // 조회수 최신화 작업
+        return boards.map(board -> {
+            Long currentHits = boardHitsService.getBoardHits(board.getId());
+            board.updateBoardHitsFromRedis(currentHits); // 조회수 업데이트
+            return board.listFromEntity(); // DTO 변환
+        });
     }
-
-
-
-
-
 
 
     public BoardDetailDto BoardDetail(Long id) {
@@ -150,12 +152,15 @@ public class BoardService {
                 .orElseThrow(() -> new EntityNotFoundException("게시물을 찾을 수 없습니다."));
 
         String user_num = SecurityContextHolder.getContext().getAuthentication().getName();
-        // 조회수 증가
-        Long updatedHits = boardHitsService.incrementBoardHits(id,user_num);
-        board.updateBoardHitsFromRedis(updatedHits);  // 게시글 엔티티에 조회수 업데이트
 
-        // Redis에서 조회수 가져오기
-        Long currentHits = boardHitsService.getBoardHits(id);
+        // 조회수 증가 후 증가된 조회수 값 반환
+        Long updatedHits = boardHitsService.incrementBoardHits(id, user_num);
+
+        // 게시물의 조회수를 증가된 값으로 업데이트
+        board.updateBoardHitsFromRedis(updatedHits);
+
+        // 업데이트된 조회수를 DB에 반영
+        boardRepository.save(board);
 
         // 관련 파일 목록 조회
         List<BoardFile> boardFiles = boardFileRepository.findByBoardId(id);
@@ -172,15 +177,13 @@ public class BoardService {
         // 게시물 상세 정보 생성
         BoardDetailDto boardDetailDto = board.detailFromEntity(filePaths);
         boardDetailDto.setComments(commentResDto);  // 댓글 리스트 추가
-
-
-        // 조회수 추가
-        boardDetailDto.setHits(currentHits);
+        boardDetailDto.setHits(updatedHits);  // 조회수 반영
         boardDetailDto.setUser_num(user_num);
-
 
         return boardDetailDto;
     }
+
+
 
 
 
