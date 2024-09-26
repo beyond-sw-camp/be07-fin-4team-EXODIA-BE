@@ -44,8 +44,6 @@ public class MeetingRoomController {
         return new ResponseEntity<>(new CommonResDto(HttpStatus.OK, "회의실 이름이 변경되었습니다.", updatedMeetingRoom), HttpStatus.OK);
     }
 
-
-
     /* 회의실 삭제 */
     @DeleteMapping("/delete/{id}")
     @PreAuthorize("hasRole('ADMIN')")
