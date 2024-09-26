@@ -47,23 +47,39 @@ public class VideoRoomService {
     }
 
 
-
     public boolean joinRoom(String roomName, String password, User user) {
-        Optional<VideoRoom> roomOpt = videoRoomRepository.findByRoomNameAndIsActiveTrue(roomName);
-        if (roomOpt.isPresent()) {
-            VideoRoom room = roomOpt.get();
-            if (room.getPassword() == null || room.getPassword().equals(password)) {
-                room.increaseParticipantCount();
-                videoRoomRepository.save(room);
+        try {
+            // 방 정보가 올바르게 조회되었는지 확인
+            Optional<VideoRoom> roomOpt = videoRoomRepository.findByRoomNameAndIsActiveTrue(roomName);
+            if (roomOpt.isPresent()) {
+                VideoRoom room = roomOpt.get();
+                System.out.println("방 정보: " + room); // 방 정보 로그 출력
+                System.out.println("방 비밀번호: " + room.getPassword()); // 방 비밀번호 출력
 
-                // 변경된 정보 Redis에 저장
-                redisTemplate.opsForValue().set("room:" + room.getId(), room.toDto());
-                messagePublisher.publish(user.getName() + " joined room: " + roomName);
-                return true;
+                if (room.getPassword() == null || room.getPassword().equals(password)) {
+                    room.increaseParticipantCount();
+                    videoRoomRepository.save(room);
+
+                    // 변경된 정보 Redis에 저장
+                    redisTemplate.opsForValue().set("room:" + room.getId(), room.toDto());
+                    messagePublisher.publish(user.getName() + " joined room: " + roomName);
+                    return true;
+                } else {
+                    System.out.println("비밀번호 불일치");
+                    throw new IllegalArgumentException("비밀번호가 틀렸습니다."); // 비밀번호가 틀릴 때의 예외 처리
+                }
+            } else {
+                System.out.println("방 존재하지 않음");
+                throw new IllegalArgumentException("방이 존재하지 않습니다."); // 방이 존재하지 않을 때의 예외 처리
             }
+        } catch (Exception e) {
+            System.out.println("예외 발생: " + e.getMessage());
+            e.printStackTrace(); // 콘솔에 예외 출력
+            throw e; // 예외 다시 던지기
         }
-        return false;
     }
+
+
 
     public void leaveRoom(String roomName, User user) {
         Optional<VideoRoom> roomOpt = videoRoomRepository.findByRoomName(roomName);
