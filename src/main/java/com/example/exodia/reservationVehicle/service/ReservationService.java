@@ -46,7 +46,6 @@ public class ReservationService {
     private UserService userService;
 
     // 차량 예약 메서드
-    // 차량 예약 메서드
     public ReservationDto carReservation(ReservationCreateDto dto) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         RLock lock = redissonClient.getLock("carReservationLock:" + dto.getCarId() + ":" + dto.getStartDate());
