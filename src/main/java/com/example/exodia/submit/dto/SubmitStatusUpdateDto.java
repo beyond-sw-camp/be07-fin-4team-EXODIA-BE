@@ -14,5 +14,12 @@ import lombok.NoArgsConstructor;
 public class SubmitStatusUpdateDto {
 	private Long submitId;
 	private SubmitStatus status;
+	private String reason;
+
+	public void chkReason(){
+		if (status == SubmitStatus.REJECT && reason == null) {
+			throw new IllegalArgumentException("반려 사유를 입력하세요.");
+		}
+	}
 }
 

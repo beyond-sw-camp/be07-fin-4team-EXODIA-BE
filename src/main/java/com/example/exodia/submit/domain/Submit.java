@@ -41,7 +41,6 @@ public class Submit extends BaseTimeEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private SubmitStatus submitStatus;
@@ -51,6 +50,9 @@ public class Submit extends BaseTimeEntity {
 
 	@Column(nullable = false)
 	private String contents;
+
+	@Column(nullable = true)
+	private String reason;
 
 	@Column(nullable = false)
 	private Long department_id;
@@ -66,8 +68,9 @@ public class Submit extends BaseTimeEntity {
 	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 
-	public void updateStatus(SubmitStatus status) {
+	public void updateStatus(SubmitStatus status, String reason) {
 		this.submitStatus = status;
+		this.reason = reason;
 	}
 }
 
