@@ -43,10 +43,9 @@ public class DocumentP {
 	@Column(name = "del_yn", nullable = false)
 	private DelYN delYn = DelYN.N;
 
-	public static DocumentP toEntity(Long id, DocumentType documentType) {
+	public static DocumentP toEntity(Long id, DocumentType documentType, String version) {
 		return DocumentP.builder()
-			.id(id)
-			.version("1")
+			.version(version)
 			.documentType(documentType)
 			.delYn(DelYN.N)
 			.build();
@@ -54,7 +53,6 @@ public class DocumentP {
 
 	public DocumentP updateEntity(Long id, String version) {
 		return DocumentP.builder()
-			.id(id)
 			.version(String.valueOf(Integer.parseInt(version) + 1))
 			.documentType(documentType)
 			.delYn(DelYN.N)

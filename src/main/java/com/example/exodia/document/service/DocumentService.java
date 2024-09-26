@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletResponse;
@@ -28,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.common.service.RedisService;
+import com.example.exodia.common.service.UploadAwsFileService;
 import com.example.exodia.document.domain.DocumentC;
 import com.example.exodia.document.domain.DocumentP;
 import com.example.exodia.document.domain.DocumentType;
@@ -52,27 +54,20 @@ public class DocumentService {
 	private final DocumentTypeRepository documentTypeRepository;
 	private final UserRepository userRepository;
 	private final RedisService redisService;
+	private final UploadAwsFileService uploadAwsFileService;
 
 	@Autowired
 	public DocumentService(DocumentCRepository documentCRepository, DocumentPRepository documentPRepository,
-		DocumentTypeRepository documentTypeRepository, UserRepository userRepository, RedisService redisService) {
+		DocumentTypeRepository documentTypeRepository, UserRepository userRepository, RedisService redisService,
+		UploadAwsFileService uploadAwsFileService) {
 		this.documentCRepository = documentCRepository;
 		this.documentPRepository = documentPRepository;
 		this.documentTypeRepository = documentTypeRepository;
 		this.userRepository = userRepository;
 		this.redisService = redisService;
+		this.uploadAwsFileService = uploadAwsFileService;
 	}
 
-	@Autowired
-	@Qualifier("docUpdatedRedisTemplate")
-	private RedisTemplate<String, Object> docUpdatedRedisTemplate;
-
-	@Autowired
-	@Qualifier("docViewdRedisTemplate")
-	private RedisTemplate<String, Object> docViewdRedisTemplate;
-
-	// 	문서 업로드 -> s3로 변경해야함
-	private String uploadDir = "/Users/suhyun/Documents/pot_doc";
 
 	// 파일 저장
 	public DocumentC saveDoc(MultipartFile file, DocReqDto docReqDto) throws IOException {
@@ -80,29 +75,26 @@ public class DocumentService {
 		User user = userRepository.findByUserNum(userNum)
 			.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
 
-		String fileName = file.getOriginalFilename();
-		Path filePath = Paths.get(uploadDir + "/" + fileName);
-		Files.write(filePath, file.getBytes());
+		DocumentC savedC = DocumentC.builder().user(user).build();
 
-		String path = filePath.toString();
-		String fileContent = new String(file.getBytes(), StandardCharsets.UTF_8);
+		if (file != null && !file.isEmpty()) {
+			String fileName = file.getOriginalFilename();
+			String fileDownloadUrl = uploadAwsFileService.generatePresignedUrl(fileName);
 
-		// 없으면 생성
-		DocumentType documentType = documentTypeRepository.findByTypeName(docReqDto.getTypeName())
-			.orElseGet(() -> {
-				return documentTypeRepository.save(
-					DocumentType.builder()
-						.typeName(docReqDto.getTypeName()).delYn(DelYN.N).build());
-			});
-		DocumentC savedC = documentCRepository.save(
-			DocumentC.toEntity(docReqDto, user, path, fileContent, documentType));
-		savedC.updateDocumentP(saveParentDoc(savedC.getId(), documentType));
-		documentCRepository.save(savedC);
+			DocumentType documentType = documentTypeRepository.findByTypeName(docReqDto.getTypeName())
+				.orElseGet(() -> {
+					return documentTypeRepository.save(
+						DocumentType.builder()
+							.typeName(docReqDto.getTypeName()).delYn(DelYN.N).build());
+				});
+
+			savedC = documentCRepository.save(
+				DocumentC.toEntity(docReqDto, user, fileName, fileDownloadUrl, documentType));
+			// saveParentDoc(savedC.getId(), documentType);
+			// savedC.updateDocumentP(saveParentDoc(savedC.getId(), documentType));
+			// documentCRepository.save(savedC);
+		}
 		return savedC;
-	}
-
-	public DocumentP saveParentDoc(Long id, DocumentType documentType) {
-		return documentPRepository.save(DocumentP.toEntity(id, documentType));
 	}
 
 	//	첨부파일 다운로드
@@ -145,7 +137,7 @@ public class DocumentService {
 		List<DocListResDto> docListResDtos = new ArrayList<>();
 
 		for (Object docId : docIds) {
-			DocumentC doc = documentCRepository.findById(((Integer) docId).longValue())
+			DocumentC doc = documentCRepository.findById(((Integer)docId).longValue())
 				.orElseThrow(() -> new EntityNotFoundException("문서를 찾을 수 없습니다."));
 			docs.add(doc);
 		}
@@ -164,7 +156,7 @@ public class DocumentService {
 		List<DocListResDto> docListResDtos = new ArrayList<>();
 
 		for (Object docId : docIds) {
-			DocumentC doc = documentCRepository.findById(((Integer) docId).longValue())
+			DocumentC doc = documentCRepository.findById(((Integer)docId).longValue())
 				.orElseThrow(() -> new EntityNotFoundException("문서를 찾을 수 없습니다."));
 			docs.add(doc);
 		}
@@ -204,30 +196,40 @@ public class DocumentService {
 			redisService.removeUpdatedListValue(userNum, docUpdateReqDto.getId());
 		}
 		redisService.setUpdatedListValue(userNum, documentC.getId());
-		DocumentP documentP = documentC.getDocumentP();
+
+		String version = "";
+		if (documentC.getDocumentP() == null) {
+			version = "1";
+		} else {
+			version = String.valueOf(Integer.parseInt(documentC.getDocumentP().getVersion()) + 1);
+		}
+
+		DocumentP newDocP = documentPRepository.save(DocumentP.toEntity(docUpdateReqDto.getId(), documentC.getDocumentType(), version));
+
 
 		// 새로운 파일로 수정
+		String s3FilePath = uploadAwsFileService.uploadSingleFileAndReturnPath(file, "document");
 		String fileName = file.getOriginalFilename();
-		Path filePath = Paths.get(uploadDir + "/" + fileName);
-		Files.write(filePath, file.getBytes());
-
-		String path = filePath.toString();
-		String fileContent = new String(file.getBytes(), StandardCharsets.UTF_8);
+		String fileDownloadUrl = uploadAwsFileService.generatePresignedUrl(fileName);
 
 		DocumentType documentType = documentTypeRepository.findByTypeName(docUpdateReqDto.getTypeName())
 			.orElseThrow(() -> new EntityNotFoundException("폴더가 존재하지 않습니다."));
 
+		DocumentC newDoc = DocumentC.updatetoEntity(docUpdateReqDto, newDocP, user, fileName, s3FilePath, fileDownloadUrl,
+			documentType);
 		// 자식 문서 추가
-		DocumentC savedC = documentCRepository.save(
-			DocumentC.updatetoEntity(docUpdateReqDto, user, path, fileContent, documentType));
-		// 부모 문서 추가
-		DocumentP updateP = documentP.updateEntity(docUpdateReqDto.getId(), documentP.getVersion());
-		// 자식 문서 업데이트
-		savedC.updateDocumentP(updateP);
 
-		documentCRepository.save(savedC);
-		documentPRepository.save(updateP);
-		return savedC;
+
+		// DocumentC savedC = documentCRepository.save(
+		// 	DocumentC.updatetoEntity(docUpdateReqDto, user, fileName, s3FilePath, fileDownloadUrl, documentType));
+		// // 부모 문서 추가
+		// DocumentP updateP = documentP.updateEntity(docUpdateReqDto.getId(), documentP.getVersion());
+		// 자식 문서 업데이트
+		// savedC.updateDocumentP(updateP);
+
+		// documentCRepository.save(savedC);
+		// documentPRepository.save(updateP);
+		return documentCRepository.save(newDoc);
 	}
 
 	// 문서 버전

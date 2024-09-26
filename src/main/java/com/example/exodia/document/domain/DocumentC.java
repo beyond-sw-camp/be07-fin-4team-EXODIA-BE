@@ -1,6 +1,7 @@
 package com.example.exodia.document.domain;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -15,6 +16,7 @@ import javax.persistence.OneToOne;
 
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Where;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.exodia.common.domain.BaseTimeEntity;
 import com.example.exodia.common.domain.DelYN;
@@ -46,13 +48,13 @@ public class DocumentC extends BaseTimeEntity {
 	@Column(nullable = false)
 	private String fileName;
 
-	@Column(nullable = false, columnDefinition = "TEXT")
-	private String contents;
-
-	@Column(nullable = false)
+	// 다운로드 경로
+	@Column(nullable = false, length = 2083)
 	private String filePath;
 
+	@Column(nullable = true, length = 2083)
 	private String description;
+
 
 	// @Column(nullable = false)
 	// @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
@@ -71,10 +73,11 @@ public class DocumentC extends BaseTimeEntity {
 	private DelYN delYn = DelYN.N;
 
 	@OneToOne
+	@JoinColumn(name = "document_type", nullable = false)
 	private DocumentType documentType;
 
 	@ManyToOne
-	@JoinColumn(name = "user_id", nullable = false)
+	@JoinColumn(name = "user_num", nullable = false)
 	private User user;
 
 	@OneToOne
@@ -86,13 +89,13 @@ public class DocumentC extends BaseTimeEntity {
 	// @JoinColumn(name = "department_id", nullable = false)
 	// private Department department;
 
-	public static DocumentC toEntity(DocReqDto docReqDto, User user, String path, String contents, DocumentType documentType) {
+	public static DocumentC toEntity(DocReqDto docReqDto, User user, String fileName, String fileDownloadUrl, DocumentType documentType) {
 		return DocumentC.builder()
-			.fileName(docReqDto.getFileName())
-			.filePath(path)
-			.contents(contents)
+			.fileName(fileName)
+			.filePath(fileDownloadUrl)
 			.documentType(documentType)
 			.user(user)
+			.documentP(null)
 			.delYn(DelYN.N)
 			.build();
 	}
@@ -119,12 +122,13 @@ public class DocumentC extends BaseTimeEntity {
 			.build();
 	}
 
-	public static DocumentC updatetoEntity(DocUpdateReqDto docUpdateReqDto, User user, String path, String contents,
+	public static DocumentC updatetoEntity(DocUpdateReqDto docUpdateReqDto, DocumentP documentP, User user, String fileName, String s3FilePath, String fileDownloadUrl,
 		DocumentType documentType){
 		return DocumentC.builder()
-			.fileName(docUpdateReqDto.getFileName())
-			.contents(contents)
-			.filePath(path)
+			.fileName(fileName)
+			.filePath(s3FilePath)
+			.filePath(fileDownloadUrl)
+			.documentP(documentP)
 			.documentType(documentType)
 			.user(user)
 			.delYn(DelYN.N)

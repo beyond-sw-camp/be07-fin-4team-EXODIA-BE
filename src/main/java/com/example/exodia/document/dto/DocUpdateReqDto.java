@@ -15,11 +15,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class DocUpdateReqDto {
 	private Long id;
-	private String fileName;
-	private String fileExtension;
-	private LocalDateTime updatedAt;
-	private LocalDateTime viewedAt;
 	private String typeName;
-	// private User user;
 	private String description;	// 설명
 }
