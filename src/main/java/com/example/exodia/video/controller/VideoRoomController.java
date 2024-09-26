@@ -6,6 +6,7 @@ import com.example.exodia.common.dto.CommonResDto;
 import com.example.exodia.user.domain.CustomUserDetails;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.video.domain.VideoRoom;
+import com.example.exodia.video.dto.JoinRoomDto;
 import com.example.exodia.video.service.VideoRoomService;
 import com.example.exodia.video.dto.CreateRoomDto;
 import org.springframework.http.HttpStatus;
@@ -41,9 +42,14 @@ public class VideoRoomController {
 
 
     @PostMapping("/join")
-    public ResponseEntity<?> joinRoom(@RequestParam String roomName, @RequestParam String password, Authentication authentication) {
+    public ResponseEntity<?> joinRoom(@RequestBody JoinRoomDto joinRoomDto, Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         User user = userDetails.getUser();
+
+        String roomName = joinRoomDto.getRoomName();
+        String password = joinRoomDto.getPassword();
+
+        System.out.println("join request for room: " + roomName + " with password: " + password);
         boolean joined = videoRoomService.joinRoom(roomName, password, user);
         if (joined) {
             messagePublisher.publish(user.getName() + " joined room: " + roomName);
@@ -52,6 +58,7 @@ public class VideoRoomController {
             return new ResponseEntity<>(new CommonErrorDto(HttpStatus.FORBIDDEN, "비밀번호가 틀렸거나 방이 존재하지 않습니다."), HttpStatus.FORBIDDEN);
         }
     }
+
 
     @GetMapping("/list")
     public ResponseEntity<?> listRooms() {
