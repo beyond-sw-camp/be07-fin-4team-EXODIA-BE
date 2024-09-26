@@ -35,17 +35,17 @@ public class VideoRoomService {
                 password,
                 host,
                 true,
-                1, 
+                1,
                 LocalDateTime.now()
         );
         VideoRoom savedRoom = videoRoomRepository.save(room);
         VideoRoomRedisDto roomDto = savedRoom.toDto();
-        
-        redisTemplate.opsForValue().set("room:" + savedRoom.getId(), roomDto);
 
-        messagePublisher.publish("방 입장" + host.getName() + ": " + roomName);
+        redisTemplate.opsForValue().set("room:" + savedRoom.getId(), roomDto);
+        messagePublisher.publish("Room created by " + host.getName() + ": " + roomName);
         return savedRoom;
     }
+
 
 
     public boolean joinRoom(String roomName, String password, User user) {

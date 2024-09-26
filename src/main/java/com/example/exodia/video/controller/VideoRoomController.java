@@ -31,10 +31,14 @@ public class VideoRoomController {
     public ResponseEntity<?> createRoom(@RequestBody CreateRoomDto roomDto, Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         User host = userDetails.getUser();
+
+        System.out.println("Room Name: " + roomDto.getRoomName());
         VideoRoom room = videoRoomService.createRoom(roomDto.getRoomName(), roomDto.getPassword(), host);
-        messagePublisher.publish("Room created: " + roomDto.getRoomName());
-        return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "방 생성 완료", room));
+        videoRoomService.joinRoom(room.getRoomName(), roomDto.getPassword(), host);
+        messagePublisher.publish("Room created and joined by: " + host.getName() + " for room: " + roomDto.getRoomName());
+        return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "방 생성 및 입장 완료", room));
     }
+
 
     @PostMapping("/join")
     public ResponseEntity<?> joinRoom(@RequestParam String roomName, @RequestParam String password, Authentication authentication) {
