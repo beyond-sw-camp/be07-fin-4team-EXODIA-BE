@@ -29,13 +29,4 @@ public class AwsConfig {
                 .build();
     }
 
-    @Bean
-    public S3Presigner s3Presigner() {
-        AwsBasicCredentials awsBasicCredentials = AwsBasicCredentials.create(accesskey, secretkey);
-        return S3Presigner.builder()
-                .region(Region.of(region))
-                .credentialsProvider(StaticCredentialsProvider.create(awsBasicCredentials))
-                .build();
-    }
-
 }

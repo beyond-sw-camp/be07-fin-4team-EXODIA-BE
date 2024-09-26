@@ -33,18 +33,16 @@ public class BoardFile {
     @Column(nullable = false)
     private Long fileSize;
 
-    @Column(nullable = true, length = 2083)
-    private String fileDownloadUrl;
 
 
-    public static BoardFile createBoardFile(Board board, String filePath, String fileType, String fileName, Long fileSize, String fileDownloadUrl) {
+
+    public static BoardFile createBoardFile(Board board, String filePath, String fileType, String fileName, Long fileSize) {
         return BoardFile.builder()
                 .board(board)
                 .filePath(filePath)
                 .fileType(fileType)
                 .fileName(fileName)
                 .fileSize(fileSize)
-                .fileDownloadUrl(fileDownloadUrl)
                 .build();
     }
 }

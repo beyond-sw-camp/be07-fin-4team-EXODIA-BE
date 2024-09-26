@@ -9,12 +9,8 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
-import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,24 +20,18 @@ public class UploadAwsFileService {
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
-    @Value("${aws.s3.expiration-time:3600}")
-    private long expirationTime; // Presigned URL 만료 시간 (초 단위)
-
     private final S3Client s3Client;
-    private final S3Presigner s3Presigner;
     private final CommonMethod commonMethod;
 
     @Autowired
-    public UploadAwsFileService(S3Client s3Client, S3Presigner s3Presigner, CommonMethod commonMethod) {
+    public UploadAwsFileService(S3Client s3Client, CommonMethod commonMethod) {
         this.s3Client = s3Client;
-        this.s3Presigner = s3Presigner;
         this.commonMethod = commonMethod;
     }
 
     // 다중 파일 업로드 메서드
     public List<String> uploadMultipleFilesAndReturnPaths(List<MultipartFile> files) {
         List<String> fileUrls = new ArrayList<>();
-        List<String> fileNames = new ArrayList<>(); // Pre-signed URL 생성을 위한 파일 이름 저장
 
         for (MultipartFile file : files) {
             try {
@@ -59,7 +49,6 @@ public class UploadAwsFileService {
                     throw new IllegalArgumentException("파일의 크기가 너무 큽니다: " + fileName);
                 }
 
-                // S3에 파일 업로드
                 PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                         .bucket(bucket)
                         .key(fileName)
@@ -68,8 +57,11 @@ public class UploadAwsFileService {
 
                 s3Client.putObject(putObjectRequest, RequestBody.fromBytes(fileData));
 
-                // 업로드된 파일의 이름을 저장하여 Pre-signed URL 생성을 위해 사용
-                fileNames.add(fileName);
+                String s3FilePath = s3Client.utilities()
+                        .getUrl(a -> a.bucket(bucket).key(fileName))
+                        .toExternalForm();
+
+                fileUrls.add(s3FilePath);
 
             } catch (IOException e) {
                 throw new RuntimeException("파일 업로드 중 오류 발생: " + (file != null ? file.getOriginalFilename() : "null"), e);
@@ -78,27 +70,7 @@ public class UploadAwsFileService {
             }
         }
 
-        // Pre-signed URL 생성
-        fileUrls.addAll(generatePresignedUrls(fileNames));
-
         return fileUrls;
-    }
-
-    // Pre-signed URL 생성 메서드
-    public List<String> generatePresignedUrls(List<String> fileNames) {
-        List<String> presignedUrls = new ArrayList<>();
-
-        for (String fileName : fileNames) {
-            GetObjectPresignRequest getObjectPresignRequest = GetObjectPresignRequest.builder()
-                    .signatureDuration(Duration.ofSeconds(expirationTime))
-                    .getObjectRequest(b -> b.bucket(bucket).key(fileName))
-                    .build();
-
-            PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(getObjectPresignRequest);
-            presignedUrls.add(presignedRequest.url().toString());
-        }
-
-        return presignedUrls;
     }
 
     // S3에서 파일 이름이 중복되는지 확인하고 중복 시 파일 이름에 숫자를 붙임

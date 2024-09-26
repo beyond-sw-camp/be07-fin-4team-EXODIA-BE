@@ -37,17 +37,14 @@ public class Board extends BaseTimeEntity {
     @Column(nullable = false)
     private Category category;
 
-    @Column(nullable = false)
-    private int hits = 0;
+
+    private Long hits = 0L;
 
     // 작성자 정보 (익명 게시글의 경우 null, 수정 필요)
     @ManyToOne
-    @JoinColumn(name = "user_num", nullable = true)
+    @JoinColumn(name = "user_num", nullable = false)
     private User user;
 
-    // 익명 여부 필드 추가
-    @Column(name = "is_anonymous", nullable = false)
-    private Boolean isAnonymous = false;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = false)
@@ -70,10 +67,10 @@ public class Board extends BaseTimeEntity {
                 .title(this.title)
                 .category(category)
                 .hits(this.hits)
-                .user_num(this.isAnonymous ? "익명" : this.user.getUserNum())
                 .createdAt(this.getCreatedAt())
                 .updatedAt(this.getUpdatedAt())
                 .isPinned(this.isPinned)
+                .user_num(user.getUserNum())
                 .build();
     }
 
@@ -83,11 +80,17 @@ public class Board extends BaseTimeEntity {
                 .id(this.getId())
                 .title(this.getTitle())
                 .content(this.getContent())
-                .user_num(this.isAnonymous ? "익명" : this.user.getUserNum())
                 .category(category)
                 .createdAt(this.getCreatedAt())
                 .updatedAt(this.getUpdatedAt())
                 .filePaths(filePaths)
+                .hits(this.hits)
+                .user_num(user.getUserNum())
                 .build();
     }
+
+    public void updateBoardHitsFromRedis(Long hits) {
+        this.hits = hits;
+    }
+
 }

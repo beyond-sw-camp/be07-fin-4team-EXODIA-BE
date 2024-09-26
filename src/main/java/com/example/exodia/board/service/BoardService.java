@@ -17,8 +17,10 @@ import com.example.exodia.common.service.UploadAwsFileService;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,33 +38,31 @@ public class BoardService {
     private final UploadAwsFileService uploadAwsFileService;
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
+    private final BoardHitsService boardHitsService;
 
     @Autowired
-    public BoardService(BoardRepository boardRepository, UploadAwsFileService uploadAwsFileService, BoardFileRepository boardFileRepository, UserRepository userRepository, CommentRepository commentRepository) {
+    public BoardService(BoardRepository boardRepository, UploadAwsFileService uploadAwsFileService, BoardFileRepository boardFileRepository, UserRepository userRepository, CommentRepository commentRepository, BoardHitsService boardHitsService) {
         this.boardRepository = boardRepository;
         this.uploadAwsFileService = uploadAwsFileService;
         this.boardFileRepository = boardFileRepository;
         this.userRepository = userRepository;
         this.commentRepository = commentRepository;
+        this.boardHitsService = boardHitsService;
     }
+
+
 
     // 게시물 생성
     @Transactional
     public Board createBoard(BoardSaveReqDto dto, List<MultipartFile> files) {
-        User user = null;
-        boolean isAnonymous = dto.isAnonymous();
         Category category = dto.getCategory();
 
-        // 익명이 아닌 경우에만 User 정보를 조회
-        if (!isAnonymous) {
-            user = userRepository.findByUserNum(dto.getUserNum())
-                    .orElseThrow(() -> new IllegalArgumentException("해당 사번을 가진 유저가 없습니다."));
+        User user = userRepository.findByUserNum(dto.getUserNum())
+                .orElseThrow(() -> new IllegalArgumentException("해당 사번을 가진 유저가 없습니다."));
 
-            // 카테고리가 NOTICE 또는 FAMILY_EVENT일 때, 부서가 인사팀인지 확인
-            if ((category == Category.NOTICE || category == Category.FAMILY_EVENT) &&
-                    !user.getDepartment().getName().equals("인사팀")) {
-                throw new SecurityException("공지사항 또는 경조사 게시물은 인사팀만 작성할 수 있습니다.");
-            }
+        if ((category == Category.NOTICE || category == Category.FAMILY_EVENT) &&
+                !user.getDepartment().getName().equals("인사팀")) {
+            throw new SecurityException("공지사항 또는 경조사 게시물은 인사팀만 작성할 수 있습니다.");
         }
 
         // BoardSaveReqDto에서 엔티티 변환
@@ -74,18 +74,11 @@ public class BoardService {
             // S3 파일 업로드 후 파일 경로 및 Presigned URL 반환
             List<String> s3FilePaths = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files);
 
-            // 파일 이름 리스트 추출
-            List<String> fileNames = files.stream()
-                    .map(MultipartFile::getOriginalFilename)
-                    .collect(Collectors.toList());
-
-            List<String> presignedUrls = uploadAwsFileService.generatePresignedUrls(fileNames); // Presigned URL 생성
 
             // BoardFile 엔티티를 생성하여 저장
             for (int i = 0; i < files.size(); i++) {
                 MultipartFile file = files.get(i);
                 String s3FilePath = s3FilePaths.get(i);
-                String fileDownloadUrl = presignedUrls.get(i);  // 다운로드 URL
 
                 // BoardFile 엔티티 생성 및 저장
                 BoardFile boardFile = BoardFile.createBoardFile(
@@ -93,8 +86,7 @@ public class BoardService {
                         s3FilePath,
                         file.getContentType(),
                         file.getOriginalFilename(),
-                        file.getSize(),
-                        fileDownloadUrl // Presigned URL을 다운로드 URL로 추가
+                        file.getSize()
                 );
 
                 // BoardFile 저장
@@ -111,6 +103,7 @@ public class BoardService {
     // 게시물 목록 조회 (검색 가능)
     public Page<BoardListResDto> BoardListWithSearch(Pageable pageable, String searchType, String searchQuery) {
         if (searchQuery != null && !searchQuery.isEmpty()) {
+
             switch (searchType) {
                 case "title":
                     return boardRepository.findByTitleContainingIgnoreCase(searchQuery, DelYN.N, pageable)
@@ -151,6 +144,13 @@ public class BoardService {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("게시물을 찾을 수 없습니다."));
 
+        // 조회수 증가
+        Long updatedHits = boardHitsService.incrementBoardHits(id);
+        board.updateBoardHitsFromRedis(updatedHits);  // 게시글 엔티티에 조회수 업데이트
+
+        // Redis에서 조회수 가져오기
+        Long currentHits = boardHitsService.getBoardHits(id);
+
         // 관련 파일 목록 조회
         List<BoardFile> boardFiles = boardFileRepository.findByBoardId(id);
         List<String> filePaths = boardFiles.stream()
@@ -167,8 +167,15 @@ public class BoardService {
         BoardDetailDto boardDetailDto = board.detailFromEntity(filePaths);
         boardDetailDto.setComments(commentResDto);  // 댓글 리스트 추가
 
+        String user_num = board.getUser().getUserNum();
+        // 조회수 추가
+        boardDetailDto.setHits(currentHits);
+        boardDetailDto.setUser_num(user_num);
+
+
         return boardDetailDto;
     }
+
 
 
     @Transactional
@@ -268,5 +275,7 @@ public class BoardService {
         // 게시물 삭제
         boardRepository.delete(board);
     }
+
+
 
 }
