@@ -118,4 +118,21 @@ public class RedisConfig {
         return redisTemplate;
     }
 
+    // 조회수
+    @Bean
+    @Qualifier("hits")
+    LettuceConnectionFactory connectionFactoryHits() {
+        return redisConnectionFactory(10);
+    }
+
+    @Bean
+    @Qualifier("hits")
+    public RedisTemplate<String, Object> hitsRedisTemplate() {
+        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(connectionFactoryUpdatedDoc());
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        return redisTemplate;
+    }
+
 }
