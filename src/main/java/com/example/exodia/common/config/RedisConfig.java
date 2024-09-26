@@ -1,5 +1,7 @@
 package com.example.exodia.common.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
@@ -26,12 +28,6 @@ public class RedisConfig {
     @Value("${spring.redis.port}")
     private int port;
 
-    // private final RedisConnectionFactory redisConnectionFactory;
-
-    // public RedisConfig(RedisConnectionFactory redisConnectionFactory) {
-    //     this.redisConnectionFactory = redisConnectionFactory;
-    // }
-
     public LettuceConnectionFactory redisConnectionFactory(int index) {
         RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
         redisStandaloneConfiguration.setHostName(host);
@@ -55,6 +51,28 @@ public class RedisConfig {
         redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         return redisTemplate;
     }
+
+
+    @Bean
+    @Qualifier("videoRoomConnectionFactory")
+    LettuceConnectionFactory videoRoomConnectionFactory() {
+        return redisConnectionFactory(1);
+    }
+
+    @Bean
+    @Qualifier("videoRoomRedisTemplate")
+    public RedisTemplate<String, Object> videoRoomRedisTemplate(@Qualifier("videoRoomConnectionFactory") LettuceConnectionFactory videoRoomConnectionFactory) {
+        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(videoRoomConnectionFactory);
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer(objectMapper));
+
+        return redisTemplate;
+    }
+
 
     @Bean
     public ChannelTopic roomEventsTopic() {
