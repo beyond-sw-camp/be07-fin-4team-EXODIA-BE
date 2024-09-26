@@ -19,8 +19,6 @@ import com.example.exodia.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +26,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,16 +36,14 @@ public class BoardService {
     private final UploadAwsFileService uploadAwsFileService;
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
-    private final RedisTemplate<String, Object> hitsRedisTemplate;
 
     @Autowired
-    public BoardService(BoardRepository boardRepository, UploadAwsFileService uploadAwsFileService, BoardFileRepository boardFileRepository, UserRepository userRepository, CommentRepository commentRepository, RedisTemplate<String, Object> hitsRedisTemplate) {
+    public BoardService(BoardRepository boardRepository, UploadAwsFileService uploadAwsFileService, BoardFileRepository boardFileRepository, UserRepository userRepository, CommentRepository commentRepository) {
         this.boardRepository = boardRepository;
         this.uploadAwsFileService = uploadAwsFileService;
         this.boardFileRepository = boardFileRepository;
         this.userRepository = userRepository;
         this.commentRepository = commentRepository;
-        this.hitsRedisTemplate = hitsRedisTemplate;
     }
 
     // 게시물 생성
@@ -76,97 +71,42 @@ public class BoardService {
 
         // 파일이 있는 경우 파일 처리
         if (files != null && !files.isEmpty()) {
+            // S3 파일 업로드 후 파일 경로 및 Presigned URL 반환
             List<String> s3FilePaths = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files);
 
+            // 파일 이름 리스트 추출
             List<String> fileNames = files.stream()
                     .map(MultipartFile::getOriginalFilename)
                     .collect(Collectors.toList());
 
-            List<String> presignedUrls = uploadAwsFileService.generatePresignedUrls(fileNames);
+            List<String> presignedUrls = uploadAwsFileService.generatePresignedUrls(fileNames); // Presigned URL 생성
 
+            // BoardFile 엔티티를 생성하여 저장
             for (int i = 0; i < files.size(); i++) {
                 MultipartFile file = files.get(i);
                 String s3FilePath = s3FilePaths.get(i);
-                String fileDownloadUrl = presignedUrls.get(i);
+                String fileDownloadUrl = presignedUrls.get(i);  // 다운로드 URL
 
+                // BoardFile 엔티티 생성 및 저장
                 BoardFile boardFile = BoardFile.createBoardFile(
                         board,
                         s3FilePath,
                         file.getContentType(),
                         file.getOriginalFilename(),
                         file.getSize(),
-                        fileDownloadUrl
+                        fileDownloadUrl // Presigned URL을 다운로드 URL로 추가
                 );
 
+                // BoardFile 저장
                 boardFileRepository.save(boardFile);
             }
         }
 
+        // 최종적으로 저장된 Board 엔티티 반환
         return board;
     }
 
-    // 게시물 조회 시 조회수 증가 처리
-    @Transactional
-    public BoardDetailDto BoardDetail(Long id) {
-        // 게시물 조회
-        Board board = boardRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("게시물을 찾을 수 없습니다."));
 
-        // 조회수 증가 처리 (Redis를 사용)
-        incrementViewCount(board.getId());
-
-        // 관련 파일 목록 조회
-        List<BoardFile> boardFiles = boardFileRepository.findByBoardId(id);
-        List<String> filePaths = boardFiles.stream()
-                .map(BoardFile::getFilePath)
-                .collect(Collectors.toList());
-
-        // 댓글 리스트 조회
-        List<Comment> comments = commentRepository.findByBoardId(id);
-        List<CommentResDto> commentResDto = comments.stream()
-                .map(CommentResDto::fromEntity)
-                .collect(Collectors.toList());
-
-        BoardDetailDto boardDetailDto = board.detailFromEntity(filePaths);
-        boardDetailDto.setComments(commentResDto);
-
-        return boardDetailDto;
-    }
-
-
-    // 조회수 증가 로직 (Redis에 조회수 저장)
-    private void incrementViewCount(Long boardId) {
-        String redisKey = "board:view:" + boardId;
-        hitsRedisTemplate.opsForValue().increment(redisKey); // Redis에서 조회수 증가
-
-        // 비동기적으로 Redis 데이터를 DB로 동기화
-        syncViewCountToDB(boardId);
-    }
-
-    @Async
-    public void syncViewCountToDB(Long boardId) {
-        String redisKey = "board:view:" + boardId;
-
-        // Redis에서 조회수 가져오기
-        String viewCountStr = hitsRedisTemplate.opsForValue().get(redisKey);
-
-        if (viewCountStr != null) {
-            int viewCount = Integer.parseInt(viewCountStr);
-
-            // DB에서 해당 게시물 조회
-            Board board = boardRepository.findById(boardId)
-                    .orElseThrow(() -> new EntityNotFoundException("게시물을 찾을 수 없습니다."));
-
-            // 현재 DB에 저장된 조회수와 Redis 조회수 비교 후 업데이트
-            if (viewCount > board.getHits()) {
-                board.setHits(viewCount); // 조회수 업데이트
-                boardRepository.save(board); // DB에 저장
-            }
-
-            // 필요하면 Redis에서 키를 삭제하거나 만료 시간을 설정 가능
-            hitsRedisTemplate.expire(redisKey, 10, TimeUnit.MINUTES); // 10분 후 키 만료
-        }
-    }
 
     // 게시물 목록 조회 (검색 가능)
     public Page<BoardListResDto> BoardListWithSearch(Pageable pageable, String searchType, String searchQuery) {
@@ -183,6 +123,7 @@ public class BoardService {
                                     searchQuery, searchQuery, DelYN.N, pageable)
                             .map(Board::listFromEntity);
                 case "user_num":
+                    // 사번이 12자리인지 확인하는 로직
                     if (searchQuery.length() != 12) {
                         throw new IllegalArgumentException("사번은 12자리 문자열이어야 합니다.");
                     }
@@ -192,21 +133,55 @@ public class BoardService {
                     return boardRepository.findByUser_NameContainingIgnoreCase(searchQuery, DelYN.N, pageable)
                             .map(Board::listFromEntity);
                 default:
-                    return boardRepository.findAllWithPinned(pageable).map(Board::listFromEntity);
+                    return boardRepository.findAllWithPinned(pageable).map(Board::listFromEntity);  // 상단 고정 적용된 쿼리
             }
         } else {
-            return boardRepository.findAllWithPinned(pageable).map(Board::listFromEntity);
+            return boardRepository.findAllWithPinned(pageable).map(Board::listFromEntity);  // 상단 고정 적용된 쿼리
         }
     }
+
+
+
+
+
+
+
+    public BoardDetailDto BoardDetail(Long id) {
+        // 게시물 조회
+        Board board = boardRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("게시물을 찾을 수 없습니다."));
+
+        // 관련 파일 목록 조회
+        List<BoardFile> boardFiles = boardFileRepository.findByBoardId(id);
+        List<String> filePaths = boardFiles.stream()
+                .map(BoardFile::getFilePath)
+                .collect(Collectors.toList());
+
+        // 댓글 리스트 조회
+        List<Comment> comments = commentRepository.findByBoardId(id);
+        List<CommentResDto> commentResDto = comments.stream()
+                .map(CommentResDto::fromEntity)
+                .collect(Collectors.toList());
+
+        // 게시물 상세 정보 생성
+        BoardDetailDto boardDetailDto = board.detailFromEntity(filePaths);
+        boardDetailDto.setComments(commentResDto);  // 댓글 리스트 추가
+
+        return boardDetailDto;
+    }
+
 
     @Transactional
     public void updateBoard(Long id, BoardUpdateDto dto, List<MultipartFile> files) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 
+        // 게시물 조회
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다."));
 
+        // 사용자 권한 확인
         if (!board.getUser().getUserNum().equals(userNum)) {
+            System.out.println("사용자 번호 불일치: " + userNum + " vs " + board.getUser().getUserNum());
             throw new IllegalArgumentException("작성자 본인만 수정할 수 있습니다.");
         }
 
@@ -214,20 +189,25 @@ public class BoardService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 사번을 가진 유저가 없습니다."));
         Category category = dto.getCategory();
 
+        // 카테고리가 NOTICE 또는 FAMILY_EVENT일 때, 부서가 인사팀인지 확인
         if ((category == Category.NOTICE || category == Category.FAMILY_EVENT) &&
                 !user.getDepartment().getName().equals("인사팀")) {
             throw new SecurityException("공지사항 또는 가족 행사 게시물은 인사팀만 작성할 수 있습니다.");
         }
 
-        board = dto.updateFromEntity(category, user);
+        board = dto.updateFromEntity(category,user);
+        System.out.println(board.getCategory());
         board = boardRepository.save(board);
+
 
         boardFileRepository.deleteByBoardId(board.getId());
 
         List<String> s3FilePaths = null;
+        // Step 3: 새로운 파일이 있는 경우 처리
         if (files != null && !files.isEmpty()) {
             s3FilePaths = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files);
 
+            // 새로운 파일 저장
             for (int i = 0; i < files.size(); i++) {
                 MultipartFile file = files.get(i);
                 String s3FilePath = s3FilePaths.get(i);
@@ -241,15 +221,22 @@ public class BoardService {
                         .build();
 
                 boardFileRepository.save(boardFile);
+
             }
+            boardRepository.save(board); // 게시물 저장
         }
     }
 
+
+
+
     @Transactional
     public void pinBoard(Long boardId, Long userId, boolean isPinned) {
+        // 게시물 조회
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new EntityNotFoundException("게시물을 찾을 수 없습니다."));
 
+        // 사용자 정보 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
 
@@ -265,16 +252,21 @@ public class BoardService {
         boardRepository.save(board);
     }
 
+
+
     @Transactional
     public void deleteBoard(Long id) {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("게시물을 찾을 수 없습니다."));
 
+        // 게시물의 카테고리가 NOTICE 또는 FAMILY_EVENT일 때, 부서가 인사팀인지 확인
         if ((board.getCategory() == Category.NOTICE || board.getCategory() == Category.FAMILY_EVENT) &&
                 !board.getUser().getDepartment().getName().equals("인사팀")) {
             throw new SecurityException("공지사항 또는 가족 행사 게시물은 인사팀만 삭제할 수 있습니다.");
         }
 
+        // 게시물 삭제
         boardRepository.delete(board);
     }
+
 }
