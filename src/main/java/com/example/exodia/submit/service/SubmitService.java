@@ -76,7 +76,8 @@ public class SubmitService {
 				if (line.getSubmitStatus() == SubmitStatus.WAITING) {
 					if (dto.getStatus() == SubmitStatus.REJECT) {
 						// 	관련된 모든 결재 REJECT
-						submit.updateStatus(SubmitStatus.REJECT);
+						dto.chkReason();
+						submit.updateStatus(SubmitStatus.REJECT, dto.getReason());
 						changeToReject(dto.getSubmitId());
 					} else if (dto.getStatus() == SubmitStatus.ACCEPT) {
 						line.updateStatus(dto.getStatus());
@@ -99,12 +100,15 @@ public class SubmitService {
 	}
 
 	public void changeToReject(Long submitId) {
+		// 히스토리 모든 문서들 REJECT
 		List<SubmitLine> submitLines = submitLineRepository.findBySubmitIdOrderByUserNumDesc(submitId);
 		for(SubmitLine line : submitLines) {
 			line.updateStatus(SubmitStatus.REJECT);
 			submitLineRepository.save(line);
 		}
 	}
+
+
 
 
 
