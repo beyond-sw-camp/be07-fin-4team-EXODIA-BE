@@ -67,7 +67,13 @@ public class DocumentSearchService {
 						.bool(bool -> bool
 							.should(should -> should
 								.wildcard(wildcard -> wildcard
-									.field("document")
+									.field("fileName")
+									.value("*" + keyword + "*")
+								)
+							)
+							.should(should -> should
+								.wildcard(wildcard -> wildcard
+									.field("descrption")
 									.value("*" + keyword + "*")
 								)
 							)
