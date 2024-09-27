@@ -1,9 +1,8 @@
 package com.example.exodia.submit.controller;
 
 import java.io.IOException;
-import java.util.List;
 
-import javax.persistence.EntityNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
