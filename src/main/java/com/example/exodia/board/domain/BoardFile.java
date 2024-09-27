@@ -1,5 +1,6 @@
 package com.example.exodia.board.domain;
 
+import com.example.exodia.qna.domain.QnA;
 import lombok.*;
 
 import javax.persistence.*;
@@ -18,8 +19,12 @@ public class BoardFile {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "board_id", nullable = false)
+    @JoinColumn(name = "board_id")
     private Board board;
+
+    @ManyToOne
+    @JoinColumn(name = "qna_id")
+    private QnA qna;
 
     @Column(nullable = false, length = 2083)
     private String filePath;
@@ -45,4 +50,15 @@ public class BoardFile {
                 .fileSize(fileSize)
                 .build();
     }
+
+    public static BoardFile createQnAFile(QnA qna, String filePath, String fileType, String fileName, Long fileSize) {
+        return BoardFile.builder()
+                .qna(qna)
+                .filePath(filePath)
+                .fileType(fileType)
+                .fileName(fileName)
+                .fileSize(fileSize)
+                .build();
+    }
+
 }

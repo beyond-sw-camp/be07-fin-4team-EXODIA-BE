@@ -1,5 +1,6 @@
 package com.example.exodia.comment.dto;
 
+import com.example.exodia.comment.domain.Comment;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,4 +18,5 @@ public class CommentDetailDto {
     private String name;
     private LocalDateTime createdAt;
     private boolean isEdited;
+
 }

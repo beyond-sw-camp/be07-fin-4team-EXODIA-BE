@@ -39,17 +39,16 @@ public class BoardService {
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
     private final BoardHitsService boardHitsService;
-    private final RedisTemplate<String, Object> redisTemplate;
+
 
     @Autowired
-    public BoardService(@Qualifier("hits") RedisTemplate<String, Object> redisTemplate,BoardRepository boardRepository, UploadAwsFileService uploadAwsFileService, BoardFileRepository boardFileRepository, UserRepository userRepository, CommentRepository commentRepository, BoardHitsService boardHitsService) {
+    public BoardService(BoardRepository boardRepository, UploadAwsFileService uploadAwsFileService, BoardFileRepository boardFileRepository, UserRepository userRepository, CommentRepository commentRepository, BoardHitsService boardHitsService) {
         this.boardRepository = boardRepository;
         this.uploadAwsFileService = uploadAwsFileService;
         this.boardFileRepository = boardFileRepository;
         this.userRepository = userRepository;
         this.commentRepository = commentRepository;
         this.boardHitsService = boardHitsService;
-        this.redisTemplate = redisTemplate;
     }
 
 
@@ -164,9 +163,6 @@ public class BoardService {
 
         // 관련 파일 목록 조회
         List<BoardFile> boardFiles = boardFileRepository.findByBoardId(id);
-        List<String> filePaths = boardFiles.stream()
-                .map(BoardFile::getFilePath)
-                .collect(Collectors.toList());
 
         // 댓글 리스트 조회
         List<Comment> comments = commentRepository.findByBoardId(id);
@@ -175,7 +171,7 @@ public class BoardService {
                 .collect(Collectors.toList());
 
         // 게시물 상세 정보 생성
-        BoardDetailDto boardDetailDto = board.detailFromEntity(filePaths);
+        BoardDetailDto boardDetailDto = board.detailFromEntity(boardFiles);
         boardDetailDto.setComments(commentResDto);  // 댓글 리스트 추가
         boardDetailDto.setHits(updatedHits);  // 조회수 반영
         boardDetailDto.setUser_num(user_num);

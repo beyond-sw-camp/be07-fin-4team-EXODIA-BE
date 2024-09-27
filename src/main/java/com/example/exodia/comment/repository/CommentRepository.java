@@ -12,4 +12,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     // 게시물 ID와 DelYN으로 댓글 조회
     List<Comment> findByBoardIdAndDelYn(Long boardId, DelYN delYn);
+
+    List<Comment> findByQnaId(Long QnaId);
 }

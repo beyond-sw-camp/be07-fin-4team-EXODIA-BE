@@ -3,6 +3,7 @@ package com.example.exodia.board.dto;
 import com.example.exodia.board.domain.Board;
 import com.example.exodia.board.domain.Category;
 import com.example.exodia.common.domain.DelYN;
+import com.example.exodia.department.domain.Department;
 import com.example.exodia.user.domain.User;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,6 +23,7 @@ public class BoardSaveReqDto {
     private List<MultipartFile> files;
     private boolean isPinned;
     private Long hits = 0L;
+    private Department department;
 
     @Builder.Default
     private DelYN delYn = DelYN.N;

@@ -8,6 +8,7 @@ import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.user.domain.User;
 import lombok.*;
 import org.hibernate.annotations.Where;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -75,7 +76,7 @@ public class Board extends BaseTimeEntity {
     }
 
     // 게시물 상세 DTO로 변환
-    public BoardDetailDto detailFromEntity(List<String> filePaths) {
+    public BoardDetailDto detailFromEntity(List<BoardFile> files) {
         return BoardDetailDto.builder()
                 .id(this.getId())
                 .title(this.getTitle())
@@ -83,7 +84,7 @@ public class Board extends BaseTimeEntity {
                 .category(category)
                 .createdAt(this.getCreatedAt())
                 .updatedAt(this.getUpdatedAt())
-                .filePaths(filePaths)
+                .files(files)
                 .hits(this.hits)
                 .user_num(user.getUserNum())
                 .build();

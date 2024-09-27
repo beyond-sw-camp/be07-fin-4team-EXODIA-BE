@@ -60,6 +60,23 @@ public class CommentController {
             return new ResponseEntity<>(commonErrorDto, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @GetMapping("/qna/{qnaId}")
+    public ResponseEntity<?> getCommentsByQnaId(@PathVariable Long qnaId) {
+        try {
+            List<CommentDetailDto> comments = commentService.getCommentsByBoardId(qnaId);
+            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "댓글 목록 조회 성공", comments);
+            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+        } catch (EntityNotFoundException e) {
+            e.printStackTrace();
+            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.NOT_FOUND, "게시글을 찾을 수 없습니다.");
+            return new ResponseEntity<>(commonErrorDto, HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            e.printStackTrace();
+            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 목록 조회에 실패했습니다.");
+            return new ResponseEntity<>(commonErrorDto, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
     // 댓글 삭제
     @GetMapping("/delete/{id}")
     public ResponseEntity<?> CommentDelete(@PathVariable Long id){
