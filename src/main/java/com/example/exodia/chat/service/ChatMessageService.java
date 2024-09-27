@@ -4,7 +4,7 @@ import com.example.exodia.chat.domain.ChatMessage;
 import com.example.exodia.chat.domain.ChatRoom;
 import com.example.exodia.chat.domain.MessageType;
 import com.example.exodia.chat.dto.ChatMessageRequest;
-import com.example.exodia.chat.repository.ChatFileRepository;
+import com.example.exodia.chat.dto.ChatMessageResponse;
 import com.example.exodia.chat.repository.ChatMessageRepository;
 import com.example.exodia.chat.repository.ChatRoomRepository;
 import com.example.exodia.chat.repository.ChatUserRepository;
@@ -31,18 +31,16 @@ public class ChatMessageService {
     private final ChannelTopic channelTopic;
     private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomRepository chatRoomRepository;
-    private final ChatFileRepository chatFileRepository;
     private final ChatUserRepository chatUserRepository;
     private final UserRepository userRepository;
 
     @Autowired
-    public ChatMessageService(ChatRoomManage chatRoomManage, @Qualifier("chatPubSub") RedisTemplate<String, Object> chatredisTemplate, @Qualifier("chatPubSub") ChannelTopic channelTopic, ChatMessageRepository chatMessageRepository, ChatRoomRepository chatRoomRepository, ChatFileRepository chatFileRepository, ChatUserRepository chatUserRepository, UserRepository userRepository) {
+    public ChatMessageService(ChatRoomManage chatRoomManage, @Qualifier("chatPubSub") RedisTemplate<String, Object> chatredisTemplate, @Qualifier("chatPubSub") ChannelTopic channelTopic, ChatMessageRepository chatMessageRepository, ChatRoomRepository chatRoomRepository, ChatUserRepository chatUserRepository, UserRepository userRepository) {
         this.chatRoomManage = chatRoomManage;
         this.chatredisTemplate = chatredisTemplate;
         this.channelTopic = channelTopic;
         this.chatMessageRepository = chatMessageRepository;
         this.chatRoomRepository = chatRoomRepository;
-        this.chatFileRepository = chatFileRepository;
         this.chatUserRepository = chatUserRepository;
         this.userRepository = userRepository;
     }
@@ -59,12 +57,12 @@ public class ChatMessageService {
         // 채팅방
         ChatRoom chatRoom = chatRoomRepository.findByIdAndDelYn(chatMessageRequest.getRoomId(), DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 채팅방입니다."));
 
-        if(chatMessageRequest.getMessageType() == MessageType.TALK){
-            ChatMessage savedChatMessage = ChatMessage.toEntity(user, chatRoom, chatMessageRequest);
-            chatMessageRepository.save(savedChatMessage);
-            String
-        }else if(chatMessageRequest.getMessageType() == MessageType.FILE || chatMessageRequest.getMessageType() == MessageType.IMAGE){
-            // 메세지 타입이 있는데 ChatFile 테이블이 필요한가..? 메세지에 url 담겨서 올건데..
-        }
+        ChatMessage savedChatMessage = ChatMessage.toEntity(user, chatRoom, chatMessageRequest);
+        chatMessageRepository.save(savedChatMessage);
+        ChatMessageResponse chatMessageResponse = savedChatMessage.fromEntity();
+        // publish
+        chatredisTemplate.convertAndSend(channelTopic.getTopic(), chatMessageResponse);
     }
+
+
 }

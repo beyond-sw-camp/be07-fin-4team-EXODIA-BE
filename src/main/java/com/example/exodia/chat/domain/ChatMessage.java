@@ -1,6 +1,7 @@
 package com.example.exodia.chat.domain;
 
 import com.example.exodia.chat.dto.ChatMessageRequest;
+import com.example.exodia.chat.dto.ChatMessageResponse;
 import com.example.exodia.common.domain.BaseTimeEntity;
 import com.example.exodia.user.domain.User;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -42,10 +43,6 @@ public class ChatMessage extends BaseTimeEntity {
 
     private String message;
 
-    @OneToOne
-    @JoinColumn(name = "chat_file_id") // file이 아니면 null
-    private ChatFile chatFile; // 파일을 보내는 순간 먼저 생겨서 참조되어야한다.
-
     @Column(name = "send_at", updatable = false, nullable = false)
     @JsonFormat(pattern = "yyyy-MM-dd hh:mm", timezone = "Asia/Seoul")
     private LocalDateTime sendAt;
@@ -61,13 +58,15 @@ public class ChatMessage extends BaseTimeEntity {
                 .build();
     }
 
-    public ChatMessage toEntityWithFile(User user, ChatRoom chatRoom, ChatMessageRequest chatMessageRequest){
-        return ChatMessage.builder()
-                .chatUser(user)
-                .chatRoom(chatRoom)
-                .messageType(chatMessageRequest.getMessageType())
-                .message(chatMessageRequest.getMessage())
-                .sendAt(chatMessageRequest.getSendAt())
+    public ChatMessageResponse fromEntity(){
+        return ChatMessageResponse.builder()
+                .sendUserNum(this.getChatUser().getUserNum())
+                .name(this.getChatUser().getName())
+                .roomId(this.chatRoom.getId())
+                .roomName(this.chatRoom.getRoomName())
+                .messageType(this.messageType)
+                .message(message)
+                .sendAt(this.sendAt)
                 .build();
     }
 }
