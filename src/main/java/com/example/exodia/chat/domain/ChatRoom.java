@@ -25,7 +25,7 @@ public class ChatRoom extends BaseTimeEntity {
     @Column(nullable = false)
     private String roomName;
 
-    private Integer userCount; // 채팅방 인원수
+//    private Integer userCount; // 채팅방 인원수
 
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL)
     private List<ChatUser> chatUsers = new ArrayList<>();
