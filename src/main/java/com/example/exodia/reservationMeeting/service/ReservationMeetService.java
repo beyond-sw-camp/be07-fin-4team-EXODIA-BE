@@ -3,12 +3,18 @@ package com.example.exodia.reservationMeeting.service;
 import com.example.exodia.meetingRoom.domain.MeetingRoom;
 import com.example.exodia.meetingRoom.repository.MeetingRoomRepository;
 import com.example.exodia.reservationMeeting.domain.ReservationMeet;
+import com.example.exodia.reservationMeeting.domain.Status;
 import com.example.exodia.reservationMeeting.dto.ReservationMeetCreateDto;
 import com.example.exodia.reservationMeeting.dto.ReservationMeetDto;
 import com.example.exodia.reservationMeeting.dto.ReservationMeetListDto;
 import com.example.exodia.reservationMeeting.repository.ReservationMeetRepository;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
+import net.javacrumbs.shedlock.core.LockAssert;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +29,10 @@ public class ReservationMeetService {
     private final MeetingRoomRepository meetingRoomRepository;
     private final UserRepository userRepository;
 
+//    @Autowired
+//    @Qualifier("10")
+//    private RedisTemplate<String, Object> reservationRedisTemplate;
+
     public ReservationMeetService(ReservationMeetRepository reservationMeetRepository, MeetingRoomRepository meetingRoomRepository, UserRepository userRepository) {
         this.reservationMeetRepository = reservationMeetRepository;
         this.meetingRoomRepository = meetingRoomRepository;
@@ -31,22 +41,30 @@ public class ReservationMeetService {
 
     @Transactional
     public ReservationMeetListDto createReservation(ReservationMeetCreateDto reservationMeetCreateDto) {
+
         MeetingRoom meetingRoom = meetingRoomRepository.findById(reservationMeetCreateDto.getMeetingRoomId())
                 .orElseThrow(() -> new IllegalArgumentException("회의실이 존재하지 않습니다."));
+
         User user = userRepository.findById(reservationMeetCreateDto.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("사용자가 존재하지 않습니다."));
 
-        if (!isTimeSlotValid(reservationMeetCreateDto.getStartTime(), reservationMeetCreateDto.getEndTime())) {
-            throw new IllegalArgumentException("예약 시간은 30분 단위로 설정되어야 합니다.");
-        }
+        // 비관적 락
+        List<ReservationMeet> conflictingReservations = reservationMeetRepository
+                .findConflictingReservationsWithLock(meetingRoom.getId(), reservationMeetCreateDto.getStartTime(), reservationMeetCreateDto.getEndTime());
 
-        if (isMeetingRoomAvailable(meetingRoom.getId(), reservationMeetCreateDto.getStartTime(), reservationMeetCreateDto.getEndTime())) {
-            ReservationMeet reservationMeet = ReservationMeet.fromEntity(reservationMeetCreateDto, meetingRoom, user);
-            return ReservationMeetListDto.fromEntity(reservationMeetRepository.save(reservationMeet));
-        } else {
+        if (!conflictingReservations.isEmpty()) {
             throw new IllegalArgumentException("해당 시간에 회의실이 이미 예약되어 있습니다.");
         }
+
+        //if (isMeetingRoomAvailable(meetingRoom.getId(), reservationMeetCreateDto.getStartTime(), reservationMeetCreateDto.getEndTime())) {
+            ReservationMeet reservationMeet = ReservationMeet.fromEntity(reservationMeetCreateDto, meetingRoom, user);
+            return ReservationMeetListDto.fromEntity(reservationMeetRepository.save(reservationMeet));
+        //} else {
+        //    throw new IllegalArgumentException("해당 시간에 회의실이 이미 예약되어 있습니다.");
+        //}
     }
+
+
 
     public boolean isMeetingRoomAvailable(Long meetingRoomId, LocalDateTime startTime, LocalDateTime endTime) {
         List<ReservationMeet> reservations = reservationMeetRepository.findByMeetingRoomIdAndStartTimeBetween(meetingRoomId, startTime, endTime);
@@ -73,11 +91,23 @@ public class ReservationMeetService {
         return true;
     }
 
-
-    // 30분 단위 체크
     private boolean isTimeSlotValid(LocalDateTime startTime, LocalDateTime endTime) {
         return startTime.getMinute() % 30 == 0 && endTime.getMinute() % 30 == 0 && endTime.isAfter(startTime);
     }
+
+//    @Transactional
+//    public void cleanExpiredReservations() {
+//        List<ReservationMeet> expiredReservations = reservationMeetRepository.findAll()
+//                .stream()
+//                .filter(reservation -> reservation.getEndTime().isBefore(LocalDateTime.now()))
+//                .collect(Collectors.toList());
+//
+//        for (ReservationMeet reservation : expiredReservations) {
+//            reservation.setStatus(Status.AVAILABLE);
+//            reservationMeetRepository.save(reservation);
+//            System.out.println("Expired reservation cleaned: " + reservation.getId());
+//        }
+//    }
 
     @Transactional(readOnly = true)
     public List<ReservationMeetListDto> getReservationsForRoom(Long meetingRoomId) {

@@ -129,7 +129,7 @@ public class RedisConfig {
 
     @Bean
     @Qualifier("10")
-    public RedisTemplate<String, Object> shedlockRedisTemplate(@Qualifier("shedlockConnectionFactory") RedisConnectionFactory connectionFactory) {
+    public RedisTemplate<String, Object> shedlockRedisTemplate(@Qualifier("10") RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
@@ -139,7 +139,8 @@ public class RedisConfig {
 
     @Bean
     public LockProvider lockProvider(@Qualifier("10") RedisConnectionFactory connectionFactory) {
-        return new RedisLockProvider(connectionFactory);
+        return new RedisLockProvider(connectionFactory, "shedlock");
     }
+
 
 }

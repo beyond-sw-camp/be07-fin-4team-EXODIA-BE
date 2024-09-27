@@ -25,8 +25,12 @@ public class ReservationMeetController {
 
     @PostMapping("/create")
     public ResponseEntity<CommonResDto> createReservation(@RequestBody ReservationMeetCreateDto reservationMeetCreateDto) {
-        ReservationMeetListDto createdReservation = reservationMeetService.createReservation(reservationMeetCreateDto);
-        return new ResponseEntity<>(new CommonResDto(HttpStatus.CREATED, "회의실 예약이 완료되었습니다.", createdReservation), HttpStatus.CREATED);
+        try {
+            ReservationMeetListDto createdReservation = reservationMeetService.createReservation(reservationMeetCreateDto);
+            return new ResponseEntity<>(new CommonResDto(HttpStatus.CREATED, "회의실 예약이 완료되었습니다.", createdReservation), HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(new CommonResDto(HttpStatus.CONFLICT, e.getMessage(), null), HttpStatus.CONFLICT);
+        }
     }
 
     @GetMapping("/all")

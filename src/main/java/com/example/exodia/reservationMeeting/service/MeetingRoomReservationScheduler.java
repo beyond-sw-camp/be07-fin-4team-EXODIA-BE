@@ -2,6 +2,7 @@ package com.example.exodia.reservationMeeting.service;
 
 import com.example.exodia.reservationMeeting.domain.ReservationMeet;
 import com.example.exodia.reservationMeeting.domain.Status;
+import com.example.exodia.reservationMeeting.dto.ReservationMeetCreateDto;
 import com.example.exodia.reservationMeeting.repository.ReservationMeetRepository;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
@@ -13,30 +14,23 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Component
-public class MeetingRoomReservationScheduler {
+//@Component
+//@Slf4j
+//public class MeetingRoomReservationScheduler {
+//
+//    private final ReservationMeetService reservationMeetService;
+//
+//    public MeetingRoomReservationScheduler(ReservationMeetService reservationMeetService) {
+//        this.reservationMeetService = reservationMeetService;
+//    }
+//
+//
+//    // 만료된 예약 상태를 변경하기 위한 정기 스케줄링 작업
+//    @Scheduled(cron = "0 0 0 * * ?") // 매일 자정에 실행
+//    @SchedulerLock(name = "createReservation", lockAtLeastFor = "PT1M", lockAtMostFor = "PT5M")
+//    public void cleanExpiredReservations() {
+//        reservationMeetService.createReservation(); // 정기적으로 만료된 예약을 정리
+//    }
+//}
 
-    private final ReservationMeetRepository reservationMeetRepository;
-
-    public MeetingRoomReservationScheduler(ReservationMeetRepository reservationMeetRepository) {
-        this.reservationMeetRepository = reservationMeetRepository;
-    }
-
-
-    // 5분마다 만료된 예약을 확인하고 상태를 업데이트하는 스케줄러
-    @SchedulerLock(name = "cleanExpiredReservations", lockAtLeastFor = "PT10S", lockAtMostFor = "PT30S")
-    @Scheduled(cron = "0 0/5 * * * *")
-    public void cleanExpiredReservations() {
-        List<ReservationMeet> expiredReservations = reservationMeetRepository.findAll()
-                .stream()
-                .filter(reservation -> reservation.getEndTime().isBefore(LocalDateTime.now()))
-                .collect(Collectors.toList());
-
-        for (ReservationMeet res : expiredReservations) {
-            res.setStatus(Status.AVAILABLE);
-            reservationMeetRepository.save(res);
-            System.out.println("Expired reservation cleaned: " + res.getId());
-        }
-    }
-}
 
