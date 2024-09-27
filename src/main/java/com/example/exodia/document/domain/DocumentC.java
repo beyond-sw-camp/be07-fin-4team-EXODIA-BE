@@ -7,10 +7,7 @@ import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.document.dto.DocDetailResDto;
 import com.example.exodia.document.dto.DocHistoryResDto;
 import com.example.exodia.document.dto.DocListResDto;
-import com.example.exodia.document.dto.DocReqDto;
-import com.example.exodia.document.dto.DocUpdateReqDto;
 import com.example.exodia.user.domain.User;
-import com.fasterxml.jackson.annotation.JsonFormat;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -34,9 +31,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @Where(clause = "del_yn = 'N'")
 public class DocumentC extends BaseTimeEntity {
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(nullable = false, length = 12)
 	private Long id;
 
 	@Column(nullable = false)
@@ -66,7 +63,7 @@ public class DocumentC extends BaseTimeEntity {
 	@Column(name = "del_yn", nullable = false)
 	private DelYN delYn = DelYN.N;
 
-	@OneToOne
+	@ManyToOne
 	@JoinColumn(name = "document_type", nullable = false)
 	private DocumentType documentType;
 
@@ -82,17 +79,6 @@ public class DocumentC extends BaseTimeEntity {
 	// @ManyToOne
 	// @JoinColumn(name = "department_id", nullable = false)
 	// private Department department;
-
-	public static DocumentC toEntity(DocReqDto docReqDto, User user, String fileName, String fileDownloadUrl, DocumentType documentType) {
-		return DocumentC.builder()
-			.fileName(fileName)
-			.filePath(fileDownloadUrl)
-			.documentType(documentType)
-			.user(user)
-			.documentP(null)
-			.delYn(DelYN.N)
-			.build();
-	}
 
 	public DocDetailResDto fromEntity(){
 		return DocDetailResDto.builder()
@@ -116,19 +102,6 @@ public class DocumentC extends BaseTimeEntity {
 			.build();
 	}
 
-	public static DocumentC updatetoEntity(DocUpdateReqDto docUpdateReqDto, DocumentP documentP, User user, String fileName, String s3FilePath, String fileDownloadUrl,
-		DocumentType documentType){
-		return DocumentC.builder()
-			.fileName(fileName)
-			.filePath(s3FilePath)
-			.filePath(fileDownloadUrl)
-			.documentP(documentP)
-			.documentType(documentType)
-			.user(user)
-			.delYn(DelYN.N)
-			.build();
-	}
-
 	public DocHistoryResDto fromHistoryEntity() {
 		return DocHistoryResDto.builder()
 			.id(this.getId())
@@ -137,7 +110,6 @@ public class DocumentC extends BaseTimeEntity {
 			// .updatedAt()
 			.build();
 	}
-
 
 	public void updateDocumentP(DocumentP updateP) {
 		this.documentP = updateP;

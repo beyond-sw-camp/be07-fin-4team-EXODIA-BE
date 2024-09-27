@@ -44,11 +44,11 @@ public class DocumentController {
 	// 	문서 업로드
 	@PostMapping("/uploadFile")
 	public ResponseEntity<?> uploadDocument(
-		@RequestPart(value = "file", required = true) MultipartFile file,
+		@RequestPart(value = "file", required = true) List<MultipartFile> files,
 		@RequestPart(value = "data") DocReqDto docReqDto) {
 		try {
 			System.out.println(docReqDto);
-			documentService.saveDoc(file, docReqDto);
+			documentService.saveDoc(files, docReqDto);
 			return ResponseEntity.ok("파일 저장 성공");
 		} catch (IOException e) {
 			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage()), HttpStatus.NOT_FOUND);
@@ -91,10 +91,10 @@ public class DocumentController {
 
 	// 	문서 업데이트
 	@PostMapping("/update/{id}")
-	public ResponseEntity<?> updateDocument(@RequestPart(value = "file", required = false) MultipartFile file,
+	public ResponseEntity<?> updateDocument(@RequestPart(value = "file", required = false) List<MultipartFile> files,
 		@RequestPart(value = "data") DocUpdateReqDto docUpdateReqDto) {
 		try {
-			DocumentC updatedDoc = documentService.updateDoc(file, docUpdateReqDto);
+			DocumentC updatedDoc = documentService.updateDoc(files, docUpdateReqDto);
 			return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "파일 업데이트 성공", updatedDoc));
 		} catch (IOException e) {
 			e.printStackTrace();

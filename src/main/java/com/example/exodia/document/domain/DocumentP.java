@@ -12,6 +12,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,12 +29,11 @@ public class DocumentP {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(nullable = false, length = 12)
 	private Long id;
 
 	private String version;
 
-	@OneToOne
+	@ManyToOne
 	@JoinColumn(name = "document_type_id", nullable = false)
 	private DocumentType documentType;
 
