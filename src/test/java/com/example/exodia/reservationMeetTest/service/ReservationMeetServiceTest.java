@@ -55,70 +55,42 @@ public class ReservationMeetServiceTest {
 
     @BeforeEach
     public void setUp() {
-        // 필요한 Department와 Position 객체를 먼저 생성
         department = departmentRepository.save(new Department("개발팀"));
         position = positionRepository.save(new Position("개발자"));
 
-        // MeetingRoom 객체 생성
         meetingRoom = meetingRoomRepository.save(new MeetingRoom("회의실 1"));
 
-        // User 객체 생성 (Department와 Position 정보를 올바르게 설정)
         user1 = userRepository.save(new User(
-                null,                   // ID (자동 생성)
-                "userNum1",             // 사용자 번호
-                "profileImage1.png",    // 프로필 이미지
-                "사용자1",               // 이름
-                Gender.M,            // 성별
-                Status.재직,          // 상태
-                "password",             // 비밀번호
-                "user1@example.com",    // 이메일
-                "주소1",                 // 주소
-                "01012345678",          // 전화번호
-                DelYN.N,                // 삭제 여부
-                "123456-1234567",       // 주민등록번호
-                HireType.정규직,      // 고용 유형
-                NowStatus.회의,      // 현재 상태
-                15,                     // 연차
-                department,             // 부서
-                position,               // 직책
-                0                       // 로그인 실패 횟수
+                null, "userNum1", "profileImage1.png", "사용자1", Gender.M, Status.재직,
+                "password", "user1@example.com", "주소1", "01012345678", DelYN.N,
+                "123456-1234567", HireType.정규직, NowStatus.회의, 15, department,
+                position, 0
         ));
 
         user2 = userRepository.save(new User(
-                null,                   // ID (자동 생성)
-                "userNum2",             // 사용자 번호
-                "profileImage2.png",    // 프로필 이미지
-                "사용자2",               // 이름
-                Gender.W,          // 성별
-                Status.재직,          // 상태
-                "password",             // 비밀번호
-                "user2@example.com",    // 이메일
-                "주소2",                 // 주소
-                "01087654321",          // 전화번호
-                DelYN.N,                // 삭제 여부
-                "765432-7654321",       // 주민등록번호
-                HireType.정규직,      // 고용 유형
-                NowStatus.기타,      // 현재 상태
-                10,                     // 연차
-                department,             // 부서
-                position,               // 직책
-                0                       // 로그인 실패 횟수
+                null, "userNum2", "profileImage2.png", "사용자2", Gender.W, Status.재직,
+                "password", "user2@example.com", "주소2", "01087654321", DelYN.N,
+                "765432-7654321", HireType.정규직, NowStatus.기타, 10, department,
+                position, 0
         ));
+
+        // 데이터 저장 확인 로그
+        System.out.println("MeetingRoom saved: " + meetingRoom.getId());
+        System.out.println("User1 saved: " + user1.getId());
+        System.out.println("User2 saved: " + user2.getId());
     }
 
     @Test
     @Transactional
     public void testPessimisticLockingOnReservationCreation() throws InterruptedException {
-        // 스레드 풀 설정 (동시 접속자 수)
-        int threadCount = 2; // 동시 접근 시도할 스레드 수
+        int threadCount = 2;
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch latch = new CountDownLatch(threadCount);
 
-        // 동시성 테스트에서 성공한 예약 횟수 카운트
         int[] successfulReservations = {0};
 
         for (int i = 0; i < threadCount; i++) {
-            int userId = (i % 2 == 0) ? user1.getId().intValue() : user2.getId().intValue(); // 사용자 1과 2를 번갈아 가며 사용
+            int userId = (i % 2 == 0) ? user1.getId().intValue() : user2.getId().intValue();
             executorService.execute(() -> {
                 try {
                     ReservationMeetCreateDto reservationMeetCreateDto = ReservationMeetCreateDto.builder()
@@ -138,11 +110,10 @@ public class ReservationMeetServiceTest {
             });
         }
 
-        latch.await(); // 모든 스레드가 종료될 때까지 대기
-
+        latch.await();
         executorService.shutdown();
 
-        // 성공한 예약이 1개여야 함. (동시에 두 개의 예약이 성공할 수 없음)
         assertEquals(1, successfulReservations[0], "동시에 두 개의 예약이 성공해서는 안 됨");
     }
 }
+

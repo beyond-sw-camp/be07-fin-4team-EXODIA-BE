@@ -22,4 +22,5 @@ public interface ReservationMeetRepository extends JpaRepository<ReservationMeet
     List<ReservationMeet> findConflictingReservationsWithLock(@Param("roomId") Long roomId,
                                                               @Param("startTime") LocalDateTime startTime,
                                                               @Param("endTime") LocalDateTime endTime);
+    List<ReservationMeet> findByUserId(Long userId);
 }
