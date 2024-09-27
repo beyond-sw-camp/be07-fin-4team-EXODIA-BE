@@ -115,6 +115,11 @@ dependencies {
 	implementation "org.opensearch.client:opensearch-java:2.7.0"
 	implementation "jakarta.json:jakarta.json-api"
 
+
+	// implementation "net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.24.0"
+	// implementation "net.javacrumbs.shedlock:shedlock-provider-redis-spring:4.24.0"
+	// implementation "net.javacrumbs.shedlock:shedlock-spring:4.24.0"
+
 }
 
 

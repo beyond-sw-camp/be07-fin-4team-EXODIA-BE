@@ -23,6 +23,7 @@ public class ReservationController {
 
     /* 차량 예약 생성 API */
     @PostMapping("/car/create")
+    //@Operation(summary= "[일반 사용자] 차량 예약 생성 API")
     public ResponseEntity<CommonResDto> reservationCreate(@RequestBody ReservationCreateDto dto) {
         ReservationDto reservationDto = reservationService.carReservation(dto);
         CommonResDto commonResDto = new CommonResDto(HttpStatus.CREATED, "차량 예약 신청을 완료하였습니다.", reservationDto);
@@ -32,6 +33,7 @@ public class ReservationController {
     // 예약 승인 API (관리자만 접근 가능)
     @PutMapping("/car/approve/{reservationId}")
     @PreAuthorize("hasRole('ADMIN')")
+    //@Operation(summary= "[관리자 사용자] 차량 예약 승인 API")
     public ResponseEntity<CommonResDto> approveReservation(@PathVariable Long reservationId) {
         ReservationDto reservationDto = reservationService.approveReservation(reservationId);
         CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "예약이 승인되었습니다.", reservationDto);
@@ -41,6 +43,7 @@ public class ReservationController {
     // 예약 거절 API (관리자만 접근 가능)
     @PutMapping("/car/reject/{reservationId}")
     @PreAuthorize("hasRole('ADMIN')")
+    //@Operation(summary= "[관리자 사용자] 차량 예약 거절 API")
     public ResponseEntity<CommonResDto> rejectReservation(@PathVariable Long reservationId) {
         ReservationDto reservationDto = reservationService.rejectReservation(reservationId);
         CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "예약이 거절되었습니다.", reservationDto);
@@ -49,6 +52,7 @@ public class ReservationController {
 
     /* 특정 날짜의 예약 조회 API */
     @GetMapping("/car/day")
+    //@Operation(summary= "[일반 사용자] 입력일 차량 예약 조회 API")
     public ResponseEntity<List<ReservationDto>> getReservationsForDay(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         List<ReservationDto> reservations = reservationService.getReservationsForDay(date.atStartOfDay());
         return ResponseEntity.ok(reservations);
@@ -57,6 +61,7 @@ public class ReservationController {
     // 모든 예약 조회 API (관리자 권한 필요)
     @GetMapping("/car/alllist")
     @PreAuthorize("hasRole('ADMIN')")
+    //@Operation(summary= "[관리자 사용자] 차량 예약 조회 API")
     public ResponseEntity<List<ReservationDto>> getAllReservations() {
         List<ReservationDto> reservations = reservationService.getAllReservations();
         return ResponseEntity.ok(reservations);

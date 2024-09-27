@@ -5,14 +5,21 @@ import com.example.exodia.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import com.example.exodia.video.dto.VideoRoomRedisDto;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import java.time.LocalDateTime;
+
 
 @Entity
 @Getter
@@ -37,9 +44,13 @@ public class VideoRoom {
     @Column(nullable = false)
     private Boolean isActive = true;
 
-    // 방에 입장한 참가자 수
     @Column(nullable = false)
     private int participantCount = 0;
+
+    @CreationTimestamp
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Column(name = "created_at", updatable = false, nullable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     public void increaseParticipantCount() {
         this.participantCount += 1;
@@ -51,5 +62,9 @@ public class VideoRoom {
 
     public void setIsActive(Boolean isActive) {
         this.isActive = isActive;
+    }
+
+    public VideoRoomRedisDto toDto() {
+        return VideoRoomRedisDto.fromEntity(this);
     }
 }

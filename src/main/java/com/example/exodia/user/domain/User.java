@@ -18,9 +18,13 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
+import io.netty.channel.ChannelHandlerContext;
 
 
+
+@Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -89,6 +93,7 @@ public class User extends BaseTimeEntity {
     private int loginFailCount = 0;
 
 
+
     public void incrementLoginFailCount() {
         this.loginFailCount += 1;
     }
@@ -154,5 +159,9 @@ public class User extends BaseTimeEntity {
         this.userNum = userNum;
     }
 
+    public User(String name, Department department) {
+        this.name = name;
+        this.department = department;
+    }
 }
 

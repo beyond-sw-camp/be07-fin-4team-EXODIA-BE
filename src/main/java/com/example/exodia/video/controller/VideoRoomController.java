@@ -6,6 +6,7 @@ import com.example.exodia.common.dto.CommonResDto;
 import com.example.exodia.user.domain.CustomUserDetails;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.video.domain.VideoRoom;
+import com.example.exodia.video.dto.JoinRoomDto;
 import com.example.exodia.video.service.VideoRoomService;
 import com.example.exodia.video.dto.CreateRoomDto;
 import org.springframework.http.HttpStatus;
@@ -31,23 +32,52 @@ public class VideoRoomController {
     public ResponseEntity<?> createRoom(@RequestBody CreateRoomDto roomDto, Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         User host = userDetails.getUser();
+
+        System.out.println("Room Name: " + roomDto.getRoomName());
         VideoRoom room = videoRoomService.createRoom(roomDto.getRoomName(), roomDto.getPassword(), host);
-        messagePublisher.publish("Room created: " + roomDto.getRoomName());
-        return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "방 생성 완료", room));
+        videoRoomService.joinRoom(room.getRoomName(), roomDto.getPassword(), host);
+        messagePublisher.publish("Room created and joined by: " + host.getName() + " for room: " + roomDto.getRoomName());
+        return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "방 생성 및 입장 완료", room));
     }
 
     @PostMapping("/join")
-    public ResponseEntity<?> joinRoom(@RequestParam String roomName, @RequestParam String password, Authentication authentication) {
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        User user = userDetails.getUser();
-        boolean joined = videoRoomService.joinRoom(roomName, password, user);
-        if (joined) {
-            messagePublisher.publish(user.getName() + " joined room: " + roomName);
-            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "방 입장 성공", null));
-        } else {
-            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.FORBIDDEN, "비밀번호가 틀렸거나 방이 존재하지 않습니다."), HttpStatus.FORBIDDEN);
+    public ResponseEntity<?> joinRoom(@RequestBody JoinRoomDto joinRoomDto, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.UNAUTHORIZED, "인증되지 않은 사용자입니다."), HttpStatus.UNAUTHORIZED);
         }
+
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        if (userDetails == null) {
+            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, "사용자 정보가 없습니다."), HttpStatus.BAD_REQUEST);
+        }
+
+        User user = userDetails.getUser();
+        if (user == null) {
+            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, "사용자 정보가 없습니다."), HttpStatus.BAD_REQUEST);
+        }
+
+        if (joinRoomDto == null || joinRoomDto.getRoomName() == null) {
+            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, "방 이름이 없습니다."), HttpStatus.BAD_REQUEST);
+        }
+
+        String roomName = joinRoomDto.getRoomName();
+        String password = joinRoomDto.getPassword();
+
+        System.out.println("join request for room: " + roomName + " with password: " + password);
+
+        boolean joined = videoRoomService.joinRoom(roomName, password, user);
+        if (!joined) {
+            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.NOT_FOUND, "방이 존재하지 않거나 비밀번호가 틀렸습니다."), HttpStatus.NOT_FOUND);
+        }
+
+        messagePublisher.publish(user.getName() + " joined room: " + roomName);
+        return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "방 입장 성공", null));
     }
+
+
+
+
+
 
     @GetMapping("/list")
     public ResponseEntity<?> listRooms() {
