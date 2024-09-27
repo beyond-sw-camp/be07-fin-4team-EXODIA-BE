@@ -2,19 +2,27 @@ package com.example.exodia.user.domain;
 
 import com.example.exodia.common.domain.BaseTimeEntity;
 import com.example.exodia.common.domain.DelYN;
-import com.example.exodia.user.dto.UserRegisterDto;
 import com.example.exodia.department.domain.Department;
 import com.example.exodia.position.domain.Position;
+import com.example.exodia.user.dto.UserRegisterDto;
 import com.example.exodia.user.dto.UserUpdateDto;
-import io.netty.channel.ChannelHandlerContext;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.Where;
+import lombok.NoArgsConstructor;
+import io.netty.channel.ChannelHandlerContext;
 
-import javax.persistence.*;
-import java.time.LocalDateTime;
+
 
 @Setter
 @Getter

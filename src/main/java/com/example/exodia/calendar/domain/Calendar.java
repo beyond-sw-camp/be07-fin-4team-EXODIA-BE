@@ -3,10 +3,17 @@ package com.example.exodia.calendar.domain;
 import com.example.exodia.calendar.dto.CalendarSaveDto;
 import com.example.exodia.calendar.dto.CalendarUpdateDto;
 import com.example.exodia.user.domain.User;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.*;
 import org.hibernate.annotations.Where;
 
-import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Data

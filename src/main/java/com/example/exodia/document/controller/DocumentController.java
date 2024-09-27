@@ -1,25 +1,16 @@
 package com.example.exodia.document.controller;
 
 import java.io.IOException;
-import java.nio.file.NoSuchFileException;
 import java.util.List;
 
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,6 +28,8 @@ import com.example.exodia.document.service.DocumentService;
 import com.example.exodia.user.dto.UserDeleteDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 @RestController
 @RequestMapping("/document")
 public class DocumentController {
@@ -51,11 +44,11 @@ public class DocumentController {
 	// 	문서 업로드
 	@PostMapping("/uploadFile")
 	public ResponseEntity<?> uploadDocument(
-		@RequestPart(value = "file", required = true) MultipartFile file,
+		@RequestPart(value = "file", required = true) List<MultipartFile> files,
 		@RequestPart(value = "data") DocReqDto docReqDto) {
 		try {
 			System.out.println(docReqDto);
-			documentService.saveDoc(file, docReqDto);
+			documentService.saveDoc(files, docReqDto);
 			return ResponseEntity.ok("파일 저장 성공");
 		} catch (IOException e) {
 			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage()), HttpStatus.NOT_FOUND);
@@ -98,10 +91,10 @@ public class DocumentController {
 
 	// 	문서 업데이트
 	@PostMapping("/update/{id}")
-	public ResponseEntity<?> updateDocument(@RequestPart(value = "file", required = false) MultipartFile file,
+	public ResponseEntity<?> updateDocument(@RequestPart(value = "file", required = false) List<MultipartFile> files,
 		@RequestPart(value = "data") DocUpdateReqDto docUpdateReqDto) {
 		try {
-			DocumentC updatedDoc = documentService.updateDoc(file, docUpdateReqDto);
+			DocumentC updatedDoc = documentService.updateDoc(files, docUpdateReqDto);
 			return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "파일 업데이트 성공", updatedDoc));
 		} catch (IOException e) {
 			e.printStackTrace();

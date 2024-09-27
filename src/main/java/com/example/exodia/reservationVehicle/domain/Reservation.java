@@ -3,11 +3,20 @@ package com.example.exodia.reservationVehicle.domain;
 import com.example.exodia.car.domain.Car;
 import com.example.exodia.common.domain.BaseTimeEntity;
 import com.example.exodia.user.domain.User;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Data
