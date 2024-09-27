@@ -6,6 +6,7 @@ import com.example.exodia.user.dto.UserRegisterDto;
 import com.example.exodia.department.domain.Department;
 import com.example.exodia.position.domain.Position;
 import com.example.exodia.user.dto.UserUpdateDto;
+import io.netty.channel.ChannelHandlerContext;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -84,6 +85,7 @@ public class User extends BaseTimeEntity {
     private int loginFailCount = 0;
 
 
+
     public void incrementLoginFailCount() {
         this.loginFailCount += 1;
     }
@@ -149,5 +151,9 @@ public class User extends BaseTimeEntity {
         this.userNum = userNum;
     }
 
+    public User(String name, Department department) {
+        this.name = name;
+        this.department = department;
+    }
 }
 
