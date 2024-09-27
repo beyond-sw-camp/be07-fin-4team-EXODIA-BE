@@ -2,12 +2,10 @@ package com.example.exodia.chat.service;
 
 import com.example.exodia.chat.domain.ChatMessage;
 import com.example.exodia.chat.domain.ChatRoom;
-import com.example.exodia.chat.domain.MessageType;
 import com.example.exodia.chat.dto.ChatMessageRequest;
 import com.example.exodia.chat.dto.ChatMessageResponse;
 import com.example.exodia.chat.repository.ChatMessageRepository;
 import com.example.exodia.chat.repository.ChatRoomRepository;
-import com.example.exodia.chat.repository.ChatUserRepository;
 import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
@@ -31,22 +29,16 @@ public class ChatMessageService {
     private final ChannelTopic channelTopic;
     private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomRepository chatRoomRepository;
-    private final ChatUserRepository chatUserRepository;
     private final UserRepository userRepository;
 
     @Autowired
-    public ChatMessageService(ChatRoomManage chatRoomManage, @Qualifier("chatPubSub") RedisTemplate<String, Object> chatredisTemplate, @Qualifier("chatPubSub") ChannelTopic channelTopic, ChatMessageRepository chatMessageRepository, ChatRoomRepository chatRoomRepository, ChatUserRepository chatUserRepository, UserRepository userRepository) {
+    public ChatMessageService(ChatRoomManage chatRoomManage, @Qualifier("chatPubSub") RedisTemplate<String, Object> chatredisTemplate, @Qualifier("chatPubSub") ChannelTopic channelTopic, ChatMessageRepository chatMessageRepository, ChatRoomRepository chatRoomRepository, UserRepository userRepository) {
         this.chatRoomManage = chatRoomManage;
         this.chatredisTemplate = chatredisTemplate;
         this.channelTopic = channelTopic;
         this.chatMessageRepository = chatMessageRepository;
         this.chatRoomRepository = chatRoomRepository;
-        this.chatUserRepository = chatUserRepository;
         this.userRepository = userRepository;
-    }
-
-    public void enter(String userNum, Long roomId){
-
     }
 
     // 채팅방에 메세지 발송
@@ -63,6 +55,5 @@ public class ChatMessageService {
         // publish
         chatredisTemplate.convertAndSend(channelTopic.getTopic(), chatMessageResponse);
     }
-
 
 }
