@@ -141,6 +141,24 @@ public class RedisConfig {
         return redisTemplate;
     }
 
+    // 조회수
+    @Bean
+    @Qualifier("hits")
+    LettuceConnectionFactory connectionFactoryHits() {
+        return redisConnectionFactory(10);
+    }
+
+    @Bean
+    @Qualifier("hits")
+    public RedisTemplate<String, Object> hitsRedisTemplate() {
+        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(connectionFactoryUpdatedDoc());
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        return redisTemplate;
+    }
+
+
     // ShedLock을 위한 Redis 설정
     @Bean
     @Qualifier("10")
@@ -162,6 +180,7 @@ public class RedisConfig {
     public LockProvider lockProvider(@Qualifier("10") RedisConnectionFactory connectionFactory) {
         return new RedisLockProvider(connectionFactory, "shedlock");
     }
+
 
 
 }
