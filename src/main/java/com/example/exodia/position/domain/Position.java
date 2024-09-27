@@ -18,4 +18,10 @@ public class Position {
     private Long id;
 
     private String name;
+
+
+    //테스트 코드
+    public Position(String name) {
+        this.name = name;
+    }
 }

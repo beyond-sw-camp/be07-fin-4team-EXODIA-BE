@@ -46,7 +46,6 @@ public class ReservationService {
     private UserService userService;
 
     // 차량 예약 메서드
-    // 차량 예약 메서드
     public ReservationDto carReservation(ReservationCreateDto dto) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         RLock lock = redissonClient.getLock("carReservationLock:" + dto.getCarId() + ":" + dto.getStartDate());
@@ -58,17 +57,15 @@ public class ReservationService {
                 User user = userRepository.findByUserNum(userNum)
                         .orElseThrow(() -> new IllegalArgumentException("사용자가 존재하지 않습니다."));
 
-                // 특정 날짜에 예약된 모든 예약을 가져옴
                 List<Reservation> existingReservations = reservationRepository.findByCarIdAndDate(
                         car.getId(), dto.getStartDate().atStartOfDay(), dto.getStartDate().atTime(LocalTime.MAX));
 
-                // 예약 가능한지 확인
+                // 예약 가능여부 췍
                 boolean canReserve = existingReservations.stream().allMatch(Reservation::canReserve);
                 if (!canReserve) {
                     throw new IllegalArgumentException("해당 날짜에 차량이 이미 예약되어 있거나 예약 가능한 상태가 아닙니다.");
                 }
 
-                // 예약 생성 및 상태를 WAITING으로 설정
                 Reservation reservation = dto.toEntity(car, user);
                 reservation.setStatus(Status.WAITING);
                 Reservation savedReservation = reservationRepository.save(reservation);
@@ -120,9 +117,12 @@ public class ReservationService {
     }
 
 
-
     // 특정 날짜에 차량이 예약 가능한지 확인 메서드
     public boolean isCarAvailableForDate(Long carId, LocalDate date) {
+        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUserNum(userNum)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = startOfDay.plusDays(1);
         List<Reservation> reservations = reservationRepository.findByCarIdAndDate(carId, startOfDay, endOfDay);
