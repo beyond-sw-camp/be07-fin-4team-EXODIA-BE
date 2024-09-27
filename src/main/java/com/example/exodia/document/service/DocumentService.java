@@ -23,6 +23,7 @@ import com.example.exodia.common.service.UploadAwsFileService;
 import com.example.exodia.document.domain.DocumentC;
 import com.example.exodia.document.domain.DocumentP;
 import com.example.exodia.document.domain.DocumentType;
+import com.example.exodia.document.domain.EsDocument;
 import com.example.exodia.document.dto.DocDetailResDto;
 import com.example.exodia.document.dto.DocHistoryResDto;
 import com.example.exodia.document.dto.DocListResDto;
@@ -48,17 +49,19 @@ public class DocumentService {
 	private final UserRepository userRepository;
 	private final RedisService redisService;
 	private final UploadAwsFileService uploadAwsFileService;
+	private final DocumentSearchService documentSearchService;
 
 	@Autowired
 	public DocumentService(DocumentCRepository documentCRepository, DocumentPRepository documentPRepository,
 		DocumentTypeRepository documentTypeRepository, UserRepository userRepository, RedisService redisService,
-		UploadAwsFileService uploadAwsFileService) {
+		UploadAwsFileService uploadAwsFileService, DocumentSearchService documentSearchService) {
 		this.documentCRepository = documentCRepository;
 		this.documentPRepository = documentPRepository;
 		this.documentTypeRepository = documentTypeRepository;
 		this.userRepository = userRepository;
 		this.redisService = redisService;
 		this.uploadAwsFileService = uploadAwsFileService;
+		this.documentSearchService = documentSearchService;
 	}
 
 	public DocumentC saveDoc(List<MultipartFile> files, DocReqDto docReqDto) throws IOException {
@@ -66,6 +69,7 @@ public class DocumentService {
 		User user = userRepository.findByUserNum(userNum)
 			.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
 
+		// s3에 업로드
 		String fileName = files.get(0).getOriginalFilename();
 		List<String> fileDownloadUrl = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files, "document");
 
@@ -78,6 +82,10 @@ public class DocumentService {
 
 		DocumentC documentC = docReqDto.toEntity(docReqDto, user, fileName, fileDownloadUrl.get(0), documentType);
 		documentCRepository.save(documentC);
+
+		// opens search 인덱싱
+		EsDocument esDocument = EsDocument.toEsDocument(documentC);
+		documentSearchService.indexDocuments(esDocument);
 		return documentC;
 	}
 
@@ -202,6 +210,11 @@ public class DocumentService {
 		DocumentC newDoc = docUpdateReqDto.updatetoEntity(docUpdateReqDto, newDocP, user, fileName,
 			fileDownloadUrl.get(0), documentType);
 		documentCRepository.save(newDoc);
+
+		// opens search 인덱싱
+		EsDocument esDocument = EsDocument.toEsDocument(newDoc);
+		documentSearchService.indexDocuments(esDocument);
+
 		return newDoc;
 	}
 
