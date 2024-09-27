@@ -16,6 +16,7 @@ import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.common.service.UploadAwsFileService;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
@@ -26,7 +27,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -75,7 +75,7 @@ public class BoardService {
 
         // 파일이 있는 경우 파일 처리
         if (files != null && !files.isEmpty()) {
-            List<String> s3FilePaths = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files);
+            List<String> s3FilePaths = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files, "board");
 
             // BoardFile 엔티티를 생성하여 저장
             for (int i = 0; i < files.size(); i++) {
@@ -217,7 +217,7 @@ public class BoardService {
         List<String> s3FilePaths = null;
         // Step 3: 새로운 파일이 있는 경우 처리
         if (files != null && !files.isEmpty()) {
-            s3FilePaths = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files);
+            s3FilePaths = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files, "board");
 
             // 새로운 파일 저장
             for (int i = 0; i < files.size(); i++) {

@@ -1,16 +1,16 @@
 package com.example.exodia.board.domain;
 
 import com.example.exodia.user.domain.User;
+import jakarta.persistence.*;
 import lombok.*;
 
-import javax.persistence.*;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "board_check")
+
 public class BoardCheck {
 
     @Id

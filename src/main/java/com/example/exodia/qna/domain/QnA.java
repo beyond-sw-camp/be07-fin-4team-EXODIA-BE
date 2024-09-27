@@ -10,10 +10,11 @@ import com.example.exodia.qna.dto.QnAAtoUpdateDto;
 import com.example.exodia.qna.dto.QnAListResDto;
 import com.example.exodia.qna.dto.QnAQtoUpdateDto;
 import com.example.exodia.user.domain.User;
+import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import javax.persistence.*;
+
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,8 +25,8 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "qna")
 public class QnA extends BaseTimeEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

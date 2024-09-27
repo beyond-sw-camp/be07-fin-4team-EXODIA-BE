@@ -4,12 +4,12 @@ import com.example.exodia.meetingRoom.domain.MeetingRoom;
 import com.example.exodia.reservationMeeting.dto.ReservationMeetCreateDto;
 import com.example.exodia.reservationMeeting.dto.ReservationMeetDto;
 import com.example.exodia.user.domain.User;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Data
