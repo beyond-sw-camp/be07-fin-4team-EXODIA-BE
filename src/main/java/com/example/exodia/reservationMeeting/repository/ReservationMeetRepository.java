@@ -3,12 +3,12 @@ package com.example.exodia.reservationMeeting.repository;
 import com.example.exodia.meetingRoom.domain.MeetingRoom;
 import com.example.exodia.reservationMeeting.domain.ReservationMeet;
 import io.lettuce.core.dynamic.annotation.Param;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.LockModeType;
 import java.time.LocalDateTime;
 import java.util.List;
 

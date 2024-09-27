@@ -12,6 +12,7 @@ import com.example.exodia.reservationVehicle.domain.Reservation;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 import com.example.exodia.user.service.UserService;
+import jakarta.persistence.LockModeType;
 import net.javacrumbs.shedlock.core.LockAssert;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.LockModeType;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;

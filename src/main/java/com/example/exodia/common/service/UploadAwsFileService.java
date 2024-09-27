@@ -30,7 +30,7 @@ public class UploadAwsFileService {
     }
 
     // 다중 파일 업로드 메서드
-    public List<String> uploadMultipleFilesAndReturnPaths(List<MultipartFile> files) {
+    public List<String> uploadMultipleFilesAndReturnPaths(List<MultipartFile> files, String folder) {
         List<String> fileUrls = new ArrayList<>();
 
         for (MultipartFile file : files) {
@@ -51,7 +51,7 @@ public class UploadAwsFileService {
 
                 PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                         .bucket(bucket)
-                        .key(fileName)
+                        .key(folder+"/"+fileName)
                         .contentType(file.getContentType())
                         .build();
 

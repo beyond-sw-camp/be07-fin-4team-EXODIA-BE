@@ -1,13 +1,13 @@
 package com.example.exodia.qna.controller;
 
-import com.example.exodia.comment.dto.CommentSaveReqDto;
-import com.example.exodia.comment.service.CommentService;
+
 import com.example.exodia.common.dto.CommonErrorDto;
 import com.example.exodia.common.dto.CommonResDto;
 import com.example.exodia.department.domain.Department;
 import com.example.exodia.qna.domain.QnA;
 import com.example.exodia.qna.dto.*;
 import com.example.exodia.qna.service.QnAService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.data.domain.Page;
@@ -19,7 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.persistence.EntityNotFoundException;
+
 import java.util.List;
 
 @RestController
