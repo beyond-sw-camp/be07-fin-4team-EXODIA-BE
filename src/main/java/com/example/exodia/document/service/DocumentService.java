@@ -253,6 +253,7 @@ public class DocumentService {
 		DocumentC documentC = documentCRepository.findById(id)
 			.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
 		documentC.softDelete();
+		documentSearchService.deleteDocument(id.toString());
 		documentCRepository.save(documentC);
 	}
 

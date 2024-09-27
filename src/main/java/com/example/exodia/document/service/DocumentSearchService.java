@@ -5,20 +5,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.opensearch.client.opensearch.OpenSearchClient;
+import org.opensearch.client.opensearch.core.DeleteRequest;
+import org.opensearch.client.opensearch.core.DeleteResponse;
 import org.opensearch.client.opensearch.core.IndexRequest;
 import org.opensearch.client.opensearch.core.IndexResponse;
 import org.opensearch.client.opensearch.core.SearchRequest;
 import org.opensearch.client.opensearch.core.SearchResponse;
 import org.opensearch.client.opensearch.core.search.Hit;
 import org.opensearch.client.opensearch.indices.CreateIndexRequest;
-import org.opensearch.client.opensearch.indices.ExistsRequest;
-import org.opensearch.client.transport.endpoints.BooleanResponse;
 import org.springframework.stereotype.Service;
 
 import com.example.exodia.document.domain.EsDocument;
 
-import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -93,21 +91,32 @@ public class DocumentSearchService {
 		return documents;
 	}
 
-	@PostConstruct
-	public void init() {
+	// 삭제
+	public void deleteDocument(String id) {
 		try {
-			// 인덱스가 존재하는지 확인 후 존재하지 않을 때만 생성
-			ExistsRequest existsRequest = ExistsRequest.of(e -> e.index(INDEX_NAME));
-			BooleanResponse existsResponse = openSearchClient.indices().exists(existsRequest);
-
-			if (!existsResponse.value()) {
-				createIndex();
-			} else {
-				log.info("인덱스가 이미 존재합니다: {}", INDEX_NAME);
-			}
-		} catch (Exception e) {
-			log.error("Error initializing FarmSearchService: ", e);
+			DeleteRequest deleteRequest = DeleteRequest.of(builder ->
+				builder.index(INDEX_NAME)
+					.id(id));
+			DeleteResponse response = openSearchClient.delete(deleteRequest);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
+
+	// @PostConstruct
+	// public void init() {
+	// 	try {
+	// 		ExistsRequest existsRequest = ExistsRequest.of(e -> e.index(INDEX_NAME));
+	// 		BooleanResponse existsResponse = openSearchClient.indices().exists(existsRequest);
+	//
+	// 		if (!existsResponse.value()) {
+	// 			createIndex();
+	// 		} else {
+	// 			log.info("인덱스가 이미 존재합니다: {}", INDEX_NAME);
+	// 		}
+	// 	} catch (Exception e) {
+	// 		log.error("Error initializing FarmSearchService: ", e);
+	// 	}
+	// }
 
 }
