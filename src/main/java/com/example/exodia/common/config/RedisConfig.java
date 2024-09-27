@@ -1,7 +1,12 @@
 package com.example.exodia.common.config;
 
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
+import net.javacrumbs.shedlock.core.LockProvider;
+import net.javacrumbs.shedlock.provider.redis.spring.RedisLockProvider;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
@@ -135,5 +140,28 @@ public class RedisConfig {
         redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         return redisTemplate;
     }
+
+    // ShedLock을 위한 Redis 설정
+    @Bean
+    @Qualifier("10")
+    public LettuceConnectionFactory shedlockConnectionFactory() {
+        return redisConnectionFactory(9);
+    }
+
+    @Bean
+    @Qualifier("10")
+    public RedisTemplate<String, Object> shedlockRedisTemplate(@Qualifier("10") RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        redisTemplate.setConnectionFactory(connectionFactory);
+        return redisTemplate;
+    }
+
+    @Bean
+    public LockProvider lockProvider(@Qualifier("10") RedisConnectionFactory connectionFactory) {
+        return new RedisLockProvider(connectionFactory, "shedlock");
+    }
+
 
 }

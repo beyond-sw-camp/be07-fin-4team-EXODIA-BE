@@ -20,4 +20,10 @@ public class MeetingRoom {
 
     @Column(nullable = false)
     private String name;
+    
+    
+    // 단위 테스트를 위해서
+    public MeetingRoom(String name) {
+        this.name = name;
+    }
 }

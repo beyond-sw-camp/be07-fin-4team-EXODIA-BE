@@ -95,11 +95,9 @@ dependencies {
 	implementation 'org.kurento:kurento-client:6.16.0'
 
 	// shedLock
-	implementation "net.javacrumbs.shedlock:shedlock-provider-jdbc-template:5.8.0"
-	implementation 'net.javacrumbs.shedlock:shedlock-spring:4.44.0'
-	implementation 'net.javacrumbs.shedlock:shedlock-provider-redis-spring:4.44.0'
-
-
+	implementation "net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.24.0"
+	implementation "net.javacrumbs.shedlock:shedlock-provider-redis-spring:4.24.0"
+	implementation "net.javacrumbs.shedlock:shedlock-spring:4.24.0"
 }
 
 
