@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ReservationMeetListDto {
+    private Long id;
     private Long meetingRoomId;
     private Long userId;
     private LocalDateTime startTime;
@@ -22,6 +23,7 @@ public class ReservationMeetListDto {
 
     public static ReservationMeetListDto fromEntity(ReservationMeet reservationMeet) {
         return ReservationMeetListDto.builder()
+                .id(reservationMeet.getId())
                 .meetingRoomId(reservationMeet.getMeetingRoom().getId())
                 .userId(reservationMeet.getUser().getId())
                 .startTime(reservationMeet.getStartTime())
