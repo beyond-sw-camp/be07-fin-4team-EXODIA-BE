@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class DocDetailResDto {
+	private Long id;
 	private String fileName;
 	private String fileExtension;
 	private String documentType;

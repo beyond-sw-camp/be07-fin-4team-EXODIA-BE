@@ -82,6 +82,7 @@ public class DocumentC extends BaseTimeEntity {
 
 	public DocDetailResDto fromEntity(){
 		return DocDetailResDto.builder()
+			.id(this.id)
 			.fileName(this.fileName)
 			.fileExtension(this.fileName.substring(fileName.lastIndexOf(".") + 1))
 			.documentType(this.getDocumentType().getTypeName())
