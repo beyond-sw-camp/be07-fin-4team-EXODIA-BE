@@ -120,6 +120,8 @@ dependencies {
 	// implementation "net.javacrumbs.shedlock:shedlock-provider-redis-spring:4.24.0"
 	// implementation "net.javacrumbs.shedlock:shedlock-spring:4.24.0"
 
+	//kafka
+	implementation 'org.springframework.kafka:spring-kafka'
 }
 
 
