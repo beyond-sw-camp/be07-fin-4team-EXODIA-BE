@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.metrics.data.DefaultRepositoryTagsProvider;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -53,12 +54,14 @@ public class DocumentService {
 	private final RedisService redisService;
 	private final UploadAwsFileService uploadAwsFileService;
 	private final DocumentSearchService documentSearchService;
+	private final DefaultRepositoryTagsProvider repositoryTagsProvider;
 	private S3Client s3Client;
 
 	@Autowired
 	public DocumentService(DocumentCRepository documentCRepository, DocumentPRepository documentPRepository,
 		DocumentTypeRepository documentTypeRepository, UserRepository userRepository, RedisService redisService,
-		UploadAwsFileService uploadAwsFileService, DocumentSearchService documentSearchService, S3Client s3Client) {
+		UploadAwsFileService uploadAwsFileService, DocumentSearchService documentSearchService, S3Client s3Client,
+		DefaultRepositoryTagsProvider repositoryTagsProvider) {
 		this.documentCRepository = documentCRepository;
 		this.documentPRepository = documentPRepository;
 		this.documentTypeRepository = documentTypeRepository;
@@ -67,6 +70,7 @@ public class DocumentService {
 		this.uploadAwsFileService = uploadAwsFileService;
 		this.documentSearchService = documentSearchService;
 		this.s3Client = s3Client;
+		this.repositoryTagsProvider = repositoryTagsProvider;
 	}
 
 	public DocumentC saveDoc(List<MultipartFile> files, DocReqDto docReqDto) throws IOException {
@@ -88,6 +92,13 @@ public class DocumentService {
 		DocumentC documentC = docReqDto.toEntity(docReqDto, user, fileName, fileDownloadUrl.get(0), documentType);
 		documentCRepository.save(documentC);
 
+		DocumentP documentP = DocumentP.toEntity(documentC.getId(), documentType, "1");
+		documentPRepository.save(documentP);
+		// documentPRepository.flush();
+		//
+		// documentC.updateDocumentP(documentP);
+		// documentCRepository.save(documentC);
+
 		// opens search 인덱싱
 		EsDocument esDocument = EsDocument.toEsDocument(documentC);
 		documentSearchService.indexDocuments(esDocument);
@@ -103,7 +114,7 @@ public class DocumentService {
 		filePath = filePath.substring(filePath.indexOf(".com/") + 5);
 		GetObjectRequest getObjectRequest = GetObjectRequest.builder()
 			.bucket("exodia-file")
-			.key("document/"+filePath)
+			.key("document/" + filePath)
 			.build();
 
 		ResponseInputStream<GetObjectResponse> s3Object = s3Client.getObject(getObjectRequest);
@@ -254,11 +265,19 @@ public class DocumentService {
 		versions.add(documentC.fromHistoryEntity());
 
 		// 모든 버전(부모 문서들) 조회
-		if (documentC != null && documentC.getDocumentP() != null) {
+		while (documentC != null) {
 			DocumentP documentP = documentC.getDocumentP();
-			documentC = documentCRepository.findById(documentP.getId())
-				.orElseThrow(() -> new EntityNotFoundException("히스토리가 존재하지 않습니다."));
-			versions.add(documentC.fromHistoryEntity());
+			if (documentP != null) {
+				documentC = documentCRepository.findById(documentP.getId())
+					.orElseThrow(() -> new EntityNotFoundException("히스토리가 존재하지 않습니다."));
+				if (documentC.getDocumentP() != null) {
+					versions.add(documentC.fromHistoryEntity());
+				} else {
+					versions.add(documentC.fromHistoryEntity("1"));
+				}
+			}else{
+				return versions;
+			}
 		}
 		return versions;
 	}

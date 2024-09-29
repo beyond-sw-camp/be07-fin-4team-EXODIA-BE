@@ -18,5 +18,5 @@ public class DocDetailResDto {
 	private String documentType;
 	private String userName;
 	private String description;	// 설명
-	private LocalDateTime updatedAt;
+	private LocalDateTime createAt;
 }
