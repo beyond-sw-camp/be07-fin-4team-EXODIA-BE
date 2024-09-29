@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityNotFoundException;
+import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -40,7 +40,7 @@ public class ChatRoomService {
         this.userRepository = userRepository;
     }
 
-    // 인원 중복 채팅방 조회
+    // 인원 중복 채팅방 조회 // 쿼리문 추가 수정 필요
     public Long findExistChatRoom(Set<String> requestUserNums, List<ChatRoom> exisiChatRooms){
         for(ChatRoom chatRoom : exisiChatRooms){
             Set<String> existUserNums = chatRoom.getChatUsers().stream().map(chatUser->chatUser.getUser().getUserNum()).collect(Collectors.toSet());

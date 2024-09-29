@@ -11,7 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Where;
 
-import javax.persistence.*; // 얘 있음 안된다.
+import jakarta.persistence.*;// 얘 있음 안된다.
 import java.time.LocalDateTime;
 
 @Getter

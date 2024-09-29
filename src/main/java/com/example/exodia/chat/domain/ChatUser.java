@@ -1,6 +1,5 @@
 package com.example.exodia.chat.domain;
 
-import com.example.exodia.chat.dto.ChatRoomRequest;
 import com.example.exodia.common.domain.BaseTimeEntity;
 import com.example.exodia.user.domain.User;
 import lombok.AllArgsConstructor;
@@ -9,7 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Where;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Getter
 @Entity

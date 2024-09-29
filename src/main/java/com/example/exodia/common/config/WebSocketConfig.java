@@ -12,11 +12,11 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-//    private final StompHandler stompHandler;
-//
-//    public WebSocketConfig(StompHandler stompHandler) {
-//        this.stompHandler = stompHandler;
-//    }
+    private final StompHandler stompHandler;
+
+    public WebSocketConfig(StompHandler stompHandler) {
+        this.stompHandler = stompHandler;
+    }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
@@ -29,8 +29,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws").setAllowedOrigins("*").withSockJS();
     }
 
-//    @Override
-//    public void configureClientInboundChannel(ChannelRegistration registration) {
-//        registration.interceptors(stompHandler);
-//    }
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        registration.interceptors(stompHandler);
+    }
 }
