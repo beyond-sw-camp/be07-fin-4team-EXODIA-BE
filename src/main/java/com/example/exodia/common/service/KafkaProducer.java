@@ -14,7 +14,7 @@ public class KafkaProducer {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    // 게시판 이벤트
+
     public void sendBoardEvent(String topic, String message) {
         kafkaTemplate.send(topic, message);
         System.out.println("Kafka 이벤트 : " + message); //

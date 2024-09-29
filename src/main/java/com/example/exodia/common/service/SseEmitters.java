@@ -1,10 +1,12 @@
 package com.example.exodia.common.service;
 
 import com.example.exodia.notification.domain.Notification;
+import com.example.exodia.user.domain.User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
