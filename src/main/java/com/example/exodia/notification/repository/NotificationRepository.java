@@ -11,5 +11,9 @@ import java.util.List;
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
     List<Notification> findByUserId(Long userId);
     boolean existsByUserAndMessage(User user, String message);
+
+    // 사용자 읽지 않은 알림 개수 조회
+    long CountByUserNotRead(User user);
+    // 사용자 읽지 않은 알림 목록 조회
     List<Notification> findByUserAndIsReadFalse(User user);
 }

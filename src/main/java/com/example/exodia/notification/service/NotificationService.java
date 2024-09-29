@@ -8,6 +8,7 @@ import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 import com.example.exodia.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,11 +35,28 @@ public class NotificationService {
         return notificationRepository.findByUserAndIsReadFalse(user);
     }
 
+    public long countUnreadNotifications() {
+        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User user = userRepository.findByUserNum(userNum)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
+
+        return notificationRepository.CountByUserNotRead(user);
+    }
+
+    // 읽음 처리
     @Transactional
-    public void markAsRead(Long notificationId) {
+    public void markNotificationAsRead(Long notificationId) {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 알림이 없습니다."));
+        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        if (!notification.getUser().getUserNum().equals(userNum)) {
+            throw new SecurityException("다른 사용자의 알림은 읽을 수 없습니다.");
+        } // 오짜피 로그인 해서 개인 정보만 받아오기 때문에 포스트 맨 테스트를 위해서 삽입
+
         notification.markAsRead();
+        notificationRepository.save(notification);
     }
 
     // 인사팀 관리자에게 예약 요청 알림 전송

@@ -85,7 +85,7 @@ public class ReservationMeetService {
 
         // 관리자를 대상으로 알림 전송
         String message = String.format("%s님이 %s 회의실을 %s ~ %s 에 예약하였습니다.", user.getName(), meetingRoom.getName(), reservationMeet.getStartTime().toString(), reservationMeet.getEndTime().toString());
-        notificationService.sendReservationReqToAdmins(message);
+        notificationService.sendMeetReservationReqToAdmins(message);
 
         return ReservationMeetListDto.fromEntity(reservationMeet);
     }

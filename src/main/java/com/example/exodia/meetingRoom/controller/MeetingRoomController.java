@@ -20,7 +20,7 @@ public class MeetingRoomController {
     @Autowired
     private MeetingRoomService meetingRoomService;
 
-    /* 회의실 삭제 */
+    /* 회의실 생성 */
     @PostMapping("/create")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CommonResDto> addMeetingRoom(@RequestBody MeetingRoomCreateDto dto) {
@@ -28,7 +28,7 @@ public class MeetingRoomController {
         return new ResponseEntity<>(new CommonResDto(HttpStatus.CREATED, "회의실이 추가되었습니다.", meetingRoom), HttpStatus.CREATED);
     }
 
-    /* 회의실 삭제 */
+    /* 회의실 조회 */
     @GetMapping("/list")
     public ResponseEntity<List<MeetingRoom>> getAllMeetingRooms() {
         List<MeetingRoom> meetingRooms = meetingRoomService.listMeetRoom();
