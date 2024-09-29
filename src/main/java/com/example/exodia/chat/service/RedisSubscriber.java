@@ -15,11 +15,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class RedisSubscriber implements MessageListener {
     private final ObjectMapper objectMapper;
-    private final RedisTemplate<String, Object> chatRedisTemplate; // 만들어야함.
+    private final RedisTemplate<String, Object> chatRedisTemplate;
     private final SimpMessageSendingOperations messageSendingOperations;
 
     @Autowired
-    public RedisSubscriber(ObjectMapper objectMapper, @Qualifier("chatPubSub") RedisTemplate<String, Object> chatRedisTemplate, SimpMessageSendingOperations messageSendingOperations) {
+    public RedisSubscriber(ObjectMapper objectMapper, @Qualifier("chat") RedisTemplate<String, Object> chatRedisTemplate, SimpMessageSendingOperations messageSendingOperations) {
         this.objectMapper = objectMapper;
         this.chatRedisTemplate = chatRedisTemplate;
         this.messageSendingOperations = messageSendingOperations;

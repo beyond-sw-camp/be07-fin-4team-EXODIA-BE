@@ -11,6 +11,7 @@ import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +33,7 @@ public class ChatRoomService {
     private final ChatUserRepository chatUserRepository;
     private final UserRepository userRepository;
 
+    @Autowired
     public ChatRoomService(ChatRoomManage chatRoomManage, ChatMessageRepository chatMessageRepository, ChatRoomRepository chatRoomRepository, ChatUserRepository chatUserRepository, UserRepository userRepository) {
         this.chatRoomManage = chatRoomManage;
         this.chatMessageRepository = chatMessageRepository;
@@ -83,21 +85,21 @@ public class ChatRoomService {
         return savedChatRoom.fromEntityExistChatRoom(false);
     }
 
-    public List<ChatRoomSimpleResponse> viewChatRoomList(String userNum){
-        // 유저가 포함되어 있는 모든 채팅방 리스트 조회
-        List<ChatUser> chatUsers = chatUserRepository.findAllByUserNumAndDelYn(userNum,DelYN.N);
-        List<Long> chatRoomIds = chatUsers.stream().map(p->p.getChatRoom().getId()).distinct().collect(Collectors.toList());
-
-        // 어떤 순서를 기준으로 리스트업할것인가 // 수정필요
-        List<ChatRoom> chatRooms = chatRoomRepository.findAllByIdsAndDelYn(chatRoomIds, DelYN.N);
-
-        // 어떤 정보를 넘겨줄 것인가. // 수정필요
-        return chatRooms.stream().map(ChatRoom::fromEntitySimpleChatRoom).collect(Collectors.toList());
-    }
+//    public List<ChatRoomSimpleResponse> viewChatRoomList(String userNum){
+//        // 유저가 포함되어 있는 모든 채팅방 리스트 조회
+//        List<ChatUser> chatUsers = chatUserRepository.findAllByUserNumAndDelYn(userNum,DelYN.N);
+//        List<Long> chatRoomIds = chatUsers.stream().map(p->p.getChatRoom().getId()).distinct().collect(Collectors.toList());
+//
+//        // 어떤 순서를 기준으로 리스트업할것인가 // 수정필요
+//        List<ChatRoom> chatRooms = chatRoomRepository.findAllByIdsAndDelYn(chatRoomIds, DelYN.N);
+//
+//        // 어떤 정보를 넘겨줄 것인가. // 수정필요
+//        return chatRooms.stream().map(ChatRoom::fromEntitySimpleChatRoom).collect(Collectors.toList());
+//    }
 
     public List<ChatMessageResponse> viewChatMessageList(Long roomId){
         // 채팅방 입장시 메세지 조회 // 어떤 순서를 기준으로 리스트업할것인가 // 수정필요 // 쿼리문
-        return chatMessageRepository.findAllByRoomIdAndDelYn(roomId, DelYN.N)
+        return chatMessageRepository.findAllByChatRoomIdAndDelYn(roomId, DelYN.N)
                 .stream().map(ChatMessage::fromEntity).collect(Collectors.toList());
     }
 

@@ -24,16 +24,16 @@ import jakarta.persistence.*;
 @Transactional(readOnly = true)
 public class ChatMessageService {
     private final ChatRoomManage chatRoomManage; // redis로 채팅룸 입장유저들 관리
-    @Qualifier("chatPubSub")
+    @Qualifier("chat")
     private final RedisTemplate<String, Object> chatredisTemplate;
-    @Qualifier("chatPubSub")
+    @Qualifier("chat")
     private final ChannelTopic channelTopic;
     private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final UserRepository userRepository;
 
     @Autowired
-    public ChatMessageService(ChatRoomManage chatRoomManage, @Qualifier("chatPubSub") RedisTemplate<String, Object> chatredisTemplate, @Qualifier("chatPubSub") ChannelTopic channelTopic, ChatMessageRepository chatMessageRepository, ChatRoomRepository chatRoomRepository, UserRepository userRepository) {
+    public ChatMessageService(ChatRoomManage chatRoomManage, @Qualifier("chat") RedisTemplate<String, Object> chatredisTemplate,@Qualifier("chat") ChannelTopic channelTopic, ChatMessageRepository chatMessageRepository, ChatRoomRepository chatRoomRepository, UserRepository userRepository) {
         this.chatRoomManage = chatRoomManage;
         this.chatredisTemplate = chatredisTemplate;
         this.channelTopic = channelTopic;

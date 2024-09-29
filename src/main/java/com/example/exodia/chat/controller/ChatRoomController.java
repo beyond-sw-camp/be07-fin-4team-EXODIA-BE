@@ -23,11 +23,11 @@ public class ChatRoomController {
         return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
-    @GetMapping("/list/{userNum}")
-    public ResponseEntity<?> chatRoomList(@PathVariable("userNum") String userNum){
-        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "채팅방목록이 조회되었습니다.", chatRoomService.viewChatRoomList(userNum));
-        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
-    }
+//    @GetMapping("/list/{userNum}")
+//    public ResponseEntity<?> chatRoomList(@PathVariable("userNum") String userNum){
+//        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "채팅방목록이 조회되었습니다.", chatRoomService.viewChatRoomList(userNum));
+//        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+//    }
 
     @GetMapping("/{roomId}")
     public ResponseEntity<?> chatRoomView(@PathVariable("roomId") Long roomId){
