@@ -1,8 +1,18 @@
 package com.example.exodia.board.domain;
 
-import lombok.*;
 
-import javax.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+
+import com.example.exodia.qna.domain.QnA;
+
+import lombok.*;
 
 @Getter
 @Setter
@@ -18,8 +28,12 @@ public class BoardFile {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "board_id", nullable = false)
+    @JoinColumn(name = "board_id")
     private Board board;
+
+    @ManyToOne
+    @JoinColumn(name = "qna_id")
+    private QnA qna;
 
     @Column(nullable = false, length = 2083)
     private String filePath;
@@ -33,18 +47,27 @@ public class BoardFile {
     @Column(nullable = false)
     private Long fileSize;
 
-    @Column(nullable = true, length = 2083)
-    private String fileDownloadUrl;
 
 
-    public static BoardFile createBoardFile(Board board, String filePath, String fileType, String fileName, Long fileSize, String fileDownloadUrl) {
+
+    public static BoardFile createBoardFile(Board board, String filePath, String fileType, String fileName, Long fileSize) {
         return BoardFile.builder()
                 .board(board)
                 .filePath(filePath)
                 .fileType(fileType)
                 .fileName(fileName)
                 .fileSize(fileSize)
-                .fileDownloadUrl(fileDownloadUrl)
                 .build();
     }
+
+    public static BoardFile createQnAFile(QnA qna, String filePath, String fileType, String fileName, Long fileSize) {
+        return BoardFile.builder()
+                .qna(qna)
+                .filePath(filePath)
+                .fileType(fileType)
+                .fileName(fileName)
+                .fileSize(fileSize)
+                .build();
+    }
+
 }

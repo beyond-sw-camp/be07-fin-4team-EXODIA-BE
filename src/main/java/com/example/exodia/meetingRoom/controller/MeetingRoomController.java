@@ -36,7 +36,6 @@ public class MeetingRoomController {
     }
 
     /* 회의실 이름변경 */
-
     @PutMapping("/update/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CommonResDto> updateMeetingRoom(@PathVariable Long id, @RequestBody MeetingRoomUpdateDto meetingRoomUpdateDto) {

@@ -4,15 +4,14 @@ import com.example.exodia.board.domain.Board;
 import com.example.exodia.board.domain.Category;
 import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.user.domain.User;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-@Getter
-@Setter
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class BoardUpdateDto {
 

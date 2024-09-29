@@ -6,10 +6,23 @@ import com.example.exodia.comment.domain.Comment;
 import com.example.exodia.common.domain.BaseTimeEntity;
 import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.user.domain.User;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.*;
 import org.hibernate.annotations.Where;
+import org.springframework.web.multipart.MultipartFile;
 
-import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,17 +50,14 @@ public class Board extends BaseTimeEntity {
     @Column(nullable = false)
     private Category category;
 
-    @Column(nullable = false)
-    private int hits = 0;
+
+    private Long hits = 0L;
 
     // 작성자 정보 (익명 게시글의 경우 null, 수정 필요)
     @ManyToOne
-    @JoinColumn(name = "user_num", nullable = true)
+    @JoinColumn(name = "user_num", nullable = false)
     private User user;
 
-    // 익명 여부 필드 추가
-    @Column(name = "is_anonymous", nullable = false)
-    private Boolean isAnonymous = false;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = false)
@@ -70,24 +80,31 @@ public class Board extends BaseTimeEntity {
                 .title(this.title)
                 .category(category)
                 .hits(this.hits)
-                .user_num(this.isAnonymous ? "익명" : this.user.getUserNum())
                 .createdAt(this.getCreatedAt())
                 .updatedAt(this.getUpdatedAt())
                 .isPinned(this.isPinned)
+                .user_num(user.getUserNum())
                 .build();
     }
 
     // 게시물 상세 DTO로 변환
-    public BoardDetailDto detailFromEntity(List<String> filePaths) {
+    public BoardDetailDto detailFromEntity(List<BoardFile> files) {
         return BoardDetailDto.builder()
                 .id(this.getId())
                 .title(this.getTitle())
                 .content(this.getContent())
-                .user_num(this.isAnonymous ? "익명" : this.user.getUserNum())
                 .category(category)
                 .createdAt(this.getCreatedAt())
                 .updatedAt(this.getUpdatedAt())
-                .filePaths(filePaths)
+                .files(files)
+                .hits(this.hits)
+                .user_num(user.getUserNum())
                 .build();
     }
+
+    public void updateBoardHitsFromRedis(Long hits) {
+        this.hits = hits;
+    }
+
+
 }

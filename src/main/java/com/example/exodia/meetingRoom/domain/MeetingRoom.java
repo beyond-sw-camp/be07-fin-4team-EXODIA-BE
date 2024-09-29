@@ -1,12 +1,17 @@
 package com.example.exodia.meetingRoom.domain;
 
 import com.example.exodia.meetingRoom.dto.MeetingRoomUpdateDto;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
 
 @Data
 @Entity
@@ -20,4 +25,10 @@ public class MeetingRoom {
 
     @Column(nullable = false)
     private String name;
+    
+    
+    // 단위 테스트를 위해서
+    public MeetingRoom(String name) {
+        this.name = name;
+    }
 }

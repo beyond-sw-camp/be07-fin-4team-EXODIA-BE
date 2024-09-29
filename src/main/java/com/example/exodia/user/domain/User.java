@@ -2,18 +2,29 @@ package com.example.exodia.user.domain;
 
 import com.example.exodia.common.domain.BaseTimeEntity;
 import com.example.exodia.common.domain.DelYN;
-import com.example.exodia.user.dto.UserRegisterDto;
 import com.example.exodia.department.domain.Department;
 import com.example.exodia.position.domain.Position;
+import com.example.exodia.user.dto.UserRegisterDto;
 import com.example.exodia.user.dto.UserUpdateDto;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Where;
+import io.netty.channel.ChannelHandlerContext;
 
-import javax.persistence.*;
-import java.time.LocalDateTime;
 
+
+@Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -82,6 +93,7 @@ public class User extends BaseTimeEntity {
     private int loginFailCount = 0;
 
 
+
     public void incrementLoginFailCount() {
         this.loginFailCount += 1;
     }
@@ -147,5 +159,9 @@ public class User extends BaseTimeEntity {
         this.userNum = userNum;
     }
 
+    public User(String name, Department department) {
+        this.name = name;
+        this.department = department;
+    }
 }
 

@@ -4,6 +4,7 @@ package com.example.exodia.comment.dto;
 import com.example.exodia.board.domain.Board;
 import com.example.exodia.comment.domain.Comment;
 import com.example.exodia.common.domain.DelYN;
+import com.example.exodia.qna.domain.QnA;
 import com.example.exodia.user.domain.User;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 public class CommentSaveReqDto {
 
     private Long board_id;
+    private Long question_id;
     private String userNum;
     private String content;
     private String name;
@@ -36,6 +38,18 @@ public class CommentSaveReqDto {
                 .name(this.name)
                 .userNum(userNum)
                 .board(board)
+                .build();
+    }
+
+    public Comment QnaToEntity(User user, QnA qna, String userNum) {
+        return Comment.builder()
+                .content(this.content)
+                .delYn(this.delYn)
+                .createdAt(this.createdAt != null ? this.createdAt : LocalDateTime.now())
+                .user(user)
+                .name(this.name)
+                .userNum(userNum)
+                .qna(qna)
                 .build();
     }
 }

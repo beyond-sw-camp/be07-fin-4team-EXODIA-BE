@@ -3,7 +3,19 @@ package com.example.exodia.comment.domain;
 import com.example.exodia.board.domain.Board;
 import com.example.exodia.common.domain.BaseTimeEntity;
 import com.example.exodia.common.domain.DelYN;
+import com.example.exodia.qna.domain.QnA;
 import com.example.exodia.user.domain.User;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,7 +23,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Where;
 
-import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Getter
@@ -29,8 +40,12 @@ public class Comment extends BaseTimeEntity {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "board_id", nullable = false)
+    @JoinColumn(name = "board_id")
     private Board board;
+
+    @ManyToOne
+    @JoinColumn(name = "qna_id")
+    private QnA qna;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -48,7 +63,7 @@ public class Comment extends BaseTimeEntity {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = true)
+
     private LocalDateTime updatedAt;
 
     @Enumerated(EnumType.STRING)

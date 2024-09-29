@@ -7,13 +7,21 @@ import com.example.exodia.evalution.dto.EvalutionDto;
 import com.example.exodia.position.domain.Position;
 import com.example.exodia.subevalution.domain.SubEvalution;
 import com.example.exodia.user.domain.User;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
-import java.time.LocalDate;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;import java.time.LocalDate;
 
 @Data
 @Builder

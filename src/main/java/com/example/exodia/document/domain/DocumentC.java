@@ -1,19 +1,5 @@
 package com.example.exodia.document.domain;
 
-import java.time.LocalDateTime;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
-
-import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Where;
 
 import com.example.exodia.common.domain.BaseTimeEntity;
@@ -21,11 +7,18 @@ import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.document.dto.DocDetailResDto;
 import com.example.exodia.document.dto.DocHistoryResDto;
 import com.example.exodia.document.dto.DocListResDto;
-import com.example.exodia.document.dto.DocReqDto;
-import com.example.exodia.document.dto.DocUpdateReqDto;
 import com.example.exodia.user.domain.User;
-import com.fasterxml.jackson.annotation.JsonFormat;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -38,21 +31,21 @@ import lombok.NoArgsConstructor;
 @Builder
 @Where(clause = "del_yn = 'N'")
 public class DocumentC extends BaseTimeEntity {
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(nullable = false, length = 12)
 	private Long id;
 
 	@Column(nullable = false)
 	private String fileName;
 
-	@Column(nullable = false, columnDefinition = "TEXT")
-	private String contents;
-
-	@Column(nullable = false)
+	// 다운로드 경로
+	@Column(nullable = false, length = 2083)
 	private String filePath;
 
+	@Column(nullable = true, length = 2083)
 	private String description;
+
 
 	// @Column(nullable = false)
 	// @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
@@ -70,11 +63,12 @@ public class DocumentC extends BaseTimeEntity {
 	@Column(name = "del_yn", nullable = false)
 	private DelYN delYn = DelYN.N;
 
-	@OneToOne
+	@ManyToOne
+	@JoinColumn(name = "document_type", nullable = false)
 	private DocumentType documentType;
 
 	@ManyToOne
-	@JoinColumn(name = "user_id", nullable = false)
+	@JoinColumn(name = "user_num", nullable = false)
 	private User user;
 
 	@OneToOne
@@ -85,17 +79,6 @@ public class DocumentC extends BaseTimeEntity {
 	// @ManyToOne
 	// @JoinColumn(name = "department_id", nullable = false)
 	// private Department department;
-
-	public static DocumentC toEntity(DocReqDto docReqDto, User user, String path, String contents, DocumentType documentType) {
-		return DocumentC.builder()
-			.fileName(docReqDto.getFileName())
-			.filePath(path)
-			.contents(contents)
-			.documentType(documentType)
-			.user(user)
-			.delYn(DelYN.N)
-			.build();
-	}
 
 	public DocDetailResDto fromEntity(){
 		return DocDetailResDto.builder()
@@ -119,18 +102,6 @@ public class DocumentC extends BaseTimeEntity {
 			.build();
 	}
 
-	public static DocumentC updatetoEntity(DocUpdateReqDto docUpdateReqDto, User user, String path, String contents,
-		DocumentType documentType){
-		return DocumentC.builder()
-			.fileName(docUpdateReqDto.getFileName())
-			.contents(contents)
-			.filePath(path)
-			.documentType(documentType)
-			.user(user)
-			.delYn(DelYN.N)
-			.build();
-	}
-
 	public DocHistoryResDto fromHistoryEntity() {
 		return DocHistoryResDto.builder()
 			.id(this.getId())
@@ -139,7 +110,6 @@ public class DocumentC extends BaseTimeEntity {
 			// .updatedAt()
 			.build();
 	}
-
 
 	public void updateDocumentP(DocumentP updateP) {
 		this.documentP = updateP;
