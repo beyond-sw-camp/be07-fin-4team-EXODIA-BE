@@ -11,7 +11,8 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ChatRoomResponse { // 보여지는 것
+public class ChatRoomExistResponse { // chatRoom 만들 때 쓴다.
+    private boolean existCheck; // true 면 중복 // false 면 새로운 채팅방
     private Long roomId;
     private String roomName;
     private List<String> userNums; // 채팅유저정보
