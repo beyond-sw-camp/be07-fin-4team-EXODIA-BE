@@ -22,13 +22,8 @@ import com.example.exodia.document.dto.DocDetailResDto;
 import com.example.exodia.document.dto.DocHistoryResDto;
 import com.example.exodia.document.dto.DocListResDto;
 import com.example.exodia.document.dto.DocReqDto;
-import com.example.exodia.document.dto.DocRevertReqDto;
 import com.example.exodia.document.dto.DocUpdateReqDto;
 import com.example.exodia.document.service.DocumentService;
-import com.example.exodia.user.dto.UserDeleteDto;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/document")
@@ -89,7 +84,7 @@ public class DocumentController {
 	}
 
 	// 	문서 업데이트
-	@PostMapping("/update/{id}")
+	@PostMapping("/update")
 	public ResponseEntity<?> updateDocument(@RequestPart(value = "file", required = false) List<MultipartFile> files,
 		@RequestPart(value = "data") DocUpdateReqDto docUpdateReqDto) {
 		try {
@@ -102,12 +97,12 @@ public class DocumentController {
 	}
 
 
-	//  문서 버전 되돌리기
-	// @PostMapping("/revert")
-	// public ResponseEntity<DocDetailResDto> revertToVersion(DocRevertReqDto docRevertReqDto) {
-	// 	DocDetailResDto response = documentService.revertToVersion(docRevertReqDto);
-	// 	return ResponseEntity.ok(response);
-	// }
+	 // 문서 버전 되돌리기
+	@PostMapping("/rollback/{id}")
+	public ResponseEntity<?> revertToVersion(@PathVariable Long id) {
+		documentService.rollbackDoc(id);
+		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "파일 업데이트 성공", null));
+	}
 
 
 	// 	문서 히스토리 조회

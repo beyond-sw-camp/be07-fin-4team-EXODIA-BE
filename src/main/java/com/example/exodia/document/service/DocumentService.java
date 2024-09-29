@@ -2,13 +2,11 @@ package com.example.exodia.document.service;
 
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.metrics.data.DefaultRepositoryTagsProvider;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -29,6 +27,7 @@ import com.example.exodia.document.dto.DocDetailResDto;
 import com.example.exodia.document.dto.DocHistoryResDto;
 import com.example.exodia.document.dto.DocListResDto;
 import com.example.exodia.document.dto.DocReqDto;
+import com.example.exodia.document.dto.DocRevertReqDto;
 import com.example.exodia.document.dto.DocUpdateReqDto;
 import com.example.exodia.document.repository.DocumentCRepository;
 import com.example.exodia.document.repository.DocumentPRepository;
@@ -54,14 +53,12 @@ public class DocumentService {
 	private final RedisService redisService;
 	private final UploadAwsFileService uploadAwsFileService;
 	private final DocumentSearchService documentSearchService;
-	private final DefaultRepositoryTagsProvider repositoryTagsProvider;
 	private S3Client s3Client;
 
 	@Autowired
 	public DocumentService(DocumentCRepository documentCRepository, DocumentPRepository documentPRepository,
 		DocumentTypeRepository documentTypeRepository, UserRepository userRepository, RedisService redisService,
-		UploadAwsFileService uploadAwsFileService, DocumentSearchService documentSearchService, S3Client s3Client,
-		DefaultRepositoryTagsProvider repositoryTagsProvider) {
+		UploadAwsFileService uploadAwsFileService, DocumentSearchService documentSearchService, S3Client s3Client) {
 		this.documentCRepository = documentCRepository;
 		this.documentPRepository = documentPRepository;
 		this.documentTypeRepository = documentTypeRepository;
@@ -70,7 +67,6 @@ public class DocumentService {
 		this.uploadAwsFileService = uploadAwsFileService;
 		this.documentSearchService = documentSearchService;
 		this.s3Client = s3Client;
-		this.repositoryTagsProvider = repositoryTagsProvider;
 	}
 
 	public DocumentC saveDoc(List<MultipartFile> files, DocReqDto docReqDto) throws IOException {
@@ -94,10 +90,6 @@ public class DocumentService {
 
 		DocumentP documentP = DocumentP.toEntity(documentC.getId(), documentType, "1");
 		documentPRepository.save(documentP);
-		// documentPRepository.flush();
-		//
-		// documentC.updateDocumentP(documentP);
-		// documentCRepository.save(documentC);
 
 		// opens search 인덱싱
 		EsDocument esDocument = EsDocument.toEsDocument(documentC);
@@ -244,17 +236,22 @@ public class DocumentService {
 		return newDoc;
 	}
 
-	// 문서 버전
-	//  public DocDetailResDto revertToVersion(DocRevertReqDto docRevertReqDto) {
-	// 	DocumentC currentDoc = documentCRepository.findById(docRevertReqDto.getId())
-	// 		.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
-	//
-	// 	currentDoc.updateContents(docRevertReqDto.version);
-	// 	currentDoc.updateUpdatedAt();
-	// 	documentCRepository.save(currentDoc);
-	//
-	// 	return currentDoc.fromEntity();
-	// }
+	// 문서 버전 rollback
+	 public void rollbackDoc(Long id) {
+		 while(true){
+			 DocumentC currentDoc = documentCRepository.findByDocumentP_Id(id);
+
+			 if (currentDoc != null) {
+				 id = currentDoc.getId();
+				 currentDoc.softDelete();
+				 documentCRepository.save(currentDoc);
+				 System.out.println(currentDoc);
+			 }else {
+				 System.out.println("6이면 여기로 오겠지");
+				 break;
+			 }
+		 }
+	}
 
 	// 	문서 히스토리 조회
 	public List<DocHistoryResDto> getDocumentVersions(Long id) {
@@ -263,17 +260,17 @@ public class DocumentService {
 
 		List<DocHistoryResDto> versions = new ArrayList<>();
 
-		while (documentC.getDocumentP() != null) {
+		while (true) {
 			versions.add(documentC.fromHistoryEntity());
 
 			DocumentP documentP = documentC.getDocumentP();
 			documentC = documentCRepository.findById(documentP.getId())
 				.orElseThrow(() -> new EntityNotFoundException("히스토리가 존재하지 않습니다."));
-			if (documentC.getDocumentP() != null) {
-				versions.add(documentC.fromHistoryEntity());
+			if (documentC.getDocumentP() == null) {
+				versions.add(documentC.fromHistoryEntity("1"));
+				break;
 			}
 		}
-		versions.add(documentC.fromHistoryEntity("1"));
 		return versions;
 	}
 
