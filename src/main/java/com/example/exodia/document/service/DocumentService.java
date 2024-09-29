@@ -262,23 +262,18 @@ public class DocumentService {
 			.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
 
 		List<DocHistoryResDto> versions = new ArrayList<>();
-		versions.add(documentC.fromHistoryEntity());
 
-		// 모든 버전(부모 문서들) 조회
-		while (documentC != null) {
+		while (documentC.getDocumentP() != null) {
+			versions.add(documentC.fromHistoryEntity());
+
 			DocumentP documentP = documentC.getDocumentP();
-			if (documentP != null) {
-				documentC = documentCRepository.findById(documentP.getId())
-					.orElseThrow(() -> new EntityNotFoundException("히스토리가 존재하지 않습니다."));
-				if (documentC.getDocumentP() != null) {
-					versions.add(documentC.fromHistoryEntity());
-				} else {
-					versions.add(documentC.fromHistoryEntity("1"));
-				}
-			}else{
-				return versions;
+			documentC = documentCRepository.findById(documentP.getId())
+				.orElseThrow(() -> new EntityNotFoundException("히스토리가 존재하지 않습니다."));
+			if (documentC.getDocumentP() != null) {
+				versions.add(documentC.fromHistoryEntity());
 			}
 		}
+		versions.add(documentC.fromHistoryEntity("1"));
 		return versions;
 	}
 
