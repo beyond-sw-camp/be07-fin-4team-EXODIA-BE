@@ -26,6 +26,16 @@ public class SseEmitters {
 
         return emitter;
     }
+    // 모든 사용자
+    public void sendToAll(Notification notification) {
+        emitters.forEach((userNum, emitter) -> {
+            try {
+                emitter.send(SseEmitter.event().data(notification));
+            } catch (IOException e) {
+                emitters.remove(userNum);
+            }
+        });
+    }
 
     public void sendToUser(String userNum, Notification notification) {
         SseEmitter emitter = emitters.get(userNum);

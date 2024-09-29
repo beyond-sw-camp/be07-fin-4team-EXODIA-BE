@@ -98,8 +98,9 @@ public class BoardService {
         }
 
         // Kafka 이벤트 전송
-        if (board.getCategory() == Category.NOTICE) {
-            String message = String.format("공지사항이 작성되었습니다: %s", board.getTitle());
+        if (category == Category.NOTICE || category == Category.FAMILY_EVENT) {
+            String eventType = category == Category.NOTICE ? "공지사항" : "경조사";
+            String message = String.format("%s가 작성되었습니다: %s", eventType, board.getTitle());
             kafkaProducer.sendBoardEvent("notice-events", message);
         }
 

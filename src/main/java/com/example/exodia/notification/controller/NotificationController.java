@@ -31,19 +31,14 @@ public class NotificationController {
 
     @GetMapping("/subscribe")
     public SseEmitter subscribe() {
-        // SecurityContextHolder에서 인증된 사용자 정보 가져오기
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new RuntimeException("사용자 인증 정보를 찾을 수 없습니다.");
         }
-
-        String userNum = authentication.getName(); // 로그인된 사용자의 userNum을 가져옴
-
-        // CustomUserService를 사용하여 UserDetails를 통해 User 정보 가져오기
+        String userNum = authentication.getName();
         CustomUserDetails userDetails = (CustomUserDetails) customUserService.loadUserByUsername(userNum);
-        User user = userDetails.getUser(); // User 객체 가져오기
+        User user = userDetails.getUser();
 
-        // SSE 구독 처리
         SseEmitter emitter = sseEmitters.addEmitter(user.getUserNum());
         return emitter;
     }

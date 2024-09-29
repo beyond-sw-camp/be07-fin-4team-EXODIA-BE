@@ -15,6 +15,9 @@ import java.lang.reflect.Type;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(
+        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "message"})
+)
 public class Notification extends BaseTimeEntity {
 
     @Id

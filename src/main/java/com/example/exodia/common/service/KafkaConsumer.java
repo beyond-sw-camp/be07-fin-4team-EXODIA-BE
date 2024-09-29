@@ -8,6 +8,7 @@ import com.example.exodia.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -25,17 +26,22 @@ public class KafkaConsumer {
         this.sseEmitters = sseEmitters;
     }
 
-    @KafkaListener(topics = "notice-events", groupId = "notification-group")
+    // 데이터 중복 입고 처리 수정
+    @Transactional
+    @KafkaListener(topics = "notice-events", groupId = "notification-group", concurrency = "1")
     public void listen(String message) {
         List<User> users = userRepository.findAll();
 
+        NotificationType notificationType = message.contains("경조사") ? NotificationType.경조사 : NotificationType.공지사항;
+
         for (User user : users) {
-            // 알림을 데이터베이스에 저장
-            Notification notification = new Notification(user, NotificationType.공지사항, message);
+
+            Notification notification = new Notification(user, notificationType, message);
             notificationRepository.save(notification);
 
             // SSE를 통해 실시간으로 알림 전송
             sseEmitters.sendToUser(user.getUserNum(), notification);
+            System.out.println("SSE 이벤트 전송: " + user.getUserNum() + "  " + message + "메세지"); //
         }
     }
 }
