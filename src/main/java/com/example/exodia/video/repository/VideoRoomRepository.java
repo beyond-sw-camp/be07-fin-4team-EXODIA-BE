@@ -10,4 +10,6 @@ public interface VideoRoomRepository extends JpaRepository<VideoRoom, Long> {
     void deleteByRoomName(String roomName);
     Optional<VideoRoom> findByRoomName(String roomName);
     List<VideoRoom> findAllByIsActiveTrue();
+    Optional<VideoRoom> findByJanusRoomIdAndIsActiveTrue(Long janusRoomId);
+    Optional<VideoRoom> findByJanusRoomId(Long janusRoomId);
 }
