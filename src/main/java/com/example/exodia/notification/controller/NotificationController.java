@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
-@RequestMapping("/api/notifications")
+@RequestMapping("/notifications")
 public class NotificationController {
 
     private final SseEmitters sseEmitters;

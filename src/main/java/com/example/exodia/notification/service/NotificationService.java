@@ -41,9 +41,9 @@ public class NotificationService {
         notification.markAsRead();
     }
 
-    // 관리자가 차량 예약 요청을 받았을 때 알림 전송
     // 인사팀 관리자에게 예약 요청 알림 전송
     public void sendReservationReqToAdmins(String message) {
+        // 후 department_name 에 맞게 인사1팀 인사 2팀 이런식의 명칭 변경
         List<User> admins = userRepository.findAllByDepartmentName("인사팀");
         for (User admin : admins) {
             Notification notification = new Notification(admin, NotificationType.예약, message);
@@ -54,17 +54,30 @@ public class NotificationService {
         }
     }
 
-    // 사용자가 예약 승인 알림을 받을 때
+    // 관리자 승인 -> 사용자 알림(승리)
     public void sendReservationApproval(User user, String message) {
         Notification notification = new Notification(user, NotificationType.차량예약승인, message);
         notificationRepository.save(notification);
         sseEmitters.sendToUser(user.getUserNum(), notification);
     }
 
-    // 사용자가 예약 거절 알림을 받을 때
+    // 관리자 거절 -> 사용자 알림(거절)
     public void sendReservationRejection(User user, String message) {
         Notification notification = new Notification(user, NotificationType.차량예약거절, message);
         notificationRepository.save(notification);
         sseEmitters.sendToUser(user.getUserNum(), notification);
+    }
+
+    // 관리자들에게 회의실 예약 요청 알림을 전송
+    public void sendMeetReservationReqToAdmins(String message) {
+        List<User> admins = userRepository.findAllByDepartmentName("인사팀");
+
+        for (User admin : admins) {
+            Notification notification = new Notification(admin, NotificationType.회의실예약, message);
+            notificationRepository.save(notification);
+
+            // SSE로 실시간 알림 전송
+            sseEmitters.sendToUser(admin.getUserNum(), notification);
+        }
     }
 }

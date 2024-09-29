@@ -2,23 +2,17 @@ package com.example.exodia.reservationMeeting.service;
 
 import com.example.exodia.meetingRoom.domain.MeetingRoom;
 import com.example.exodia.meetingRoom.repository.MeetingRoomRepository;
+import com.example.exodia.notification.service.NotificationService;
 import com.example.exodia.reservationMeeting.domain.ReservationMeet;
-import com.example.exodia.reservationMeeting.domain.Status;
 import com.example.exodia.reservationMeeting.dto.ReservationMeetCreateDto;
-import com.example.exodia.reservationMeeting.dto.ReservationMeetDto;
 import com.example.exodia.reservationMeeting.dto.ReservationMeetListDto;
 import com.example.exodia.reservationMeeting.repository.ReservationMeetRepository;
-import com.example.exodia.reservationVehicle.domain.Reservation;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 import com.example.exodia.user.service.UserService;
 import jakarta.persistence.LockModeType;
-import net.javacrumbs.shedlock.core.LockAssert;
-import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.jpa.repository.Lock;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,16 +34,19 @@ public class ReservationMeetService {
     private final UserRepository userRepository;
     @Autowired
     private final UserService userService;
+    @Autowired
+    private final NotificationService notificationService;
 
 //    @Autowired
 //    @Qualifier("10")
 //    private RedisTemplate<String, Object> reservationRedisTemplate;
 
-    public ReservationMeetService(ReservationMeetRepository reservationMeetRepository, MeetingRoomRepository meetingRoomRepository, UserRepository userRepository, UserService userService) {
+    public ReservationMeetService(ReservationMeetRepository reservationMeetRepository, MeetingRoomRepository meetingRoomRepository, UserRepository userRepository, UserService userService, NotificationService notificationService) {
         this.reservationMeetRepository = reservationMeetRepository;
         this.meetingRoomRepository = meetingRoomRepository;
         this.userRepository = userRepository;
         this.userService = userService;
+        this.notificationService = notificationService;
     }
 
     /* 회의실 예약 생성 */
@@ -71,12 +68,26 @@ public class ReservationMeetService {
             throw new IllegalArgumentException("해당 시간에 회의실이 이미 예약되어 있습니다.");
         }
 
-        //if (isMeetingRoomAvailable(meetingRoom.getId(), reservationMeetCreateDto.getStartTime(), reservationMeetCreateDto.getEndTime())) {
-            ReservationMeet reservationMeet = ReservationMeet.fromEntity(reservationMeetCreateDto, meetingRoom, user);
-            return ReservationMeetListDto.fromEntity(reservationMeetRepository.save(reservationMeet));
-        //} else {
-        //    throw new IllegalArgumentException("해당 시간에 회의실이 이미 예약되어 있습니다.");
-        //}
+//        //if (isMeetingRoomAvailable(meetingRoom.getId(), reservationMeetCreateDto.getStartTime(), reservationMeetCreateDto.getEndTime())) {
+//            ReservationMeet reservationMeet = ReservationMeet.fromEntity(reservationMeetCreateDto, meetingRoom, user);
+//
+//
+//        // 관리자를 대상으로 알림 전송
+//        String message = String.format("%s님이 %s 회의실을 %s에 예약하였습니다.", user.getName(), meetingRoom.getName(), reservationMeet.getStartTime().toString());
+//        notificationService.sendMeetReservationReqToAdmins(message);
+//
+//            return ReservationMeetListDto.fromEntity(reservationMeetRepository.save(reservationMeet));
+//        //} else {
+//        //    throw new IllegalArgumentException("해당 시간에 회의실이 이미 예약되어 있습니다.");
+//        //}
+        ReservationMeet reservationMeet = ReservationMeet.fromEntity(reservationMeetCreateDto, meetingRoom, user);
+        reservationMeet = reservationMeetRepository.save(reservationMeet);
+
+        // 관리자를 대상으로 알림 전송
+        String message = String.format("%s님이 %s 회의실을 %s ~ %s 에 예약하였습니다.", user.getName(), meetingRoom.getName(), reservationMeet.getStartTime().toString(), reservationMeet.getEndTime().toString());
+        notificationService.sendReservationReqToAdmins(message);
+
+        return ReservationMeetListDto.fromEntity(reservationMeet);
     }
 
     /* 로그인 한 유저의 예약 내역 조회 */
