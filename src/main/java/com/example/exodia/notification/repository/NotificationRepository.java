@@ -13,7 +13,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     boolean existsByUserAndMessage(User user, String message);
 
     // 사용자 읽지 않은 알림 개수 조회
-    long CountByUserNotRead(User user);
+    long countByUserAndIsReadFalse(User user);
     // 사용자 읽지 않은 알림 목록 조회
     List<Notification> findByUserAndIsReadFalse(User user);
 }

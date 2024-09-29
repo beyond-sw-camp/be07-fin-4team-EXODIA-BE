@@ -41,7 +41,7 @@ public class NotificationService {
         User user = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
 
-        return notificationRepository.CountByUserNotRead(user);
+        return notificationRepository.countByUserAndIsReadFalse(user);
     }
 
     // 읽음 처리
