@@ -2,7 +2,7 @@ package com.example.exodia.evalutionavg.domain;
 
 
 import com.example.exodia.common.domain.BaseTimeEntity;
-import com.example.exodia.subevalution.domain.SubEvalution;
+import com.example.exodia.evalutionFrame.subevalution.domain.SubEvalution;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -2,10 +2,10 @@ package com.example.exodia.common.data;
 
 import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.department.domain.Department;
-import com.example.exodia.evalutionb.domain.Evalutionb;
-import com.example.exodia.evalutionb.repository.EvalutionbRepository;
-import com.example.exodia.evalutionm.domain.Evalutionm;
-import com.example.exodia.evalutionm.repository.EvalutionmRepository;
+import com.example.exodia.evalutionFrame.evalutionBig.domain.Evalutionb;
+import com.example.exodia.evalutionFrame.evalutionBig.repository.EvalutionbRepository;
+import com.example.exodia.evalutionFrame.evalutionMiddle.domain.Evalutionm;
+import com.example.exodia.evalutionFrame.evalutionMiddle.repository.EvalutionmRepository;
 import com.example.exodia.meetingRoom.domain.MeetingRoom;
 import com.example.exodia.meetingRoom.repository.MeetingRoomRepository;
 import com.example.exodia.position.domain.Position;

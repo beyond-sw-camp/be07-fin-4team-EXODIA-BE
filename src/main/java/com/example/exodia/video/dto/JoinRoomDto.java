@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class JoinRoomDto {
     private String roomName;
     private String password;
+    private Long janusRoomId;
 }

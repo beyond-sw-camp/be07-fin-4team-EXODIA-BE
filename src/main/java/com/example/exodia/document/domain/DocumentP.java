@@ -28,7 +28,6 @@ import lombok.NoArgsConstructor;
 public class DocumentP {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
 	private String version;
@@ -43,6 +42,7 @@ public class DocumentP {
 
 	public static DocumentP toEntity(Long id, DocumentType documentType, String version) {
 		return DocumentP.builder()
+			.id(id)
 			.version(version)
 			.documentType(documentType)
 			.delYn(DelYN.N)

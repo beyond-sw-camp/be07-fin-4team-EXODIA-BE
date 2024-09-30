@@ -2,14 +2,13 @@ package com.example.exodia.document.service;
 
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,6 +22,7 @@ import com.example.exodia.common.service.UploadAwsFileService;
 import com.example.exodia.document.domain.DocumentC;
 import com.example.exodia.document.domain.DocumentP;
 import com.example.exodia.document.domain.DocumentType;
+import com.example.exodia.document.domain.EsDocument;
 import com.example.exodia.document.dto.DocDetailResDto;
 import com.example.exodia.document.dto.DocHistoryResDto;
 import com.example.exodia.document.dto.DocListResDto;
@@ -37,6 +37,10 @@ import com.example.exodia.user.repository.UserRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletResponse;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 @Service
 @Transactional
@@ -48,17 +52,21 @@ public class DocumentService {
 	private final UserRepository userRepository;
 	private final RedisService redisService;
 	private final UploadAwsFileService uploadAwsFileService;
+	private final DocumentSearchService documentSearchService;
+	private S3Client s3Client;
 
 	@Autowired
 	public DocumentService(DocumentCRepository documentCRepository, DocumentPRepository documentPRepository,
 		DocumentTypeRepository documentTypeRepository, UserRepository userRepository, RedisService redisService,
-		UploadAwsFileService uploadAwsFileService) {
+		UploadAwsFileService uploadAwsFileService, DocumentSearchService documentSearchService, S3Client s3Client) {
 		this.documentCRepository = documentCRepository;
 		this.documentPRepository = documentPRepository;
 		this.documentTypeRepository = documentTypeRepository;
 		this.userRepository = userRepository;
 		this.redisService = redisService;
 		this.uploadAwsFileService = uploadAwsFileService;
+		this.documentSearchService = documentSearchService;
+		this.s3Client = s3Client;
 	}
 
 	public DocumentC saveDoc(List<MultipartFile> files, DocReqDto docReqDto) throws IOException {
@@ -66,6 +74,7 @@ public class DocumentService {
 		User user = userRepository.findByUserNum(userNum)
 			.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
 
+		// s3에 업로드
 		String fileName = files.get(0).getOriginalFilename();
 		List<String> fileDownloadUrl = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files, "document");
 
@@ -78,13 +87,30 @@ public class DocumentService {
 
 		DocumentC documentC = docReqDto.toEntity(docReqDto, user, fileName, fileDownloadUrl.get(0), documentType);
 		documentCRepository.save(documentC);
+
+		DocumentP documentP = DocumentP.toEntity(documentC.getId(), documentType, "1");
+		documentPRepository.save(documentP);
+
+		// opens search 인덱싱
+		EsDocument esDocument = EsDocument.toEsDocument(documentC);
+		documentSearchService.indexDocuments(esDocument);
 		return documentC;
 	}
 
 	//	첨부파일 다운로드
-	public ResponseEntity<Resource> downloadFile(Long id, HttpServletResponse response) throws IOException {
+	public ResponseEntity<Resource> downloadFile(Long id) throws IOException {
 		DocumentC doc = documentCRepository.findById(id).orElseThrow(() -> new NoSuchFileException("파일이 존재하지 않습니다"));
-		Resource resource = new UrlResource(Paths.get(doc.getFilePath()).toUri());
+
+		// S3에서 파일 다운로드
+		String filePath = doc.getFilePath();
+		filePath = filePath.substring(filePath.indexOf(".com/") + 5);
+		GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+			.bucket("exodia-file")
+			.key("document/" + filePath)
+			.build();
+
+		ResponseInputStream<GetObjectResponse> s3Object = s3Client.getObject(getObjectRequest);
+		InputStreamResource resource = new InputStreamResource(s3Object);
 
 		if (resource.exists() && resource.isReadable()) {
 			return ResponseEntity.ok()
@@ -202,20 +228,30 @@ public class DocumentService {
 		DocumentC newDoc = docUpdateReqDto.updatetoEntity(docUpdateReqDto, newDocP, user, fileName,
 			fileDownloadUrl.get(0), documentType);
 		documentCRepository.save(newDoc);
+
+		// opens search 인덱싱
+		EsDocument esDocument = EsDocument.toEsDocument(newDoc);
+		documentSearchService.indexDocuments(esDocument);
+
 		return newDoc;
 	}
 
-	// 문서 버전
-	//  public DocDetailResDto revertToVersion(DocRevertReqDto docRevertReqDto) {
-	// 	DocumentC currentDoc = documentCRepository.findById(docRevertReqDto.getId())
-	// 		.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
-	//
-	// 	currentDoc.updateContents(docRevertReqDto.version);
-	// 	currentDoc.updateUpdatedAt();
-	// 	documentCRepository.save(currentDoc);
-	//
-	// 	return currentDoc.fromEntity();
-	// }
+	// 문서 버전 rollback
+	 public void rollbackDoc(Long id) {
+		 while(true){
+			 DocumentC currentDoc = documentCRepository.findByDocumentP_Id(id);
+
+			 if (currentDoc != null) {
+				 id = currentDoc.getId();
+				 currentDoc.softDelete();
+				 documentCRepository.save(currentDoc);
+				 System.out.println(currentDoc);
+			 }else {
+				 System.out.println("6이면 여기로 오겠지");
+				 break;
+			 }
+		 }
+	}
 
 	// 	문서 히스토리 조회
 	public List<DocHistoryResDto> getDocumentVersions(Long id) {
@@ -223,14 +259,17 @@ public class DocumentService {
 			.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
 
 		List<DocHistoryResDto> versions = new ArrayList<>();
-		versions.add(documentC.fromHistoryEntity());
 
-		// 모든 버전(부모 문서들) 조회
-		if (documentC != null && documentC.getDocumentP() != null) {
+		while (true) {
+			versions.add(documentC.fromHistoryEntity());
+
 			DocumentP documentP = documentC.getDocumentP();
 			documentC = documentCRepository.findById(documentP.getId())
 				.orElseThrow(() -> new EntityNotFoundException("히스토리가 존재하지 않습니다."));
-			versions.add(documentC.fromHistoryEntity());
+			if (documentC.getDocumentP() == null) {
+				versions.add(documentC.fromHistoryEntity("1"));
+				break;
+			}
 		}
 		return versions;
 	}
@@ -240,57 +279,15 @@ public class DocumentService {
 		DocumentC documentC = documentCRepository.findById(id)
 			.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
 		documentC.softDelete();
+		documentSearchService.deleteDocument(id.toString());
 		documentCRepository.save(documentC);
 	}
 
-	// 	문서 업데이트
-	// public DocumentC updateDoc(MultipartFile file, DocUpdateReqDto docUpdateReqDto) throws IOException {
-	// 	String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
-	// 	User user = userRepository.findByUserNum(userNum)
-	// 		.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
-	//
-	// 	// 현재 문서
-	// 	DocumentC documentC = documentCRepository.findById(docUpdateReqDto.getId())
-	// 		.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
-	//
-	// 	List<Object> docIds = redisService.getUpdatedListValue(userNum);
-	// 	if (docIds.contains(docUpdateReqDto.getId().intValue())) {
-	// 		redisService.removeUpdatedListValue(userNum, docUpdateReqDto.getId());
-	// 	}
-	// 	redisService.setUpdatedListValue(userNum, documentC.getId());
-	//
-	// 	String version = "";
-	// 	if (documentC.getDocumentP() == null) {
-	// 		version = "1";
-	// 	} else {
-	// 		version = String.valueOf(Integer.parseInt(documentC.getDocumentP().getVersion()) + 1);
-	// 	}
-	//
-	// 	DocumentP newDocP = documentPRepository.save(DocumentP.toEntity(docUpdateReqDto.getId(), documentC.getDocumentType(), version));
-	//
-	//
-	// 	// 새로운 파일로 수정
-	// 	String s3FilePath = uploadAwsFileService.uploadSingleFileAndReturnPath(file, "document");
-	// 	String fileName = file.getOriginalFilename();
-	// 	String fileDownloadUrl = uploadAwsFileService.generatePresignedUrl(fileName);
-	//
-	// 	DocumentType documentType = documentTypeRepository.findByTypeName(docUpdateReqDto.getTypeName())
-	// 		.orElseThrow(() -> new EntityNotFoundException("폴더가 존재하지 않습니다."));
-	//
-	// 	DocumentC newDoc = DocumentC.updatetoEntity(docUpdateReqDto, newDocP, user, fileName, s3FilePath, fileDownloadUrl,
-	// 		documentType);
-	// 	// 자식 문서 추가
-	//
-	//
-	// 	// DocumentC savedC = documentCRepository.save(
-	// 	// 	DocumentC.updatetoEntity(docUpdateReqDto, user, fileName, s3FilePath, fileDownloadUrl, documentType));
-	// 	// // 부모 문서 추가
-	// 	// DocumentP updateP = documentP.updateEntity(docUpdateReqDto.getId(), documentP.getVersion());
-	// 	// 자식 문서 업데이트
-	// 	// savedC.updateDocumentP(updateP);
-	//
-	// 	// documentCRepository.save(savedC);
-	// 	// documentPRepository.save(updateP);
-	// 	return documentCRepository.save(newDoc);
-	// }
+	// 모든 타입 조회
+	public List<String> getAllTypeNames() {
+		List<DocumentType> documentTypes = documentTypeRepository.findAll();
+		return documentTypes.stream()
+			.map(DocumentType::getTypeName)
+			.collect(Collectors.toList());
+	}
 }

@@ -3,6 +3,7 @@ package com.example.exodia.reservationVehicle.service;
 import com.example.exodia.car.domain.Car;
 import com.example.exodia.car.repository.CarRepository;
 import com.example.exodia.common.auth.JwtTokenProvider;
+import com.example.exodia.notification.service.NotificationService;
 import com.example.exodia.reservationVehicle.domain.Reservation;
 import com.example.exodia.reservationVehicle.domain.Status;
 import com.example.exodia.reservationVehicle.dto.ReservationCreateDto;
@@ -29,21 +30,19 @@ public class ReservationService {
 
     @Autowired
     private ReservationRepository reservationRepository;
-
     @Autowired
     private CarRepository carRepository;
-
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private RedissonClient redissonClient; // Redisson 클라이언트 추가
-
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
-
     @Autowired
     private UserService userService;
+    @Autowired
+    private NotificationService notificationService;
+
 
     // 차량 예약 메서드
     public ReservationDto carReservation(ReservationCreateDto dto) {
@@ -69,6 +68,10 @@ public class ReservationService {
                 Reservation reservation = dto.toEntity(car, user);
                 reservation.setStatus(Status.WAITING);
                 Reservation savedReservation = reservationRepository.save(reservation);
+
+                // 관리자에게 알림 전송 (차량 예약 요청)
+                String message = String.format("%s님이 %s 날짜에 차량 %s를 예약 요청하였습니다.", user.getName(), dto.getStartDate().toString(), car.getCarNum());
+                notificationService.sendReservationReqToAdmins(message);
 
                 return ReservationDto.fromEntity(savedReservation);
             } else {
@@ -97,6 +100,11 @@ public class ReservationService {
         reservation.approveReservation();
         reservation.reserve(); // 최종 예약 확정 상태로 변경
         Reservation updatedReservation = reservationRepository.save(reservation);
+
+        // 사용자에게 알림 전송 (예약 승인)
+        String message = String.format("차량 예약이 승인되었습니다: %s", reservation.getCar().getCarNum());
+        notificationService.sendReservationApproval(reservation.getUser(), message);
+
         return ReservationDto.fromEntity(updatedReservation);
     }
 
@@ -110,9 +118,14 @@ public class ReservationService {
 
         userService.checkHrAuthority(user.getDepartment().getId().toString());
 
-        // 예약 상태를 AVAILABLE로 변경
+        // 예약 상태를 변경
         reservation.rejectReservation();
         Reservation updatedReservation = reservationRepository.save(reservation);
+
+        // 사용자에게 알림 전송 (예약 거절)
+        String message = String.format("차량 예약이 거절되었습니다: %s", reservation.getCar().getCarNum());
+        notificationService.sendReservationRejection(reservation.getUser(), message);
+
         return ReservationDto.fromEntity(updatedReservation);
     }
 
@@ -138,9 +151,7 @@ public class ReservationService {
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
         return reservationRepository.findByStartTimeBetween(date, date.plusDays(1))
-                .stream()
-                .map(ReservationDto::fromEntity)
-                .collect(Collectors.toList());
+                .stream().map(ReservationDto::fromEntity).collect(Collectors.toList());
     }
 
     // 모든 예약 조회 메서드

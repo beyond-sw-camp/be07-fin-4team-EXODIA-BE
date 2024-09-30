@@ -12,10 +12,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class DocDetailResDto {
+	private Long id;
 	private String fileName;
 	private String fileExtension;
 	private String documentType;
 	private String userName;
 	private String description;	// 설명
-	private LocalDateTime updatedAt;
+	private LocalDateTime createAt;
 }
