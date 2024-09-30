@@ -1,9 +1,7 @@
 package com.example.exodia.document.dto;
 
-import org.springframework.web.multipart.MultipartFile;
-
 import com.example.exodia.common.domain.DelYN;
-import com.example.exodia.document.domain.DocumentC;
+import com.example.exodia.document.domain.Document;
 import com.example.exodia.document.domain.DocumentType;
 import com.example.exodia.user.domain.User;
 
@@ -22,14 +20,14 @@ public class DocReqDto {
 	private String description;
 
 
-	public DocumentC toEntity(DocReqDto docReqDto, User user, String fileName, String fileDownloadUrl, DocumentType documentType) {
-		return DocumentC.builder()
+	public Document toEntity(DocReqDto docReqDto, User user, String fileName, String fileDownloadUrl, DocumentType documentType) {
+		return Document.builder()
 			.fileName(fileName)
 			.filePath(fileDownloadUrl)
 			.documentType(documentType)
 			.description(docReqDto.description)
 			.user(user)
-			.documentP(null)
+			.documentVersion(null)
 			.delYn(DelYN.N)
 			.build();
 	}

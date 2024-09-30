@@ -1,7 +1,6 @@
 package com.example.exodia.document.domain;
 
 import org.springframework.data.elasticsearch.annotations.*;
-import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 
 import jakarta.persistence.Id;
@@ -16,7 +15,7 @@ import lombok.ToString;
 @Getter
 @ToString
 @Builder
-@Document(indexName = "document")
+@org.springframework.data.elasticsearch.annotations.Document(indexName = "document")
 public class EsDocument {
 
 	@Id
@@ -31,11 +30,11 @@ public class EsDocument {
 	// @Field(type = FieldType.Text)
 	// private String content;
 
-	public static EsDocument toEsDocument(DocumentC documentC) {
+	public static EsDocument toEsDocument(Document document) {
 		return EsDocument.builder()
-			.id(documentC.getId().toString())
-			.fileName(documentC.getFileName())
-			.description(documentC.getDescription())
+			.id(document.getId().toString())
+			.fileName(document.getFileName())
+			.description(document.getDescription())
 			.build();
 	}
 }

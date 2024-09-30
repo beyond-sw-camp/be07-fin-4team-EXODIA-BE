@@ -18,7 +18,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -30,7 +30,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Builder
 @Where(clause = "del_yn = 'N'")
-public class DocumentC extends BaseTimeEntity {
+public class Document extends BaseTimeEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -71,9 +71,9 @@ public class DocumentC extends BaseTimeEntity {
 	@JoinColumn(name = "user_num", nullable = false)
 	private User user;
 
-	@OneToOne
-	@JoinColumn(name = "document_p_id")
-	private DocumentP documentP;
+	@ManyToOne
+	@JoinColumn(name = "document_version")
+	private DocumentVersion documentVersion;
 
 	//
 	// @ManyToOne
@@ -108,21 +108,12 @@ public class DocumentC extends BaseTimeEntity {
 			.id(this.getId())
 			.fileName(this.getFileName())
 			.userName(this.getUser().getName())
-			.version(this.documentP.getVersion())
 			.build();
 	}
 
-	public DocHistoryResDto fromHistoryEntity(String version) {
-		return DocHistoryResDto.builder()
-			.id(this.getId())
-			.fileName(this.getFileName())
-			.userName(this.getUser().getName())
-			.version(version)
-			.build();
-	}
+	public void updateDocumentVersion(DocumentVersion documentVersion) {
+		this.documentVersion = documentVersion;
 
-	public void updateDocumentP(DocumentP updateP) {
-		this.documentP = updateP;
 	}
 }
 

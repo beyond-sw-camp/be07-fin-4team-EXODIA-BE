@@ -1,10 +1,8 @@
 package com.example.exodia.document.dto;
 
-import java.time.LocalDateTime;
-
 import com.example.exodia.common.domain.DelYN;
-import com.example.exodia.document.domain.DocumentC;
-import com.example.exodia.document.domain.DocumentP;
+import com.example.exodia.document.domain.Document;
+import com.example.exodia.document.domain.DocumentVersion;
 import com.example.exodia.document.domain.DocumentType;
 import com.example.exodia.user.domain.User;
 
@@ -22,14 +20,14 @@ public class DocUpdateReqDto {
 	private String typeName;
 	private String description;	// 설명
 
-	public DocumentC updatetoEntity(DocUpdateReqDto docUpdateReqDto, DocumentP documentP, User user, String fileName, String fileDownloadUrl,
+	public Document toEntity(DocUpdateReqDto docUpdateReqDto, Document document, String fileName, String fileDownloadUrl,
 		DocumentType documentType){
-		return DocumentC.builder()
+		return Document.builder()
 			.fileName(fileName)
 			.filePath(fileDownloadUrl)
-			.documentP(documentP)
+			.documentVersion(document.getDocumentVersion())
 			.documentType(documentType)
-			.user(user)
+			.user(document.getUser())
 			.delYn(DelYN.N)
 			.build();
 	}
