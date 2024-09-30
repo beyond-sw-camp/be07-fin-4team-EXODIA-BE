@@ -29,6 +29,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import jakarta.persistence.EntityNotFoundException;
+
 @Service
 public class BoardService {
 
@@ -76,6 +78,7 @@ public class BoardService {
 
         // 파일이 있는 경우 파일 처리
         if (files != null && !files.isEmpty()) {
+            // S3 파일 업로드 후 파일 경로 및 Presigned URL 반환
             List<String> s3FilePaths = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files, "board");
 
             // BoardFile 엔티티를 생성하여 저장

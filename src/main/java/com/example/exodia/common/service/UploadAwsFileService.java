@@ -50,10 +50,10 @@ public class UploadAwsFileService {
                 }
 
                 PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                        .bucket(bucket)
-                        .key(folder+"/"+fileName)
-                        .contentType(file.getContentType())
-                        .build();
+                    .bucket(bucket)
+                    .key(folder + "/" + fileName)
+                    .contentType(file.getContentType())
+                    .build();
 
                 s3Client.putObject(putObjectRequest, RequestBody.fromBytes(fileData));
 

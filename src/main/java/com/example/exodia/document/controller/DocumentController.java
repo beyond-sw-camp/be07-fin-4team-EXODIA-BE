@@ -22,13 +22,8 @@ import com.example.exodia.document.dto.DocDetailResDto;
 import com.example.exodia.document.dto.DocHistoryResDto;
 import com.example.exodia.document.dto.DocListResDto;
 import com.example.exodia.document.dto.DocReqDto;
-import com.example.exodia.document.dto.DocRevertReqDto;
 import com.example.exodia.document.dto.DocUpdateReqDto;
 import com.example.exodia.document.service.DocumentService;
-import com.example.exodia.user.dto.UserDeleteDto;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/document")
@@ -47,7 +42,6 @@ public class DocumentController {
 		@RequestPart(value = "file", required = true) List<MultipartFile> files,
 		@RequestPart(value = "data") DocReqDto docReqDto) {
 		try {
-			System.out.println(docReqDto);
 			documentService.saveDoc(files, docReqDto);
 			return ResponseEntity.ok("파일 저장 성공");
 		} catch (IOException e) {
@@ -57,8 +51,8 @@ public class DocumentController {
 
 	//	첨부파일 다운로드
 	@GetMapping("/downloadFile/{id}")
-	public ResponseEntity<?> downloadDocument(@PathVariable Long id, HttpServletResponse response) throws IOException {
-		return documentService.downloadFile(id, response);
+	public ResponseEntity<?> downloadDocument(@PathVariable Long id) throws IOException {
+		return documentService.downloadFile(id);
 	}
 
 	// 	전체 문서 조회
@@ -90,7 +84,7 @@ public class DocumentController {
 	}
 
 	// 	문서 업데이트
-	@PostMapping("/update/{id}")
+	@PostMapping("/update")
 	public ResponseEntity<?> updateDocument(@RequestPart(value = "file", required = false) List<MultipartFile> files,
 		@RequestPart(value = "data") DocUpdateReqDto docUpdateReqDto) {
 		try {
@@ -103,12 +97,12 @@ public class DocumentController {
 	}
 
 
-	//  문서 버전 되돌리기
-	// @PostMapping("/revert")
-	// public ResponseEntity<DocDetailResDto> revertToVersion(DocRevertReqDto docRevertReqDto) {
-	// 	DocDetailResDto response = documentService.revertToVersion(docRevertReqDto);
-	// 	return ResponseEntity.ok(response);
-	// }
+	 // 문서 버전 되돌리기
+	@PostMapping("/rollback/{id}")
+	public ResponseEntity<?> revertToVersion(@PathVariable Long id) {
+		documentService.rollbackDoc(id);
+		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "파일 업데이트 성공", null));
+	}
 
 
 	// 	문서 히스토리 조회
@@ -128,5 +122,12 @@ public class DocumentController {
 			e.printStackTrace();
 			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage()), HttpStatus.NOT_FOUND);
 		}
+	}
+
+	// 모든 타입 조회
+	@GetMapping("/list/type")
+	public ResponseEntity<?> getAllDocumentTypes() {
+		List<String> typeNames = documentService.getAllTypeNames();
+		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "전체 문서 타입 조회 성공", typeNames));
 	}
 }

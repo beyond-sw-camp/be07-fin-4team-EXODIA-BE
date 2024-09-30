@@ -82,12 +82,13 @@ public class DocumentC extends BaseTimeEntity {
 
 	public DocDetailResDto fromEntity(){
 		return DocDetailResDto.builder()
+			.id(this.id)
 			.fileName(this.fileName)
 			.fileExtension(this.fileName.substring(fileName.lastIndexOf(".") + 1))
 			.documentType(this.getDocumentType().getTypeName())
 			.userName(this.user.getName())
 			.description(this.description)
-			// .updatedAt(this.)	// redis에서 가져와서
+			.createAt(this.getCreatedAt())
 			.build();
 	}
 
@@ -107,7 +108,16 @@ public class DocumentC extends BaseTimeEntity {
 			.id(this.getId())
 			.fileName(this.getFileName())
 			.userName(this.getUser().getName())
-			// .updatedAt()
+			.version(this.documentP.getVersion())
+			.build();
+	}
+
+	public DocHistoryResDto fromHistoryEntity(String version) {
+		return DocHistoryResDto.builder()
+			.id(this.getId())
+			.fileName(this.getFileName())
+			.userName(this.getUser().getName())
+			.version(version)
 			.build();
 	}
 
