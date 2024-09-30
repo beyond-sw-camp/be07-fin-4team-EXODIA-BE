@@ -17,7 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.exodia.common.dto.CommonErrorDto;
 import com.example.exodia.common.dto.CommonResDto;
-import com.example.exodia.document.domain.DocumentC;
+import com.example.exodia.document.domain.Document;
 import com.example.exodia.document.dto.DocDetailResDto;
 import com.example.exodia.document.dto.DocHistoryResDto;
 import com.example.exodia.document.dto.DocListResDto;
@@ -88,14 +88,13 @@ public class DocumentController {
 	public ResponseEntity<?> updateDocument(@RequestPart(value = "file", required = false) List<MultipartFile> files,
 		@RequestPart(value = "data") DocUpdateReqDto docUpdateReqDto) {
 		try {
-			DocumentC updatedDoc = documentService.updateDoc(files, docUpdateReqDto);
+			Document updatedDoc = documentService.updateDoc(files, docUpdateReqDto);
 			return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "파일 업데이트 성공", updatedDoc));
 		} catch (IOException e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()), HttpStatus.BAD_REQUEST);
 		}
 	}
-
 
 	 // 문서 버전 되돌리기
 	@PostMapping("/rollback/{id}")
@@ -106,7 +105,7 @@ public class DocumentController {
 
 
 	// 	문서 히스토리 조회
-	@GetMapping("/{id}/versions")
+	@GetMapping("versions/{id}")
 	public ResponseEntity<?> getDocumentVersions(@PathVariable Long id){
 		List<DocHistoryResDto> documentVersions = documentService.getDocumentVersions(id);
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "문서 히스토리 조회 성공", documentVersions));

@@ -59,10 +59,6 @@ public class Document extends BaseTimeEntity {
 	// @Column(name = "viewed_at")
 	// private LocalDateTime viewedAt;	// 최근 열람 시간
 
-	@Enumerated(EnumType.STRING)
-	@Column(name = "del_yn", nullable = false)
-	private DelYN delYn = DelYN.N;
-
 	@ManyToOne
 	@JoinColumn(name = "document_type", nullable = false)
 	private DocumentType documentType;

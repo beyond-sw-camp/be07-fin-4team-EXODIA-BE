@@ -235,21 +235,16 @@ public class DocumentService {
 	}
 
 	// 문서 버전 rollback
-	//  public void rollbackDoc(Long id) {
-	// 	 while(true){
-	// 		 Document currentDoc = documentRepository.findByDocumentP_Id(id);
-	//
-	// 		 if (currentDoc != null) {
-	// 			 id = currentDoc.getId();
-	// 			 currentDoc.softDelete();
-	// 			 documentRepository.save(currentDoc);
-	// 			 System.out.println(currentDoc);
-	// 		 }else {
-	// 			 System.out.println("6이면 여기로 오겠지");
-	// 			 break;
-	// 		 }
-	// 	 }
-	// }
+	 public void rollbackDoc(Long id) {
+		 Document document = documentRepository.findById(id)
+			 .orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
+
+		 List<Document> documents = documentRepository.findByDocumentVersionAndIdGreaterThan(document.getDocumentVersion(), id);
+		 for (Document doc : documents) {
+			 doc.softDelete();
+			 documentRepository.save(doc);
+		 }
+	}
 
 	// 	문서 히스토리 조회
 	public List<DocHistoryResDto> getDocumentVersions(Long id) {

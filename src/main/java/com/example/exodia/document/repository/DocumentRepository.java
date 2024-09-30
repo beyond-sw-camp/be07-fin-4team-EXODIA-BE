@@ -14,4 +14,5 @@ import com.example.exodia.document.dto.DocHistoryResDto;
 public interface DocumentRepository extends JpaRepository<Document,Long> {
 	// Document findByDocumentP_Id(Long documentPId);
 	List<Document> findAllByDocumentVersion(DocumentVersion documentVersion);
+	List<Document> findByDocumentVersionAndIdGreaterThan(DocumentVersion documentVersion, Long id);
 }
