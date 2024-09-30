@@ -32,11 +32,10 @@ public class VideoRoomController {
     public ResponseEntity<?> createRoom(@RequestBody CreateRoomDto roomDto, Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         User host = userDetails.getUser();
+        Long janusRoomId = roomDto.getJanusRoomId();  // Janus 서버에서 받은 janusRoomId
+        VideoRoom room = videoRoomService.createRoom(roomDto.getRoomName(), roomDto.getPassword(), janusRoomId, host);
+        videoRoomService.joinRoom(room.getJanusRoomId(), roomDto.getPassword(), host);
 
-        System.out.println("Room Name: " + roomDto.getRoomName());
-        VideoRoom room = videoRoomService.createRoom(roomDto.getRoomName(), roomDto.getPassword(), host);
-        videoRoomService.joinRoom(room.getRoomName(), roomDto.getPassword(), host);
-        messagePublisher.publish("Room created and joined by: " + host.getName() + " for room: " + roomDto.getRoomName());
         return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "방 생성 및 입장 완료", room));
     }
 
@@ -56,28 +55,20 @@ public class VideoRoomController {
             return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, "사용자 정보가 없습니다."), HttpStatus.BAD_REQUEST);
         }
 
-        if (joinRoomDto == null || joinRoomDto.getRoomName() == null) {
-            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, "방 이름이 없습니다."), HttpStatus.BAD_REQUEST);
+        if (joinRoomDto == null || joinRoomDto.getJanusRoomId() == null) {
+            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, "방 ID가 없습니다."), HttpStatus.BAD_REQUEST);
         }
 
-        String roomName = joinRoomDto.getRoomName();
+        Long janusRoomId = joinRoomDto.getJanusRoomId();  // janusRoomId로 방을 찾습니다.
         String password = joinRoomDto.getPassword();
 
-        System.out.println("join request for room: " + roomName + " with password: " + password);
-
-        boolean joined = videoRoomService.joinRoom(roomName, password, user);
+        boolean joined = videoRoomService.joinRoom(janusRoomId, password, user);
         if (!joined) {
             return new ResponseEntity<>(new CommonErrorDto(HttpStatus.NOT_FOUND, "방이 존재하지 않거나 비밀번호가 틀렸습니다."), HttpStatus.NOT_FOUND);
         }
 
-        messagePublisher.publish(user.getName() + " joined room: " + roomName);
         return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "방 입장 성공", null));
     }
-
-
-
-
-
 
     @GetMapping("/list")
     public ResponseEntity<?> listRooms() {
@@ -86,12 +77,11 @@ public class VideoRoomController {
     }
 
     @PostMapping("/leave")
-    public ResponseEntity<?> leaveRoom(@RequestParam String roomName, Authentication authentication) {
+    public ResponseEntity<?> leaveRoom(@RequestParam Long janusRoomId, Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         User user = userDetails.getUser();
-        videoRoomService.leaveRoom(roomName, user);
-        messagePublisher.publish(user.getName() + " left room: " + roomName);
+        videoRoomService.leaveRoom(janusRoomId, user);
+        messagePublisher.publish(user.getName() + " left room: " + janusRoomId);
         return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "방 퇴장 성공", null));
     }
 }
-
