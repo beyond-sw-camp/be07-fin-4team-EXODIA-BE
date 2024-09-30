@@ -1,9 +1,5 @@
 package com.example.exodia.document.dto;
 
-import java.time.LocalDateTime;
-
-import com.example.exodia.document.domain.DocumentC;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

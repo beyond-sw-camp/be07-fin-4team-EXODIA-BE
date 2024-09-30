@@ -28,7 +28,6 @@ public class DocReqDto {
 			.description(docReqDto.description)
 			.user(user)
 			.documentVersion(null)
-			.delYn(DelYN.N)
 			.build();
 	}
 }

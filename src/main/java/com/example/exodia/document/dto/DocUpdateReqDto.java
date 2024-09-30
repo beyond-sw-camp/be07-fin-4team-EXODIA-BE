@@ -28,7 +28,6 @@ public class DocUpdateReqDto {
 			.documentVersion(document.getDocumentVersion())
 			.documentType(documentType)
 			.user(document.getUser())
-			.delYn(DelYN.N)
 			.build();
 	}
 }
