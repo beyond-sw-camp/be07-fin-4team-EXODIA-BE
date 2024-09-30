@@ -28,7 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Service
+@Service // 해당 클래스가 서비스 레이어의 역할을 수행하며, 스프링 빈으로 등록됨을 나타냄
 public class BoardService {
 
     private final BoardRepository boardRepository;
@@ -38,9 +38,10 @@ public class BoardService {
     private final CommentRepository commentRepository;
     private final BoardHitsService boardHitsService;
 
-
     @Autowired
-    public BoardService(BoardRepository boardRepository, UploadAwsFileService uploadAwsFileService, BoardFileRepository boardFileRepository, UserRepository userRepository, CommentRepository commentRepository, BoardHitsService boardHitsService) {
+    public BoardService(BoardRepository boardRepository, UploadAwsFileService uploadAwsFileService,
+                        BoardFileRepository boardFileRepository, UserRepository userRepository,
+                        CommentRepository commentRepository, BoardHitsService boardHitsService) {
         this.boardRepository = boardRepository;
         this.uploadAwsFileService = uploadAwsFileService;
         this.boardFileRepository = boardFileRepository;
@@ -49,38 +50,41 @@ public class BoardService {
         this.boardHitsService = boardHitsService;
     }
 
-
-
-    // 게시물 생성
+    /**
+     * 새로운 게시물을 생성하는 메서드
+     * @param dto - 사용자가 작성한 게시물 정보 객체 (제목, 내용, 카테고리 등)
+     * @param files - 사용자가 업로드한 파일 리스트
+     * @return 생성된 게시물 객체
+     */
     @Transactional
     public Board createBoard(BoardSaveReqDto dto, List<MultipartFile> files) {
         Category category = dto.getCategory();
 
+        // 사용자의 사번을 통해 사용자 정보 조회 (존재하지 않으면 예외 발생)
         User user = userRepository.findByUserNum(dto.getUserNum())
                 .orElseThrow(() -> new IllegalArgumentException("해당 사번을 가진 유저가 없습니다."));
 
+        // 카테고리가 '공지사항' 또는 '경조사'일 경우, 작성자가 '인사팀' 소속인지 확인
         if ((category == Category.NOTICE || category == Category.FAMILY_EVENT) &&
                 !user.getDepartment().getName().equals("인사팀")) {
             throw new SecurityException("공지사항 또는 경조사 게시물은 인사팀만 작성할 수 있습니다.");
         }
 
-        // BoardSaveReqDto에서 엔티티 변환
+        // 게시물 정보 저장
         Board board = dto.toEntity(user, category);
         board = boardRepository.save(board);
 
-        // Redis 조회수 및 사용자 조회 기록 초기화
+        // 게시물 생성 후, 조회수 초기화 (Redis)
         boardHitsService.resetBoardHits(board.getId());
 
-        // 파일이 있는 경우 파일 처리
+        // 파일이 존재할 경우, AWS S3에 파일을 업로드하고 해당 파일 정보 저장
         if (files != null && !files.isEmpty()) {
             List<String> s3FilePaths = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files, "board");
 
-            // BoardFile 엔티티를 생성하여 저장
             for (int i = 0; i < files.size(); i++) {
                 MultipartFile file = files.get(i);
                 String s3FilePath = s3FilePaths.get(i);
 
-                // BoardFile 엔티티 생성 및 저장
                 BoardFile boardFile = BoardFile.createBoardFile(
                         board,
                         s3FilePath,
@@ -89,22 +93,24 @@ public class BoardService {
                         file.getSize()
                 );
 
-                // BoardFile 저장
                 boardFileRepository.save(boardFile);
             }
         }
 
-        // 최종적으로 저장된 Board 엔티티 반환
         return board;
     }
 
-
-
-
-
+    /**
+     * 검색 조건에 따라 게시물 목록을 조회하는 메서드
+     * @param pageable - 페이징 및 정렬 정보
+     * @param searchType - 검색 유형 (예: 제목, 내용, 사용자 이름 등)
+     * @param searchQuery - 검색어
+     * @return 검색 조건에 따른 게시물 목록 (Page 형태로 반환)
+     */
     public Page<BoardListResDto> BoardListWithSearch(Pageable pageable, String searchType, String searchQuery) {
         Page<Board> boards;
 
+        // 검색어가 있는 경우, 검색 유형에 따라 게시물 목록 조회
         if (searchQuery != null && !searchQuery.isEmpty()) {
             switch (searchType) {
                 case "title":
@@ -127,71 +133,71 @@ public class BoardService {
                     boards = boardRepository.findByUser_NameContainingIgnoreCase(searchQuery, DelYN.N, pageable);
                     break;
                 default:
-                    boards = boardRepository.findAllWithPinned(pageable);  // 상단 고정 적용된 쿼리
+                    boards = boardRepository.findAllWithPinned(pageable);
                     break;
             }
         } else {
-            boards = boardRepository.findAllWithPinned(pageable);  // 상단 고정 적용된 쿼리
+            boards = boardRepository.findAllWithPinned(pageable);
         }
 
-        // 조회수 최신화 작업
+        // 조회된 게시물 목록의 조회수 최신화 후 반환
         return boards.map(board -> {
             Long currentHits = boardHitsService.getBoardHits(board.getId());
-            board.updateBoardHitsFromRedis(currentHits); // 조회수 업데이트
-            return board.listFromEntity(); // DTO 변환
+            board.updateBoardHitsFromRedis(currentHits);
+            return board.listFromEntity();
         });
     }
 
-
+    /**
+     * 특정 게시물의 상세 정보를 조회하는 메서드
+     * @param id - 조회할 게시물의 고유 ID
+     * @return 게시물의 상세 정보를 포함한 DTO
+     */
     public BoardDetailDto BoardDetail(Long id) {
-        // 게시물 조회
+        // 게시물 조회 (존재하지 않을 경우 예외 발생)
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("게시물을 찾을 수 없습니다."));
 
-        String user_num = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        // 조회수 증가 후 증가된 조회수 값 반환
-        Long updatedHits = boardHitsService.incrementBoardHits(id, user_num);
+        // 조회수 증가 후 업데이트된 조회수 반환
+        Long updatedHits = boardHitsService.incrementBoardHits(id, userNum);
 
-        // 게시물의 조회수를 증가된 값으로 업데이트
         board.updateBoardHitsFromRedis(updatedHits);
-
-        // 업데이트된 조회수를 DB에 반영
         boardRepository.save(board);
 
-        // 관련 파일 목록 조회
+        // 파일 및 댓글 정보 조회
         List<BoardFile> boardFiles = boardFileRepository.findByBoardId(id);
-
-        // 댓글 리스트 조회
         List<Comment> comments = commentRepository.findByBoardId(id);
         List<CommentResDto> commentResDto = comments.stream()
                 .map(CommentResDto::fromEntity)
                 .collect(Collectors.toList());
 
-        // 게시물 상세 정보 생성
+        // 게시물 상세 정보 생성 후 반환
         BoardDetailDto boardDetailDto = board.detailFromEntity(boardFiles);
-        boardDetailDto.setComments(commentResDto);  // 댓글 리스트 추가
-        boardDetailDto.setHits(updatedHits);  // 조회수 반영
-        boardDetailDto.setUser_num(user_num);
+        boardDetailDto.setComments(commentResDto);
+        boardDetailDto.setHits(updatedHits);
+        boardDetailDto.setUser_num(userNum);
 
         return boardDetailDto;
     }
 
-
-
-
-
+    /**
+     * 기존 게시물 수정
+     * @param id - 수정할 게시물의 고유 ID
+     * @param dto - 수정할 게시물 정보 객체
+     * @param files - 새롭게 추가할 파일 리스트
+     */
     @Transactional
     public void updateBoard(Long id, BoardUpdateDto dto, List<MultipartFile> files) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        // 게시물 조회
+        // 게시물 조회 (존재하지 않을 경우 예외 발생)
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다."));
 
-        // 사용자 권한 확인
+        // 작성자와 현재 사용자가 동일한지 확인
         if (!board.getUser().getUserNum().equals(userNum)) {
-            System.out.println("사용자 번호 불일치: " + userNum + " vs " + board.getUser().getUserNum());
             throw new IllegalArgumentException("작성자 본인만 수정할 수 있습니다.");
         }
 
@@ -199,25 +205,22 @@ public class BoardService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 사번을 가진 유저가 없습니다."));
         Category category = dto.getCategory();
 
-        // 카테고리가 NOTICE 또는 FAMILY_EVENT일 때, 부서가 인사팀인지 확인
+        // 공지사항 또는 가족 행사 게시물일 때, 작성자가 '인사팀' 소속인지 확인
         if ((category == Category.NOTICE || category == Category.FAMILY_EVENT) &&
                 !user.getDepartment().getName().equals("인사팀")) {
             throw new SecurityException("공지사항 또는 가족 행사 게시물은 인사팀만 작성할 수 있습니다.");
         }
 
-        board = dto.updateFromEntity(category,user);
-        System.out.println(board.getCategory());
+        // 게시물 정보 업데이트
+        board = dto.updateFromEntity(category, user);
         board = boardRepository.save(board);
 
-
+        // 기존 파일 삭제 및 새로운 파일 정보 저장
         boardFileRepository.deleteByBoardId(board.getId());
 
-        List<String> s3FilePaths = null;
-        // Step 3: 새로운 파일이 있는 경우 처리
         if (files != null && !files.isEmpty()) {
-            s3FilePaths = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files, "board");
+            List<String> s3FilePaths = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files, "board");
 
-            // 새로운 파일 저장
             for (int i = 0; i < files.size(); i++) {
                 MultipartFile file = files.get(i);
                 String s3FilePath = s3FilePaths.get(i);
@@ -231,29 +234,30 @@ public class BoardService {
                         .build();
 
                 boardFileRepository.save(boardFile);
-
             }
-            boardRepository.save(board); // 게시물 저장
         }
     }
 
-
-
-
+    /**
+     * 게시물을 상단에 고정하거나 해제하는 메서드
+     * @param boardId - 게시물의 고유 ID
+     * @param userId - 상단 고정을 수행할 사용자의 ID
+     * @param isPinned - 상단 고정 여부 (true: 고정, false: 해제)
+     */
     @Transactional
     public void pinBoard(Long boardId, Long userId, boolean isPinned) {
-        // 게시물 조회
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new EntityNotFoundException("게시물을 찾을 수 없습니다."));
 
-        // 사용자 정보 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
 
+        // 인사팀 소속 사용자만 상단 고정 가능
         if (!user.getDepartment().getName().equals("인사팀")) {
             throw new SecurityException("상단 고정은 인사팀만 가능합니다.");
         }
 
+        // 공지사항 게시물만 상단 고정 가능
         if (!board.getCategory().equals(Category.NOTICE)) {
             throw new IllegalArgumentException("공지사항 게시물만 상단 고정이 가능합니다.");
         }
@@ -262,23 +266,21 @@ public class BoardService {
         boardRepository.save(board);
     }
 
-
-
+    /**
+     * 특정 게시물 삭제
+     * @param id - 삭제할 게시물의 고유 ID
+     */
     @Transactional
     public void deleteBoard(Long id) {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("게시물을 찾을 수 없습니다."));
 
-        // 게시물의 카테고리가 NOTICE 또는 FAMILY_EVENT일 때, 부서가 인사팀인지 확인
+        // 공지사항 또는 가족 행사 게시물일 때, 작성자가 '인사팀' 소속인지 확인
         if ((board.getCategory() == Category.NOTICE || board.getCategory() == Category.FAMILY_EVENT) &&
                 !board.getUser().getDepartment().getName().equals("인사팀")) {
             throw new SecurityException("공지사항 또는 가족 행사 게시물은 인사팀만 삭제할 수 있습니다.");
         }
 
-        // 게시물 삭제
         boardRepository.delete(board);
     }
-
-
-
 }

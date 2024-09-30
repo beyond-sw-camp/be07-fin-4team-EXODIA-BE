@@ -18,14 +18,14 @@ public class CommonMethod {
         }
     }
 
-    public Boolean fileSizeCheckFromByte(String fileName, byte[] file) {
-        // 바이트 배열로 파일 크기를 확인
-        if (file.length > MAX_FILE_SIZE) {
-            return false;
-        } else {
-            return true;
-        }
-    }
+//    public Boolean fileSizeCheckFromByte(String fileName, byte[] file) {
+//        // 바이트 배열로 파일 크기를 확인
+//        if (file.length > MAX_FILE_SIZE) {
+//            return false;
+//        } else {
+//            return true;
+//        }
+//    }
 
     // 파일 확장자에 관계없이 사용할 수 있는 최대 파일 크기
     public long getMaxFileSize() {

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.persistence.EntityNotFoundException;
 
+
 @RestController
 @RequestMapping("/board")
 public class BoardController {
@@ -26,83 +27,113 @@ public class BoardController {
         this.boardService = boardService;
     }
 
-    @GetMapping("/create")
-    public String 게시물작성화면() {
+    @GetMapping("/create") // 게시물 작성 화면을 반환하는 메서드
+    public String getCreateBoardPage() {
         return "/board/create";
     }
 
-    // 게시물을 작성합니다.
+    /**
+     * 새로운 게시물 작성 기능
+     * @param dto - 사용자가 작성한 게시물 정보가 담긴 객체
+     * @return HTTP 응답 본문과 상태 코드를 포함한 ResponseEntity 반환
+     */
     @PostMapping("/create")
-    public ResponseEntity<?> 게시물작성(@ModelAttribute BoardSaveReqDto dto) {
+    public ResponseEntity<?> createBoard(@ModelAttribute BoardSaveReqDto dto) {
         try {
+            // 게시물 정보와 파일 정보 저장
             boardService.createBoard(dto, dto.getFiles());
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.CREATED, "게시물이 성공적으로 등록되었습니다.", null);
-            return new ResponseEntity<>(commonResDto, HttpStatus.CREATED);
+            CommonResDto response = new CommonResDto(HttpStatus.CREATED, "게시물이 성공적으로 등록되었습니다.", null);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (SecurityException | EntityNotFoundException e) {
             e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
+            CommonErrorDto errorResponse = new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
         }
     }
 
-    // 게시물 목록을 조회합니다.
+    /**
+     * 게시물 목록 조회
+     * @param pageable - 페이징 정보와 정렬 방식을 담은 객체
+     * @param searchQuery - 검색어
+     * @param searchType - 검색 유형 (예: 제목, 내용 등)
+     * @return 조회된 게시물 목록을 포함한 ResponseEntity 반환
+     * ResponseEntity는 서버가 클라이언트에게 "응답을 어떻게 줄지"에 대한 설정을 할 수 있는 객체
+     */
     @GetMapping("/list")
-    public ResponseEntity<?> 게시물목록(
+    public ResponseEntity<?> getBoardList(
             @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
             @RequestParam(value = "searchQuery", required = false) String searchQuery,
             @RequestParam(value = "searchType", required = false) String searchType) {
 
+        // 검색 조건과 페이징 정보를 기반으로 게시물 목록 조회
         Page<BoardListResDto> boardListResDto = boardService.BoardListWithSearch(pageable, searchType, searchQuery);
-        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "게시물 목록을 반환합니다.", boardListResDto);
-        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+        CommonResDto response = new CommonResDto(HttpStatus.OK, "게시물 목록을 반환합니다.", boardListResDto);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    // 게시물 상세 정보를 조회합니다.
+    /**
+     * 특정 게시물의 상세 정보 조회
+     * @param id - 조회할 게시물의 고유 ID
+     * @return 게시물 상세 정보를 포함한 ResponseEntity 반환
+     */
     @GetMapping("/detail/{id}")
-    public ResponseEntity<?> 게시물상세조회(@PathVariable Long id) {
+    public ResponseEntity<?> getBoardDetail(@PathVariable Long id) {
         try {
             BoardDetailDto boardDetail = boardService.BoardDetail(id);
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "게시물 상세 정보를 반환합니다.", boardDetail);
-            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+            CommonResDto response = new CommonResDto(HttpStatus.OK, "게시물 상세 정보를 반환합니다.", boardDetail);
+            return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (EntityNotFoundException e) {
             e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.NOT_FOUND);
+            CommonErrorDto errorResponse = new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
     }
 
-    // 게시물을 수정합니다.
+    /**
+     * 게시물 수정 기능
+     * @param id - 수정할 게시물의 고유 ID
+     * @param dto - 수정할 게시물 정보가 담긴 객체
+     * @return 수정된 게시물 정보를 포함한 ResponseEntity 반환
+     */
     @PostMapping("/update/{id}")
-    public ResponseEntity<?> 게시물수정(@PathVariable Long id, @ModelAttribute BoardUpdateDto dto) {
+    public ResponseEntity<?> updateBoard(@PathVariable Long id, @ModelAttribute BoardUpdateDto dto) {
         try {
             boardService.updateBoard(id, dto, dto.getFiles());
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "게시물이 성공적으로 수정되었습니다.", id);
-            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+            CommonResDto response = new CommonResDto(HttpStatus.OK, "게시물이 성공적으로 수정되었습니다.", id);
+            return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (EntityNotFoundException e) {
             e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.NOT_FOUND);
+            CommonErrorDto errorResponse = new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
     }
 
-    // 게시물을 삭제합니다.
+    /**
+     * 게시물 삭제 기능
+     * @param id - 삭제할 게시물의 고유 ID
+     * @return 삭제된 게시물의 ID를 포함한 ResponseEntity 반환
+     */
     @GetMapping("/delete/{id}")
-    public ResponseEntity<?> 게시물삭제(@PathVariable Long id) {
+    public ResponseEntity<?> deleteBoard(@PathVariable Long id) {
         try {
             boardService.deleteBoard(id);
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "게시물이 성공적으로 삭제되었습니다.", id);
-            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+            CommonResDto response = new CommonResDto(HttpStatus.OK, "게시물이 성공적으로 삭제되었습니다.", id);
+            return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (EntityNotFoundException e) {
             e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.NOT_FOUND);
+            CommonErrorDto errorResponse = new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
     }
 
-    // 게시물 상단 고정 기능 추가
+    /**
+     * 게시물 상단 고정 기능
+     * @param id - 상단 고정할 게시물의 고유 ID
+     * @param requestDto - 상단 고정 정보가 담긴 객체
+     * @return 상단 고정/해제 결과를 포함한 ResponseEntity 반환
+     */
     @PostMapping("/pin/{id}")
-    public ResponseEntity<?> 게시물상단고정(@PathVariable Long id, @RequestBody BoardPinReqDto requestDto) {
-
+    public ResponseEntity<?> pinBoard(@PathVariable Long id, @RequestBody BoardPinReqDto requestDto) {
         try {
             boardService.pinBoard(id, requestDto.getUserId(), requestDto.getIsPinned());
 
@@ -110,21 +141,18 @@ public class BoardController {
                     ? "게시물이 상단에 고정되었습니다."
                     : "게시물의 상단 고정이 해제되었습니다.";
 
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, message, id);
-            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+            CommonResDto response = new CommonResDto(HttpStatus.OK, message, id);
+            return new ResponseEntity<>(response, HttpStatus.OK);
 
         } catch (SecurityException e) {
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.FORBIDDEN, e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.FORBIDDEN);
-
+            CommonErrorDto errorResponse = new CommonErrorDto(HttpStatus.FORBIDDEN, e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
         } catch (IllegalArgumentException e) {
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
-
+            CommonErrorDto errorResponse = new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
         } catch (EntityNotFoundException e) {
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.NOT_FOUND);
+            CommonErrorDto errorResponse = new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
     }
-
 }
