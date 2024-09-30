@@ -32,7 +32,7 @@ public class VideoRoomController {
     public ResponseEntity<?> createRoom(@RequestBody CreateRoomDto roomDto, Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         User host = userDetails.getUser();
-        Long janusRoomId = roomDto.getJanusRoomId();  // Janus 서버에서 받은 janusRoomId
+        Long janusRoomId = roomDto.getJanusRoomId();  
         VideoRoom room = videoRoomService.createRoom(roomDto.getRoomName(), roomDto.getPassword(), janusRoomId, host);
         videoRoomService.joinRoom(room.getJanusRoomId(), roomDto.getPassword(), host);
 
@@ -59,7 +59,7 @@ public class VideoRoomController {
             return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, "방 ID가 없습니다."), HttpStatus.BAD_REQUEST);
         }
 
-        Long janusRoomId = joinRoomDto.getJanusRoomId();  // janusRoomId로 방을 찾습니다.
+        Long janusRoomId = joinRoomDto.getJanusRoomId();
         String password = joinRoomDto.getPassword();
 
         boolean joined = videoRoomService.joinRoom(janusRoomId, password, user);
