@@ -98,16 +98,25 @@ public class CommentService {
      * @param id - 삭제할 댓글 ID
      * @return 삭제된 댓글 객체를 반환
      */
-    @Transactional // 트랜잭션을 적용하여 데이터의 일관성을 보장합니다.
+    @Transactional // 트랜잭션을 적용하여 데이터의 일관성을 보장
     public Comment commentDelete(Long id) {
-        // 삭제할 댓글을 ID로 조회합니다.
+        // 삭제할 댓글을 ID로 조회
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 댓글입니다.")); // 댓글이 없을 경우 예외 발생
 
-        // 댓글의 삭제 상태를 'Y'로 업데이트 (삭제된 것으로 처리)
+        // 현재 사용자 ID(사번)를 가져오기
+        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        // 댓글 작성자와 현재 사용자가 동일한지 확인
+        if (!comment.getUser().getUserNum().equals(userNum)) {
+            throw new SecurityException("작성자 본인만 댓글을 삭제할 수 있습니다.");
+        }
+
+        // 댓글의 삭제 상태를 'Y'로 업데이트
         comment.updateDelYN(DelYN.Y);
 
-        // 삭제된 댓글 객체를 반환
+        // 삭제된 댓글 객체 반환
         return comment;
     }
+
 }

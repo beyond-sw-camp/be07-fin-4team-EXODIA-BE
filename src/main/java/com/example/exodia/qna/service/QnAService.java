@@ -18,6 +18,8 @@ import com.example.exodia.qna.repository.QnARepository;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 import com.example.exodia.user.service.UserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -45,20 +47,20 @@ public class QnAService {
     private final UserRepository userRepository;
     private final DepartmentRepository departmentRepository;
     private final BoardFileRepository boardFileRepository;
-    private final PasswordEncoder passwordEncoder;
+
 
     @Autowired
-    public QnAService(QnARepository qnARepository, UserService userService, CommentRepository commentRepository,
-                      UploadAwsFileService uploadAwsFileService, CommentService commentService,
+    public QnAService(QnARepository qnARepository,  CommentRepository commentRepository,
+                      UploadAwsFileService uploadAwsFileService,
                       UserRepository userRepository, DepartmentRepository departmentRepository,
-                      BoardFileRepository boardFileRepository, PasswordEncoder passwordEncoder) {
+                      BoardFileRepository boardFileRepository) {
         this.qnARepository = qnARepository;
         this.commentRepository = commentRepository;
         this.uploadAwsFileService = uploadAwsFileService;
         this.userRepository = userRepository;
         this.boardFileRepository = boardFileRepository;
         this.departmentRepository = departmentRepository;
-        this.passwordEncoder = passwordEncoder;
+
     }
 
     /**
@@ -81,8 +83,9 @@ public class QnAService {
 
         QnA qna = dto.toEntity(user, department); // DTO를 QnA 엔티티로 변환
 
-        // 첨부 파일이 있는 경우 파일 저장
+        // 첨부 파일이 있는 경우 파일 저장 (qFiles만 업데이트)
         if (files != null && !files.isEmpty()) {
+            // S3에 파일 업로드 후 경로 반환
             List<String> s3FilePaths = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files, "qna");
 
             // 각 파일에 대한 엔티티 생성 및 저장
@@ -90,8 +93,10 @@ public class QnAService {
                 MultipartFile file = files.get(i);
                 String s3FilePath = s3FilePaths.get(i);
 
+                // QnA와 질문 파일(QuestionerFiles)만 설정
                 BoardFile boardFile = BoardFile.createQnAFile(qna, s3FilePath, file.getContentType(),
                         file.getOriginalFilename(), file.getSize());
+                qna.getQuestionerFiles().add(boardFile); // qFiles 리스트에 추가
                 boardFileRepository.save(boardFile);
             }
         }
@@ -138,7 +143,7 @@ public class QnAService {
 
     /**
      * 사용자가 작성한 QnA 목록 조회
-     * @return 사용자 작성 QnA 목록 반환
+  ?  * @return 사용자 작성 QnA 목록 반환
      */
     public List<QnAListResDto> getUserQnAs() {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -153,15 +158,37 @@ public class QnAService {
      * @param id - QnA ID
      * @return QnA의 상세 정보 및 관련 댓글 목록 반환
      */
+
     public QnADetailDto getQuestionDetail(Long id) {
         QnA qna = qnARepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 게시글입니다."));
+
+        // QnA 객체의 상태를 출력하여 확인
+        System.out.println("QnA ID: " + qna.getId());
+        System.out.println("Questioner: " + qna.getQuestioner());
+        System.out.println("Answerer: " + qna.getAnswerer());
+        System.out.println("Files: " + qna.getQuestionerFiles());
+        System.out.println("Comments: " + qna.getComments());
+
+        // ObjectMapper를 사용하여 QnA 객체를 JSON 문자열로 변환
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+        try {
+            // QnA 객체를 JSON으로 직렬화하여 순환 참조 여부 확인
+            String qnaJson = objectMapper.writeValueAsString(qna);
+            System.out.println("Serialized QnA JSON: " + qnaJson);
+        } catch (Exception e) {
+            // 직렬화 중 발생하는 오류 출력
+            e.printStackTrace();
+            System.err.println("순환 참조로 인해 QnA 객체 직렬화에 실패하였습니다.");
+        }
 
         List<Comment> comments = commentRepository.findByQnaId(id);
         List<CommentResDto> commentResDto = comments.stream().map(CommentResDto::fromEntity).collect(Collectors.toList());
 
         return QnADetailDto.fromEntity(qna, commentResDto); // QnA와 댓글 정보를 포함한 DTO 반환
     }
+
 
     /**
      * QnA에 답변 작성
@@ -182,7 +209,7 @@ public class QnAService {
         User answerer = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사번을 가진 유저가 없습니다."));
 
-        // 답변자와 질문자가 다른 부서일 경우 권한 없음
+        // 답변자와 게시글의 부서가 다른 부서일 경우 권한 없음
         if (!answerer.getDepartment().getId().equals(questionerDepartment.getId())) {
             throw new SecurityException("다른 부서의 질문에 답변할 권한이 없습니다.");
         }
@@ -191,15 +218,19 @@ public class QnAService {
         qna.setAnsweredAt(LocalDateTime.now());
         qna.setAnswerer(answerer);
 
+        // 첨부 파일이 있는 경우 파일 저장 (aFiles만 업데이트)
         if (files != null && !files.isEmpty()) {
+            // S3에 파일 업로드 후 경로 반환
             List<String> s3FilePaths = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files, "qna");
 
             for (int i = 0; i < files.size(); i++) {
                 MultipartFile file = files.get(i);
                 String s3FilePath = s3FilePaths.get(i);
 
+                // QnA와 답변 파일(AnswererFiles)만 설정
                 BoardFile boardFile = BoardFile.createQnAFile(qna, s3FilePath, file.getContentType(),
                         file.getOriginalFilename(), file.getSize());
+                qna.getAnswererFiles().add(boardFile); // aFiles 리스트에 추가
                 boardFileRepository.save(boardFile);
             }
         }
@@ -227,15 +258,23 @@ public class QnAService {
 
         qna.QnAQUpdate(dto);
 
+        // 기존 질문 파일 삭제 후 새로운 질문 파일만 저장
         if (files != null && !files.isEmpty()) {
+            // 기존 질문 파일 삭제
+            boardFileRepository.deleteAll(qna.getQuestionerFiles());
+            qna.getQuestionerFiles().clear();
+
             List<String> s3FilePaths = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files, "qna");
 
+            // 새로 추가된 질문 파일 저장
             for (int i = 0; i < files.size(); i++) {
                 MultipartFile file = files.get(i);
                 String s3FilePath = s3FilePaths.get(i);
 
+                // QnA와 질문 파일(QuestionerFiles)만 설정
                 BoardFile boardFile = BoardFile.createQnAFile(qna, s3FilePath, file.getContentType(),
                         file.getOriginalFilename(), file.getSize());
+                qna.getQuestionerFiles().add(boardFile); // qFiles 리스트에 추가
                 boardFileRepository.save(boardFile);
             }
         }
@@ -263,15 +302,23 @@ public class QnAService {
 
         qna.QnAAUpdate(dto);
 
+        // 기존 답변 파일 삭제 후 새로운 답변 파일만 저장
         if (files != null && !files.isEmpty()) {
+            // 기존 답변 파일 삭제
+            boardFileRepository.deleteAll(qna.getAnswererFiles());
+            qna.getAnswererFiles().clear();
+
             List<String> s3FilePaths = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files, "qna");
 
+            // 새로 추가된 답변 파일 저장
             for (int i = 0; i < files.size(); i++) {
                 MultipartFile file = files.get(i);
                 String s3FilePath = s3FilePaths.get(i);
 
+                // QnA와 답변 파일(AnswererFiles)만 설정
                 BoardFile boardFile = BoardFile.createQnAFile(qna, s3FilePath, file.getContentType(),
                         file.getOriginalFilename(), file.getSize());
+                qna.getAnswererFiles().add(boardFile); // aFiles 리스트에 추가
                 boardFileRepository.save(boardFile);
             }
         }
