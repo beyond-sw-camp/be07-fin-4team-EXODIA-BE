@@ -63,7 +63,8 @@ public class QnAController {
      * @param searchQuery - 검색어 (선택적)
      * @param departmentId - 부서 ID (선택적)
      * @return 조회된 질문 목록 반환
-     */// '/qna/list' 경로로 GET 요청이 들어오면 이 메서드가 실행됨
+     */
+    @GetMapping("/list")
     public ResponseEntity<?> getAllQuestions(
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
             @RequestParam(required = false) String searchCategory,
