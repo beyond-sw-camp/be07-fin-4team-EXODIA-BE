@@ -2,6 +2,7 @@ package com.example.exodia.qna.dto;
 
 import com.example.exodia.board.domain.BoardFile;
 import com.example.exodia.comment.dto.CommentResDto;
+import com.example.exodia.department.domain.Department;
 import com.example.exodia.qna.domain.QnA;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,6 +23,7 @@ public class QnADetailDto {
     private String answerText;
     private String questionUserName;
     private String answerUserName;
+    private Department department;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime answeredAt;
@@ -43,6 +45,7 @@ public class QnADetailDto {
                 .qFiles(qna.getQuestionerFiles() != null ? qna.getQuestionerFiles() : List.of()) // 질문자 파일 리스트 null 체크
                 .aFiles(qna.getAnswererFiles() != null ? qna.getAnswererFiles() : List.of()) // 답변자 파일 리스트 null 체크
                 .comments(comments != null ? comments : List.of()) // 댓글 리스트 null 체크
+                .department(qna.getDepartment())
                 .build();
     }
 

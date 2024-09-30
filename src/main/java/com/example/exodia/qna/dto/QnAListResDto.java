@@ -20,6 +20,7 @@
 
 package com.example.exodia.qna.dto;
 
+import com.example.exodia.department.domain.Department;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -38,8 +39,7 @@ public class QnAListResDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime answeredAt;
-    private Long departmentId;
+    private Department department;
     private Boolean secretBoard;
     private Boolean anonymous;
-
 }
