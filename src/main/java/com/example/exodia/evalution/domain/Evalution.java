@@ -1,11 +1,7 @@
 package com.example.exodia.evalution.domain;
 
-import com.example.exodia.attendance.domain.DayStatus;
-import com.example.exodia.common.domain.BaseTimeEntity;
-import com.example.exodia.department.domain.Department;
 import com.example.exodia.evalution.dto.EvalutionDto;
-import com.example.exodia.position.domain.Position;
-import com.example.exodia.subevalution.domain.SubEvalution;
+import com.example.exodia.evalutionFrame.subevalution.domain.SubEvalution;
 import com.example.exodia.user.domain.User;
 
 import jakarta.persistence.Column;
@@ -21,7 +17,7 @@ import lombok.NoArgsConstructor;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;import java.time.LocalDate;
+import jakarta.persistence.Id;
 
 @Data
 @Builder

@@ -13,14 +13,14 @@ import com.example.exodia.comment.domain.Comment;
 import com.example.exodia.comment.dto.CommentResDto;
 import com.example.exodia.comment.repository.CommentRepository;
 import com.example.exodia.common.domain.DelYN;
+import com.example.exodia.common.service.KafkaProducer;
 import com.example.exodia.common.service.UploadAwsFileService;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,15 +41,17 @@ public class BoardService {
     private final CommentRepository commentRepository;
     private final BoardHitsService boardHitsService;
 
+    private final KafkaProducer kafkaProducer;
 
     @Autowired
-    public BoardService(BoardRepository boardRepository, UploadAwsFileService uploadAwsFileService, BoardFileRepository boardFileRepository, UserRepository userRepository, CommentRepository commentRepository, BoardHitsService boardHitsService) {
+    public BoardService(BoardRepository boardRepository, UploadAwsFileService uploadAwsFileService, BoardFileRepository boardFileRepository, UserRepository userRepository, CommentRepository commentRepository, BoardHitsService boardHitsService, KafkaProducer kafkaProducer) {
         this.boardRepository = boardRepository;
         this.uploadAwsFileService = uploadAwsFileService;
         this.boardFileRepository = boardFileRepository;
         this.userRepository = userRepository;
         this.commentRepository = commentRepository;
         this.boardHitsService = boardHitsService;
+        this.kafkaProducer = kafkaProducer;
     }
 
 
@@ -96,6 +98,13 @@ public class BoardService {
                 // BoardFile 저장
                 boardFileRepository.save(boardFile);
             }
+        }
+
+        // Kafka 이벤트 전송
+        if (category == Category.NOTICE || category == Category.FAMILY_EVENT) {
+            String eventType = category == Category.NOTICE ? "공지사항" : "경조사";
+            String message = String.format("%s가 작성되었습니다: %s", eventType, board.getTitle());
+            kafkaProducer.sendBoardEvent("notice-events", message);
         }
 
         // 최종적으로 저장된 Board 엔티티 반환

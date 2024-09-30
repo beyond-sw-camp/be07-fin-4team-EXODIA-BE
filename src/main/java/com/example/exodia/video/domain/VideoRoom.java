@@ -36,7 +36,7 @@ public class VideoRoom {
 
     @Column
     private String password;
-
+    private Long janusRoomId;
     @ManyToOne
     @JoinColumn(name = "host_id", nullable = false)
     private User host;
@@ -66,5 +66,15 @@ public class VideoRoom {
 
     public VideoRoomRedisDto toDto() {
         return VideoRoomRedisDto.fromEntity(this);
+    }
+
+    public VideoRoom(Long janusRoomId, String roomName, String password, User host, Boolean isActive, int participantCount, LocalDateTime createdAt) {
+        this.janusRoomId = janusRoomId;
+        this.roomName = roomName;
+        this.password = password;
+        this.host = host;
+        this.isActive = isActive;
+        this.participantCount = participantCount;
+        this.createdAt = createdAt;
     }
 }

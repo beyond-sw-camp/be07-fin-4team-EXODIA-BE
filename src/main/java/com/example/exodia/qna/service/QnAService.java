@@ -18,6 +18,7 @@ import com.example.exodia.qna.repository.QnARepository;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 import com.example.exodia.user.service.UserService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,10 +28,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.persistence.EntityNotFoundException;
-import java.io.IOException;
+
+
 import java.time.LocalDateTime;
-import java.util.Collections;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -72,7 +73,7 @@ public class QnAService {
 
         // 파일이 있는 경우 파일 처리
         if (files != null && !files.isEmpty()) {
-            List<String> s3FilePaths = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files);
+            List<String> s3FilePaths = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files,"qna");
 
             // BoardFile 엔티티를 생성하여 저장
             for (int i = 0; i < files.size(); i++) {
@@ -183,7 +184,7 @@ public class QnAService {
         // 파일이 있는 경우 파일 처리
         if (files != null && !files.isEmpty()) {
 
-            List<String> s3FilePaths = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files);
+            List<String> s3FilePaths = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files, "qna");
 
             // BoardFile 엔티티를 생성하여 저장
             for (int i = 0; i < files.size(); i++) {
@@ -233,7 +234,7 @@ public class QnAService {
         if (files != null && !files.isEmpty()) {
 
             // 새 파일 업로드
-            List<String> s3FilePaths = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files);
+            List<String> s3FilePaths = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files, "qna");
 
             // BoardFile 엔티티 생성 및 저장
             for (int i = 0; i < files.size(); i++) {
@@ -286,7 +287,7 @@ public class QnAService {
         if (files != null && !files.isEmpty()) {
 
             // 새 파일 업로드
-            List<String> s3FilePaths = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files);
+            List<String> s3FilePaths = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files, "qna");
 
             // BoardFile 엔티티 생성 및 저장
             for (int i = 0; i < files.size(); i++) {

@@ -1,6 +1,7 @@
 package com.example.exodia.common.config;
 
 
+import com.example.exodia.chat.service.RedisSubscriber;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
@@ -21,6 +22,7 @@ import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @EnableCaching
@@ -105,6 +107,73 @@ public class RedisConfig {
         container.addMessageListener(messageListenerAdapter, roomEventsTopic);
         container.addMessageListener(messageListenerAdapter, userEventsTopic);
         return container;
+    }
+
+    // 3번 채팅
+    @Bean
+    @Qualifier("chat")
+    public RedisConnectionFactory chatConnectionFactory() {
+        RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
+        configuration.setHostName(host);
+        configuration.setPort(port);
+        configuration.setDatabase(3);
+        return new LettuceConnectionFactory(configuration);
+    }
+
+    @Bean
+    @Qualifier("chat")
+    public RedisTemplate<String, Object> chatPubSubTemplate(@Qualifier("chat") RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(connectionFactory);
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(String.class));
+        return redisTemplate;
+    }
+
+    @Bean
+    @Qualifier("chat")
+    public MessageListenerAdapter chatListenerAdapter (RedisSubscriber subscriber) { // (2)
+        return new MessageListenerAdapter(subscriber, "onMessage");
+    }
+
+    @Bean
+    @Qualifier("chat")
+    public RedisMessageListenerContainer chatRedisMessageListenerContainer(
+            @Qualifier("chat") RedisConnectionFactory connectionFactory,
+            @Qualifier("chat") MessageListenerAdapter chatListenerAdapter,
+            @Qualifier("chat") ChannelTopic channelTopic) {
+        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+        container.setConnectionFactory(connectionFactory);
+        container.addMessageListener(chatListenerAdapter, channelTopic);
+        return container;
+    }
+
+    @Bean
+    @Qualifier("chat")
+    public ChannelTopic channelTopic() {
+        return new ChannelTopic("chat");
+    }
+
+
+    // 4번 채팅룸 정보
+    @Bean
+    @Qualifier("chatRoom")
+    public RedisConnectionFactory roomConnectionFactory() {
+        RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
+        configuration.setHostName(host);
+        configuration.setPort(port);
+        configuration.setDatabase(4);
+        return new LettuceConnectionFactory(configuration);
+    }
+
+    @Bean
+    @Qualifier("chatRoom")
+    public RedisTemplate<String, Object> chatRoomRedisTemplate(@Qualifier("chatRoom") RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(connectionFactory);
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(String.class));
+        return redisTemplate;
     }
 
     // 최근 조회 문서

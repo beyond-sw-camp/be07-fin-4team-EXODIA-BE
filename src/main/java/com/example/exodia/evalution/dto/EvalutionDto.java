@@ -2,7 +2,7 @@ package com.example.exodia.evalution.dto;
 
 import com.example.exodia.evalution.domain.Evalution;
 import com.example.exodia.evalution.domain.Score;
-import com.example.exodia.subevalution.domain.SubEvalution;
+import com.example.exodia.evalutionFrame.subevalution.domain.SubEvalution;
 import com.example.exodia.user.domain.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
