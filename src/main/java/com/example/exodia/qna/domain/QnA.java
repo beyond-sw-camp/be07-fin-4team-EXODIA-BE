@@ -74,7 +74,7 @@ public class QnA extends BaseTimeEntity {
     private List<BoardFile> questionerFiles = new ArrayList<>();
 
     @ManyToOne
-    @JoinColumn(name = "department_id")
+    @JoinColumn(name = "department")
     private Department department;
 
     public QnAListResDto listFromEntity() {
@@ -87,6 +87,7 @@ public class QnA extends BaseTimeEntity {
                 .answeredAt(this.answeredAt)
                 .secretBoard(this.secretBoard)
                 .anonymous(this.anonymous)
+                .department(this.department)
                 .build();
     }
 

@@ -2,7 +2,6 @@
 package com.example.exodia.qna.dto;
 
 
-import com.example.exodia.board.domain.BoardFile;
 import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.department.domain.Department;
 
