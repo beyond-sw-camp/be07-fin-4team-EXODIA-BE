@@ -77,7 +77,7 @@ public class ReservationMeetController {
     /* 예약 취소 */
     /* 글을 작성한 유저랑 & 관리자가 삭제 가능 */
     @DeleteMapping("/cancel/{id}")
-    //@Operation(summary= "[일반 사용자 + 관리자] 회의실 예약 이벤트 생성 API")
+    //@Operation(summary= "[일반 사용자 + 관리자] 회의실 예약 취소 이벤트 생성 API")
     public ResponseEntity<CommonResDto> cancelReservation(@PathVariable Long id) {
         reservationMeetService.cancelReservation(id);
         return new ResponseEntity<>(new CommonResDto(HttpStatus.OK, "예약이 취소되었습니다.", id), HttpStatus.OK);

@@ -1,11 +1,10 @@
 package com.example.exodia.evalution.service;
 
-import com.example.exodia.department.domain.Department;
 import com.example.exodia.evalution.domain.Evalution;
 import com.example.exodia.evalution.dto.EvalutionDto;
 import com.example.exodia.evalution.repository.EvalutionRepository;
-import com.example.exodia.subevalution.domain.SubEvalution;
-import com.example.exodia.subevalution.repository.SubEvalutionRepository;
+import com.example.exodia.evalutionFrame.subevalution.domain.SubEvalution;
+import com.example.exodia.evalutionFrame.subevalution.repository.SubEvalutionRepository;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 import org.springframework.security.core.context.SecurityContextHolder;

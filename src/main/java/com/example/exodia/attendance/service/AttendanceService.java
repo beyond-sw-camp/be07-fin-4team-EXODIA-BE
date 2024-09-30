@@ -98,10 +98,10 @@ public class AttendanceService {
             weeklySummaryMap.putIfAbsent(weekOfYear, new WeeklySumDto(0, 0, weekOfYear, weekOfYear.plusDays(6)));
 
             // 근무시간 + 초과시간 계산
-            WeeklySumDto weeklySummary = weeklySummaryMap.get(weekOfYear);
+            WeeklySumDto weeklySummary = weeklySummaryMap.get(weekOfYear); // 주차 근무 일수
             double hoursWorked = calculateWorkHours(attendance);
-            weeklySummary.setTotalHours(weeklySummary.getTotalHours() + hoursWorked - 1);
-            if (hoursWorked > 8) {
+            weeklySummary.setTotalHours(weeklySummary.getTotalHours() + hoursWorked - 1); //점심시간 1시간 빼
+            if (hoursWorked > 8) { // 현 계산식 : 일 8시시간 work 이후는 초과시간으로 계산
                 weeklySummary.setOvertimeHours(weeklySummary.getOvertimeHours() + (hoursWorked - 8));
             }
         }

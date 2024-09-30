@@ -1,5 +1,6 @@
 package com.example.exodia.attendance.domain;
 
 public enum DayStatus {
-    O, X
+    O, //출근
+    X //퇴근
 }
