@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 public class KafkaProducer {
 
@@ -16,6 +18,7 @@ public class KafkaProducer {
 
 
     public void sendBoardEvent(String topic, String message) {
+        String uniqueKey = UUID.randomUUID().toString();
         kafkaTemplate.send(topic, message);
         System.out.println("Kafka 이벤트 : " + message); //
     }
