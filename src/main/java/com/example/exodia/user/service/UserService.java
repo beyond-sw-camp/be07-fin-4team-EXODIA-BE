@@ -11,6 +11,7 @@ import com.example.exodia.user.dto.*;
 import com.example.exodia.user.repository.UserRepository;
 import com.example.exodia.userDelete.domain.DeleteHistory;
 import com.example.exodia.userDelete.repository.DeleteHistoryRepository;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -120,5 +121,25 @@ public class UserService {
                 user
         );
         deleteHistoryRepository.save(deleteHistory);
+    }
+
+    public List<User> searchUsers(String search, String searchType, Pageable pageable) {
+        if (search == null || search.isEmpty()) {
+            return userRepository.findByDelYn(DelYN.N, pageable).getContent();
+        }
+
+        switch (searchType) {
+            case "name":
+                return userRepository.findByNameContainingAndDelYn(search, DelYN.N, pageable).getContent();
+            case "department":
+                return userRepository.findByDepartmentNameContainingAndDelYn(search, DelYN.N, pageable).getContent();
+            case "position":
+                return userRepository.findByPositionNameContainingAndDelYn(search, DelYN.N, pageable).getContent();
+            case "all":
+                return userRepository.findByNameContainingOrDepartmentNameContainingOrPositionNameContainingAndDelYn(
+                        search, search, search, DelYN.N, pageable).getContent();
+            default:
+                return userRepository.findByDelYn(DelYN.N, pageable).getContent();
+        }
     }
 }
