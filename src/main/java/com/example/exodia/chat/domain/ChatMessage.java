@@ -63,7 +63,7 @@ public class ChatMessage extends BaseTimeEntity {
                 .sendUserNum(this.getChatUser().getUserNum())
                 .sendName(this.getChatUser().getName())
                 .roomId(this.chatRoom.getId())
-                .roomName(this.chatRoom.getRoomName())
+//                .roomName(this.chatRoom.getRoomName())
                 .messageType(this.messageType)
                 .message(message)
                 .sendAt(this.sendAt)
