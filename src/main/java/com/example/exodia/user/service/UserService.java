@@ -84,10 +84,14 @@ public class UserService {
     }
 
     public void checkHrAuthority(String departmentName) {
-        if (!"1".equals(departmentName)) {
-            throw new RuntimeException("권한이 없습니다. 관리자만 수행할 수 있습니다.");
+        Department hrDepartment = departmentRepository.findByName("인사팀")
+                .orElseThrow(() -> new RuntimeException("해당 부서가 존재하지 않습니다."));
+
+        if (!hrDepartment.getName().equals(departmentName)) {
+            throw new RuntimeException("권한이 없습니다. 인사팀만 이 작업을 수행할 수 있습니다.");
         }
     }
+
 
     public List<UserInfoDto> getAllUsers() {
         List<User> users = userRepository.findAllByDelYn(DelYN.N);
