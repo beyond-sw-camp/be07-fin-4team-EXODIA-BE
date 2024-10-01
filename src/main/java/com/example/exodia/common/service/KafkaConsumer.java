@@ -31,8 +31,9 @@ public class KafkaConsumer {
 
     // 데이터 중복 입고 처리 수정
     @Transactional
-    @KafkaListener(topics = "notice-events", groupId = "notification-group", concurrency = "1")
+    @KafkaListener(topics = "notice-events", groupId = "notification-group")
     public void listen(String message) {
+        System.out.println("listen: " + message);
         List<User> users = userRepository.findAll();
 
         NotificationType notificationType = message.contains("경조사") ? NotificationType.경조사 : NotificationType.공지사항;

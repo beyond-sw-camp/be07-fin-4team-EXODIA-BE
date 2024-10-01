@@ -18,6 +18,7 @@ public class KafkaProducer {
     public void sendBoardEvent(String topic, String message) {
         kafkaTemplate.send(topic, message);
         System.out.println("Kafka 이벤트 : " + message); //
+        System.out.println(topic);
     }
 }
 
