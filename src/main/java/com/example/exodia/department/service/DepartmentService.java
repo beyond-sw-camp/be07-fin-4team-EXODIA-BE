@@ -20,15 +20,16 @@ public class DepartmentService {
     }
 
     public Department updateDepartment(Long id, String name, Long parentId) {
-        Department department = departmentRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Department not found"));
+        Department department = departmentRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("부서를 찾을 수 없습니다."));
         Department parentDepartment = departmentRepository.findById(parentId).orElse(null);
         department.update(name, parentDepartment);
         return departmentRepository.save(department);
     }
 
+
     public void updateDepartmentHierarchy(Long departmentId, Long newParentId) {
-        Department department = departmentRepository.findById(departmentId).orElseThrow(() -> new IllegalArgumentException("Department not found"));
-        Department newParentDepartment = departmentRepository.findById(newParentId).orElseThrow(() -> new IllegalArgumentException("Parent Department not found"));
+        Department department = departmentRepository.findById(departmentId).orElseThrow(() -> new IllegalArgumentException("부서를 찾을 수 없습니다."));
+        Department newParentDepartment = departmentRepository.findById(newParentId).orElseThrow(() -> new IllegalArgumentException("부모id를 찾을 수 없습니다."));
 
         department.setParentDepartment(newParentDepartment);
         departmentRepository.save(department);
@@ -56,7 +57,7 @@ public class DepartmentService {
     }
 
     public Department getDepartmentById(Long id) {
-        return departmentRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Department not found"));
+        return departmentRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("부서를 찾을 수 없습니다."));
     }
 
     public int calculateDepth(Department department) {
