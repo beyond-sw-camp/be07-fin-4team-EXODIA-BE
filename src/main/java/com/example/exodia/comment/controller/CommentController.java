@@ -1,7 +1,9 @@
 package com.example.exodia.comment.controller;
 
+import com.example.exodia.comment.domain.Comment;
 import com.example.exodia.comment.dto.CommentDetailDto;
 import com.example.exodia.comment.dto.CommentSaveReqDto;
+import com.example.exodia.comment.dto.CommentUpdateDto;
 import com.example.exodia.comment.service.CommentService;
 import com.example.exodia.common.dto.CommonErrorDto;
 import com.example.exodia.common.dto.CommonResDto;
@@ -20,10 +22,7 @@ public class CommentController {
 
     private final CommentService commentService;
 
-    /**
-     * @param commentService - 댓글을 저장하고, 조회하고, 삭제하는 로직을 처리하는 서비스 객체
-     */
-    @Autowired // Spring이 자동으로 CommentService 객체를 주입하도록 설정하는 애노테이션입니다.
+    @Autowired
     public CommentController(CommentService commentService) {
         this.commentService = commentService;
     }
@@ -108,6 +107,39 @@ public class CommentController {
             return new ResponseEntity<>(commonErrorDto, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    /**
+     * 특정 댓글을 수정합니다.
+     * @param id - 수정할 댓글 ID
+     * @param dto - 수정할 내용이 담긴 DTO 객체
+     * @return 수정된 댓글의 ID와 상태 메시지를 포함한 응답 데이터입니다.
+     */
+    @PutMapping("/update/{id}")
+    public ResponseEntity<?> updateComment(@PathVariable Long id, @RequestBody CommentUpdateDto dto) {
+        try {
+            // 서비스 객체를 이용하여 댓글을 수정합니다.
+            Comment updatedComment = commentService.commentUpdate(id, dto);
+            // 성공적으로 댓글이 수정되었다는 응답 데이터를 반환합니다.
+            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "댓글이 수정되었습니다.", updatedComment.getId());
+            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+        } catch (EntityNotFoundException e) {
+            // 댓글을 찾을 수 없는 경우 발생하는 예외 처리
+            e.printStackTrace();
+            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage());
+            return new ResponseEntity<>(commonErrorDto, HttpStatus.NOT_FOUND);
+        } catch (SecurityException e) {
+            // 댓글 작성자와 수정 요청자가 다른 경우 발생하는 예외 처리
+            e.printStackTrace();
+            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.UNAUTHORIZED, "작성자만 수정할 수 있습니다.");
+            return new ResponseEntity<>(commonErrorDto, HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            // 그 외 모든 예외에 대한 처리
+            e.printStackTrace();
+            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 수정에 실패했습니다.");
+            return new ResponseEntity<>(commonErrorDto, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
     /**
      * 특정 댓글을 삭제합니다.

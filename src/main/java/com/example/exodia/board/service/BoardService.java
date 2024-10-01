@@ -215,12 +215,6 @@ public class BoardService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 사번을 가진 유저가 없습니다."));
         Category category = dto.getCategory();
 
-        // 공지사항 또는 가족 행사 게시물일 때, 작성자가 '인사팀' 소속인지 확인
-        if ((category == Category.NOTICE || category == Category.FAMILY_EVENT) &&
-                !user.getDepartment().getName().equals("인사팀")) {
-            throw new SecurityException("공지사항 또는 가족 행사 게시물은 인사팀만 작성할 수 있습니다.");
-        }
-
         // 게시물 정보 업데이트
         board = dto.updateFromEntity(category, user);
         board = boardRepository.save(board);
