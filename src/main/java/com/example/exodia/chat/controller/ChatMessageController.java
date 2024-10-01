@@ -20,7 +20,6 @@ public class ChatMessageController {
     // websocket "/app(pub)/chat/message"로 들어오는 메시징을 처리한다.
     @MessageMapping("/chat/message") // @MessageMapping("/{chatRoomId}") // /pub/1 // @DestinationVariable(value = "chatRoomId") Long chatRoomId
     public void sendMessage(ChatMessageRequest chatMessageRequest){
-        String userNum = jwtTokenProvider.getUserNumFromToken(chatMessageRequest.getToken());
-        chatMessageService.sendMessage(chatMessageRequest, userNum);
+        chatMessageService.sendMessage(chatMessageRequest);
     }
 }

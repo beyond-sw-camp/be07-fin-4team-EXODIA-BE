@@ -26,6 +26,7 @@ public class StompHandler implements ChannelInterceptor {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
+    // stomphandler 는 공백을 인지하지 못하여 오로지 token만 다룰것 . Bearer 떼야한다.
     // WebSocket을 통해 들어온 요청이 처리 되기 전에 실행
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {

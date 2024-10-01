@@ -61,7 +61,7 @@ public class ChatMessage extends BaseTimeEntity {
     public ChatMessageResponse fromEntity(){
         return ChatMessageResponse.builder()
                 .sendUserNum(this.getChatUser().getUserNum())
-                .name(this.getChatUser().getName())
+                .sendName(this.getChatUser().getName())
                 .roomId(this.chatRoom.getId())
                 .roomName(this.chatRoom.getRoomName())
                 .messageType(this.messageType)

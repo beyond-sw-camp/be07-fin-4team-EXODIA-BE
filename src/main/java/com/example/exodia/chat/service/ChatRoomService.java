@@ -59,13 +59,16 @@ public class ChatRoomService {
 
         // 유저들 존재여부 확인
         List<User> participants = new ArrayList<>();
+        // 채팅방 생성하는 유저는 맨처음에 들어간다.
+        participants.add(userRepository.findByUserNumAndDelYn(chatRoomRequest.getUserNum(), DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다.")));
+        // 나머지 채팅방에 초대된 인원
         for(String userNum : chatRoomRequest.getUserNums()){
             participants.add(userRepository.findByUserNumAndDelYn(userNum, DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다.")));
         }
 
         // 채팅방 있는지 확인 // 인원 중복 단체채팅방 생성 불가능
         Set<String> requestUserNums = new HashSet<>(chatRoomRequest.getUserNums());
-        List<ChatRoom> existChatRooms = chatRoomRepository.findAll(); // 성능을 위해 채팅방을 조회하는 쿼리에서 먼저 해당 유저가 포함된 채팅방만 조회하도록 쿼리를 최적화
+        List<ChatRoom> existChatRooms = chatRoomRepository.findAll(); // 성능을 위해 채팅방을 조회하는 쿼리에서 먼저 채팅방 만드는 유저가 포함된 채팅방만 조회하도록 쿼리를 최적화
         Long checkRoomId = findExistChatRoom(requestUserNums, existChatRooms);
         if(checkRoomId != 0L){ // 인원 중복 단체 채팅방이 있다. 기존 채팅방을 반환
             return chatRoomRepository.findByIdAndDelYn(checkRoomId, DelYN.N)

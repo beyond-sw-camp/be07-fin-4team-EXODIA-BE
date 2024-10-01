@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class ChatMessageRequest { // 받아오는 값
 
-    private String token; // 보내는 사람 토큰
+    private String userNum; // 보내는 사람
 
     private Long roomId;
 
