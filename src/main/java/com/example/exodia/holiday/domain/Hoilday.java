@@ -1,6 +1,6 @@
 package com.example.exodia.holiday.domain;
 
-import com.example.exodia.hoildaycat.domain.HoildayCat;
+import com.example.exodia.hoildaycat.domain.HoildayCategory;
 import com.example.exodia.user.domain.User;
 
 import jakarta.persistence.Column;
@@ -44,5 +44,5 @@ public class Hoilday {
 
     @ManyToOne
     @JoinColumn(name = "holidayCat_id", nullable = false)
-    private HoildayCat hoildayCat;
+    private HoildayCategory hoildayCategory;
 }

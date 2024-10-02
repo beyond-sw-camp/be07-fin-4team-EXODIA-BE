@@ -22,7 +22,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Where(clause = "del_yn = 'N'")
-public class HoildayCat {
+public class HoildayCategory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
