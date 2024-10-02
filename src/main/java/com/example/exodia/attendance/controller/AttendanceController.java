@@ -1,5 +1,6 @@
 package com.example.exodia.attendance.controller;
 
+import com.example.exodia.attendance.dto.AttendanceDetailDto;
 import com.example.exodia.attendance.service.AttendanceService;
 import com.example.exodia.attendance.domain.Attendance;
 import com.example.exodia.attendance.dto.AttendanceSaveDto;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/attendance")
@@ -53,6 +55,18 @@ public class AttendanceController {
 
         List<WeeklySumDto> weeklySummaries = attendanceService.getWeeklySummaries(start, end);
         return new ResponseEntity<>(new CommonResDto(HttpStatus.OK, "주차별 근무 시간 정보 조회 완료", weeklySummaries), HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasRole('USER')")
+    @GetMapping("/weekly-details")
+    public ResponseEntity<?> getWeeklyDetails(
+            @RequestParam("startDate") String startDate,
+            @RequestParam("endDate") String endDate) {
+        LocalDate start = LocalDate.parse(startDate);
+        LocalDate end = LocalDate.parse(endDate);
+
+        Map<String, List<AttendanceDetailDto>> weeklyDetails = attendanceService.getWeeklyDetails(start, end);
+        return new ResponseEntity<>(new CommonResDto(HttpStatus.OK, "주차별 상세 근무 시간 조회 완료", weeklyDetails), HttpStatus.OK);
     }
 }
 

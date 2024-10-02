@@ -117,4 +117,11 @@ public class UserService {
         );
         deleteHistoryRepository.save(deleteHistory);
     }
+
+    public UserProfileDto getUserProfile(String userNum) {
+        User user = userRepository.findByUserNumAndDelYn(userNum, DelYN.N)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
+
+        return UserProfileDto.fromProfileEntity(user);
+    }
 }

@@ -94,4 +94,11 @@ public class UserController {
             return new ResponseEntity<>(new CommonErrorDto(HttpStatus.UNAUTHORIZED, e.getMessage()), HttpStatus.UNAUTHORIZED);
         }
     }
+
+    // 프로필 이미지
+    @GetMapping("/profile/{userNum}")
+    public ResponseEntity<UserProfileDto> getUserProfile(@PathVariable String userNum) {
+        UserProfileDto userProfile = userService.getUserProfile(userNum);
+        return ResponseEntity.ok(userProfile);
+    }
 }
