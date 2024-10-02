@@ -1,4 +1,4 @@
-package com.example.exodia.hoildaycat.domain;
+package com.example.exodia.hoildaycategory.domain;
 
 import com.example.exodia.holiday.domain.Hoilday;
 
@@ -34,6 +34,6 @@ public class HoildayCategory {
     @Column(nullable = false)
     private String hoildayGive;
 
-    @OneToMany(mappedBy = "hoildayCat")
+    @OneToMany(mappedBy = "hoildayCategory")
     private List<Hoilday> hoildays;
 }

@@ -1,6 +1,6 @@
 package com.example.exodia.holiday.domain;
 
-import com.example.exodia.hoildaycat.domain.HoildayCategory;
+import com.example.exodia.hoildaycategory.domain.HoildayCategory;
 import com.example.exodia.user.domain.User;
 
 import jakarta.persistence.Column;
