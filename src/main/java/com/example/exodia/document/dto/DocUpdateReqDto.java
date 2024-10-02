@@ -28,6 +28,7 @@ public class DocUpdateReqDto {
 			.documentVersion(document.getDocumentVersion())
 			.documentType(documentType)
 			.user(document.getUser())
+			.description(docUpdateReqDto.getDescription())
 			.build();
 	}
 }

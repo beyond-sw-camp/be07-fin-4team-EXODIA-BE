@@ -27,6 +27,8 @@ import com.example.exodia.document.dto.DocDetailResDto;
 import com.example.exodia.document.dto.DocHistoryResDto;
 import com.example.exodia.document.dto.DocListResDto;
 import com.example.exodia.document.dto.DocReqDto;
+import com.example.exodia.document.dto.DocRevertReqDto;
+import com.example.exodia.document.dto.DocTypeReqDto;
 import com.example.exodia.document.dto.DocUpdateReqDto;
 import com.example.exodia.document.repository.DocumentRepository;
 import com.example.exodia.document.repository.DocumentTypeRepository;
@@ -141,7 +143,7 @@ public class DocumentService {
 	}
 
 	// 최근 열람 문서 조회
-	public List<DocListResDto> getDocListByViewdAt() {
+	public List<DocListResDto> getDocListByViewedAt() {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 		// User user = userRepository.findByUserNum(userNum)
 		// 	.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
@@ -276,5 +278,12 @@ public class DocumentService {
 		return documentTypes.stream()
 			.map(DocumentType::getTypeName)
 			.collect(Collectors.toList());
+	}
+
+	// 타입 추가
+	public Long addType(DocTypeReqDto docTypeReqDto) {
+		documentTypeRepository.save(
+			DocumentType.builder().typeName(docTypeReqDto.getTypeName()).build());
+		return documentTypeRepository.count();
 	}
 }
