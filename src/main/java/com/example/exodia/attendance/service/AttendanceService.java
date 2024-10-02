@@ -1,6 +1,7 @@
 package com.example.exodia.attendance.service;
 
 import com.example.exodia.attendance.domain.Attendance;
+import com.example.exodia.attendance.dto.AttendanceDetailDto;
 import com.example.exodia.attendance.dto.AttendanceSaveDto;
 import com.example.exodia.attendance.dto.AttendanceUpdateDto;
 import com.example.exodia.attendance.dto.WeeklySumDto;
@@ -13,10 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.*;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.format.TextStyle;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -110,6 +109,34 @@ public class AttendanceService {
                 .sorted(Comparator.comparing(WeeklySumDto::getStartOfWeek))
                 .collect(Collectors.toList());
     }
+
+    @Transactional
+    public Map<String, List<AttendanceDetailDto>> getWeeklyDetails(LocalDate startDate, LocalDate endDate) {
+        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUserNum(userNum).orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
+
+        // 주어진 기간 내의 출퇴근 시간 데이터 가져오기
+        List<Attendance> attendances = attendanceRepository.findAllByMemberAndInTimeBetween(user, startDate.atStartOfDay(), endDate.atTime(LocalTime.MAX));
+        Map<String, List<AttendanceDetailDto>> weeklyDetails = new HashMap<>();
+
+        for (Attendance attendance : attendances) {
+            LocalDate attendanceDate = attendance.getInTime().toLocalDate();
+            String dayOfWeek = attendanceDate.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREAN); // 월, 화, 수, 목, 금
+
+            // 요일별로 출퇴근 시간을 Dto로 만들어서 저장
+            AttendanceDetailDto detail = new AttendanceDetailDto(
+                    attendance.getInTime(),
+                    attendance.getOutTime(),
+                    calculateWorkHours(attendance)
+            );
+
+            weeklyDetails.putIfAbsent(dayOfWeek, new ArrayList<>());
+            weeklyDetails.get(dayOfWeek).add(detail);
+        }
+
+        return weeklyDetails;
+    }
+
     // 근무 시간 계산 (출근 시간과 퇴근 시간 차이)
     private double calculateWorkHours(Attendance attendance) {
         if (attendance.getInTime() != null && attendance.getOutTime() != null) {

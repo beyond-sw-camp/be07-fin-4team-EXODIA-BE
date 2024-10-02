@@ -8,6 +8,7 @@ import com.example.exodia.user.dto.*;
 import com.example.exodia.user.repository.UserRepository;
 import com.example.exodia.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -93,5 +94,21 @@ public class UserController {
             e.printStackTrace();
             return new ResponseEntity<>(new CommonErrorDto(HttpStatus.UNAUTHORIZED, e.getMessage()), HttpStatus.UNAUTHORIZED);
         }
+    }
+
+
+    // 프로필 이미지
+    @GetMapping("/profile/{userNum}")
+    public ResponseEntity<UserProfileDto> getUserProfile(@PathVariable String userNum) {
+        UserProfileDto userProfile = userService.getUserProfile(userNum);
+        return ResponseEntity.ok(userProfile);
+
+    @GetMapping("/search")
+    public ResponseEntity<List<User>> searchUsers(
+            @RequestParam(required = false) String search, @RequestParam(required = false) String searchType, Pageable pageable
+    ) {
+        List<User> users = userService.searchUsers(search, searchType, pageable);
+        return ResponseEntity.ok(users);
+
     }
 }

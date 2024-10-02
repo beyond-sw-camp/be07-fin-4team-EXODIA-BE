@@ -1,6 +1,7 @@
 package com.example.exodia.reservationVehicle.controller;
 
 import com.example.exodia.common.dto.CommonResDto;
+import com.example.exodia.reservationVehicle.dto.CarReservationStatusDto;
 import com.example.exodia.reservationVehicle.dto.ReservationCreateDto;
 import com.example.exodia.reservationVehicle.dto.ReservationDto;
 import com.example.exodia.reservationVehicle.service.ReservationService;
@@ -65,5 +66,11 @@ public class ReservationController {
     public ResponseEntity<List<ReservationDto>> getAllReservations() {
         List<ReservationDto> reservations = reservationService.getAllReservations();
         return ResponseEntity.ok(reservations);
+    }
+
+    @GetMapping("/allcar/day")
+    public ResponseEntity<List<CarReservationStatusDto>> getReservationsForDayAllCar(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        List<CarReservationStatusDto> carReservationStatusList = reservationService.getAllCarsWithReservationStatusForDay(date.atStartOfDay());
+        return ResponseEntity.ok(carReservationStatusList);
     }
 }

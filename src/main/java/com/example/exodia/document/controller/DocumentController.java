@@ -10,18 +10,22 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.exodia.common.dto.CommonErrorDto;
 import com.example.exodia.common.dto.CommonResDto;
-import com.example.exodia.document.domain.DocumentC;
+import com.example.exodia.document.domain.Document;
 import com.example.exodia.document.dto.DocDetailResDto;
 import com.example.exodia.document.dto.DocHistoryResDto;
 import com.example.exodia.document.dto.DocListResDto;
 import com.example.exodia.document.dto.DocReqDto;
+import com.example.exodia.document.dto.DocTypeListReqDto;
+import com.example.exodia.document.dto.DocTypeReqDto;
 import com.example.exodia.document.dto.DocUpdateReqDto;
 import com.example.exodia.document.service.DocumentService;
 
@@ -63,9 +67,9 @@ public class DocumentController {
 	}
 
 	// 	최근 조회 문서 조회
-	@GetMapping("/list/viewd")
-	public ResponseEntity<?> docListByViewdAt() {
-		List<DocListResDto> docListResDtos = documentService.getDocListByViewdAt();
+	@GetMapping("/list/viewed")
+	public ResponseEntity<?> docListByViewedAt() {
+		List<DocListResDto> docListResDtos = documentService.getDocListByViewedAt();
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "최근 조회 문서 조회 성공", docListResDtos));
 	}
 
@@ -88,7 +92,7 @@ public class DocumentController {
 	public ResponseEntity<?> updateDocument(@RequestPart(value = "file", required = false) List<MultipartFile> files,
 		@RequestPart(value = "data") DocUpdateReqDto docUpdateReqDto) {
 		try {
-			DocumentC updatedDoc = documentService.updateDoc(files, docUpdateReqDto);
+			Document updatedDoc = documentService.updateDoc(files, docUpdateReqDto);
 			return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "파일 업데이트 성공", updatedDoc));
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -96,17 +100,16 @@ public class DocumentController {
 		}
 	}
 
-
 	 // 문서 버전 되돌리기
 	@PostMapping("/rollback/{id}")
 	public ResponseEntity<?> revertToVersion(@PathVariable Long id) {
 		documentService.rollbackDoc(id);
-		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "파일 업데이트 성공", null));
+		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "파일 롤백 성공", null));
 	}
 
 
 	// 	문서 히스토리 조회
-	@GetMapping("/{id}/versions")
+	@GetMapping("versions/{id}")
 	public ResponseEntity<?> getDocumentVersions(@PathVariable Long id){
 		List<DocHistoryResDto> documentVersions = documentService.getDocumentVersions(id);
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "문서 히스토리 조회 성공", documentVersions));
@@ -125,9 +128,25 @@ public class DocumentController {
 	}
 
 	// 모든 타입 조회
-	@GetMapping("/list/type")
+	@GetMapping("/list/types")
 	public ResponseEntity<?> getAllDocumentTypes() {
 		List<String> typeNames = documentService.getAllTypeNames();
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "전체 문서 타입 조회 성공", typeNames));
+	}
+
+	// 타입 생성
+	@PostMapping("/type/create")
+	public ResponseEntity<?> addDocumentType(@RequestBody DocTypeReqDto docTypeReqDto){
+		Long cnt = documentService.addType(docTypeReqDto);
+		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "타입 추가 성공", cnt));
+	}
+
+	// 	타입별 문서 조회
+	@GetMapping("/list/type/{id}")
+	public ResponseEntity<?> docListByType(@PathVariable Long id) {
+		List<DocListResDto> docListResDtos = documentService.getDocByType(id);
+		System.out.println(docListResDtos.size());
+
+		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "타입별 문서 조회 성공", docListResDtos));
 	}
 }
