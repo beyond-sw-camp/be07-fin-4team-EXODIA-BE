@@ -1,4 +1,4 @@
-package com.example.exodia.hoildaycat.domain;
+package com.example.exodia.hoildaycategory.domain;
 
 import com.example.exodia.holiday.domain.Hoilday;
 
@@ -22,7 +22,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Where(clause = "del_yn = 'N'")
-public class HoildayCat {
+public class HoildayCategory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,6 +34,6 @@ public class HoildayCat {
     @Column(nullable = false)
     private String hoildayGive;
 
-    @OneToMany(mappedBy = "hoildayCat")
+    @OneToMany(mappedBy = "hoildayCategory")
     private List<Hoilday> hoildays;
 }
