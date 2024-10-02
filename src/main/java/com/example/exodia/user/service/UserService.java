@@ -133,6 +133,7 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
 
         return UserProfileDto.fromProfileEntity(user);
+    }
 
     public List<User> searchUsers(String search, String searchType, Pageable pageable) {
         if (search == null || search.isEmpty()) {

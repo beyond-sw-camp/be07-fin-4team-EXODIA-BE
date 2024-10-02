@@ -102,6 +102,7 @@ public class UserController {
     public ResponseEntity<UserProfileDto> getUserProfile(@PathVariable String userNum) {
         UserProfileDto userProfile = userService.getUserProfile(userNum);
         return ResponseEntity.ok(userProfile);
+    }
 
     @GetMapping("/search")
     public ResponseEntity<List<User>> searchUsers(
