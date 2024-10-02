@@ -145,22 +145,13 @@ public class DocumentService {
 	// 최근 열람 문서 조회
 	public List<DocListResDto> getDocListByViewedAt() {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
-		// User user = userRepository.findByUserNum(userNum)
-		// 	.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
-
 		List<Object> docIds = redisService.getViewdListValue(userNum);
-		List<Document> docs = new ArrayList<>();
-		List<DocListResDto> docListResDtos = new ArrayList<>();
 
-		for (Object docId : docIds) {
-			Document doc = documentRepository.findById(((Integer)docId).longValue())
-				.orElseThrow(() -> new EntityNotFoundException("문서를 찾을 수 없습니다."));
-			docs.add(doc);
-		}
-		for (Document doc : docs) {
-			docListResDtos.add(doc.fromEntityList());
-		}
-		return docListResDtos;
+		return docIds.stream()
+			.map(docId -> documentRepository.findById(((Integer) docId).longValue())
+				.orElseThrow(() -> new EntityNotFoundException("문서를 찾을 수 없습니다.")))
+			.map(Document::fromEntityList)
+			.collect(Collectors.toList());
 	}
 
 	// 최근 수정 문서 조회
@@ -285,5 +276,16 @@ public class DocumentService {
 		documentTypeRepository.save(
 			DocumentType.builder().typeName(docTypeReqDto.getTypeName()).delYn(DelYN.N).build());
 		return documentTypeRepository.count();
+	}
+
+	// 타입별 리스트 조회
+	public List<DocListResDto> getDocByType(Long id) {
+		DocumentType docType = documentTypeRepository.findById(id)
+			.orElseThrow(() -> new EntityNotFoundException("해당 타입이 존재하지 않습니다."));
+		List<Document> documents = documentRepository.findAllByDocumentType(docType);
+
+		return documents.stream()
+			.map(Document::fromEntityList)
+			.collect(Collectors.toList());
 	}
 }

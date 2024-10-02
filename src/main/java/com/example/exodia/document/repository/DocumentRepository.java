@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import com.example.exodia.document.domain.Document;
+import com.example.exodia.document.domain.DocumentType;
 import com.example.exodia.document.domain.DocumentVersion;
 import com.example.exodia.document.dto.DocHistoryResDto;
 
@@ -14,5 +15,6 @@ import com.example.exodia.document.dto.DocHistoryResDto;
 public interface DocumentRepository extends JpaRepository<Document,Long> {
 	// Document findByDocumentP_Id(Long documentPId);
 	List<Document> findAllByDocumentVersion(DocumentVersion documentVersion);
+	List<Document> findAllByDocumentType(DocumentType documentType);
 	List<Document> findByDocumentVersionAndIdGreaterThan(DocumentVersion documentVersion, Long id);
 }

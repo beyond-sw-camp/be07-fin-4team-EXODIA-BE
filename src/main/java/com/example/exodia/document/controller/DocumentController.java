@@ -132,10 +132,19 @@ public class DocumentController {
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "전체 문서 타입 조회 성공", typeNames));
 	}
 
+	// 타입 생성
 	@PostMapping("/type/create")
 	public ResponseEntity<?> addDocumentType(@RequestBody DocTypeReqDto docTypeReqDto){
 		Long cnt = documentService.addType(docTypeReqDto);
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "타입 추가 성공", cnt));
 	}
 
+	// 	타입별 문서 조회
+	@GetMapping("/list/type/{id}")
+	public ResponseEntity<?> docListByType(@PathVariable Long id) {
+		List<DocListResDto> docListResDtos = documentService.getDocByType(id);
+		System.out.println(docListResDtos.size());
+
+		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "타입별 문서 조회 성공", docListResDtos));
+	}
 }
