@@ -50,10 +50,17 @@ public class InitialDataLoader implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        Department hrDepartment = new Department(null, "인사팀");
-        Department webDevDepartment = new Department(null, "웹개발팀");
+        // 본부 생성
+        Department salesHQ = new Department("영업본부", null);
+        Department devHQ = new Department("개발본부", null);
+        Department supportHQ = new Department("지원본부", null);
+        departmentRepository.save(salesHQ);
+        departmentRepository.save(devHQ);
+        departmentRepository.save(supportHQ);
+
+        // 지원본부 밑에 인사팀 추가
+        Department hrDepartment = new Department("인사팀", supportHQ);
         departmentRepository.save(hrDepartment);
-        departmentRepository.save(webDevDepartment);
 
         Position teamLeader = new Position(null, "팀장");
         Position director = new Position(null, "부장");
@@ -74,7 +81,6 @@ public class InitialDataLoader implements CommandLineRunner {
                 "test1@test",
                 "어양동",
                 "01012345678",
-                DelYN.N,
                 "123456-1234567",
                 HireType.정규직,
                 NowStatus.출근,
@@ -95,20 +101,18 @@ public class InitialDataLoader implements CommandLineRunner {
                 "test2@test",
                 "영등동",
                 "01098765432",
-                DelYN.N,
                 "123456-2345678",
                 HireType.계약직,
                 NowStatus.회의,
                 15,
-                webDevDepartment,
+                hrDepartment,
                 director,
                 0
         );
 
         userRepository.save(user1);
-        System.out.println("User1 saved: " + user1.getUserNum());
         userRepository.save(user2);
-        System.out.println("User2 saved: " + user2.getUserNum());
+
         // 대분류 데이터 생성
         Evalutionb workAbility = new Evalutionb(null, "업무 수행 능력");
         Evalutionb problemSolving = new Evalutionb(null, "문제 해결");

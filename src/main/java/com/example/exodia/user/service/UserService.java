@@ -11,6 +11,7 @@ import com.example.exodia.user.dto.*;
 import com.example.exodia.user.repository.UserRepository;
 import com.example.exodia.userDelete.domain.DeleteHistory;
 import com.example.exodia.userDelete.repository.DeleteHistoryRepository;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -83,11 +84,19 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public void checkHrAuthority(String departmentName) {
-        if (!"1".equals(departmentName)) {
-            throw new RuntimeException("권한이 없습니다. 관리자만 수행할 수 있습니다.");
+
+    public void checkHrAuthority(String departmentId) {
+        Department hrDepartment = departmentRepository.findById(Long.parseLong(departmentId))
+                .orElseThrow(() -> new RuntimeException("해당 부서가 존재하지 않습니다."));
+
+        if (!hrDepartment.getName().equals("인사팀")) {
+            System.out.println("Received departmentId: " + departmentId);
+            throw new RuntimeException("권한이 없습니다. 인사팀만 이 작업을 수행할 수 있습니다.");
         }
     }
+
+
+
 
     public List<UserInfoDto> getAllUsers() {
         List<User> users = userRepository.findAllByDelYn(DelYN.N);
@@ -118,10 +127,31 @@ public class UserService {
         deleteHistoryRepository.save(deleteHistory);
     }
 
+
     public UserProfileDto getUserProfile(String userNum) {
         User user = userRepository.findByUserNumAndDelYn(userNum, DelYN.N)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
 
         return UserProfileDto.fromProfileEntity(user);
+
+    public List<User> searchUsers(String search, String searchType, Pageable pageable) {
+        if (search == null || search.isEmpty()) {
+            return userRepository.findByDelYn(DelYN.N, pageable).getContent();
+        }
+
+        switch (searchType) {
+            case "name":
+                return userRepository.findByNameContainingAndDelYn(search, DelYN.N, pageable).getContent();
+            case "department":
+                return userRepository.findByDepartmentNameContainingAndDelYn(search, DelYN.N, pageable).getContent();
+            case "position":
+                return userRepository.findByPositionNameContainingAndDelYn(search, DelYN.N, pageable).getContent();
+            case "all":
+                return userRepository.findByNameContainingOrDepartmentNameContainingOrPositionNameContainingAndDelYn(
+                        search, search, search, DelYN.N, pageable).getContent();
+            default:
+                return userRepository.findByDelYn(DelYN.N, pageable).getContent();
+        }
+
     }
 }

@@ -8,10 +8,12 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class UserUpdateDto {
+    private String userNum;
     private String name;
     private String email;
     private String address;
     private String phone;
+    private String profileImage;
     private HireType hireType;
     private Long departmentId;
     private Long positionId;
