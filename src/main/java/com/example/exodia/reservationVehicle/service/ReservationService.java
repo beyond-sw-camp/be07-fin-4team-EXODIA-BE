@@ -6,6 +6,7 @@ import com.example.exodia.common.auth.JwtTokenProvider;
 import com.example.exodia.notification.service.NotificationService;
 import com.example.exodia.reservationVehicle.domain.Reservation;
 import com.example.exodia.reservationVehicle.domain.Status;
+import com.example.exodia.reservationVehicle.dto.CarReservationStatusDto;
 import com.example.exodia.reservationVehicle.dto.ReservationCreateDto;
 import com.example.exodia.reservationVehicle.dto.ReservationDto;
 import com.example.exodia.reservationVehicle.repository.ReservationRepository;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -165,6 +167,32 @@ public class ReservationService {
         return reservationRepository.findAll().stream()
                 .map(ReservationDto::fromEntity)
                 .collect(Collectors.toList());
+    }
+
+    public List<CarReservationStatusDto> getAllCarsWithReservationStatusForDay(LocalDateTime date) {
+        List<Car> cars = carRepository.findAll();
+        List<CarReservationStatusDto> carReservationStatusList = new ArrayList<>();
+
+        for (Car car : cars) {
+            List<Reservation> reservations = reservationRepository.findByCarIdAndDate(
+                    car.getId(),
+                    date,
+                    date.plusDays(1).minusSeconds(1)
+            );
+
+            // 예약 상태 확인: 예약이 없으면 AVAILABLE, 있으면 RESERVED
+            boolean isAvailable = reservations.isEmpty();
+
+            // Create DTO using fromEntity method
+            CarReservationStatusDto carReservationStatusDto = CarReservationStatusDto.fromEntity(
+                    car,
+                    isAvailable ? Status.AVAILABLE : Status.RESERVED
+            );
+
+            carReservationStatusList.add(carReservationStatusDto);
+        }
+
+        return carReservationStatusList;
     }
 }
 

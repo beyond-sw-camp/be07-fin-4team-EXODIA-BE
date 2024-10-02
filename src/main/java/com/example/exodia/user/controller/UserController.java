@@ -96,11 +96,19 @@ public class UserController {
         }
     }
 
+
+    // 프로필 이미지
+    @GetMapping("/profile/{userNum}")
+    public ResponseEntity<UserProfileDto> getUserProfile(@PathVariable String userNum) {
+        UserProfileDto userProfile = userService.getUserProfile(userNum);
+        return ResponseEntity.ok(userProfile);
+
     @GetMapping("/search")
     public ResponseEntity<List<User>> searchUsers(
             @RequestParam(required = false) String search, @RequestParam(required = false) String searchType, Pageable pageable
     ) {
         List<User> users = userService.searchUsers(search, searchType, pageable);
         return ResponseEntity.ok(users);
+
     }
 }
