@@ -283,7 +283,7 @@ public class DocumentService {
 	// 타입 추가
 	public Long addType(DocTypeReqDto docTypeReqDto) {
 		documentTypeRepository.save(
-			DocumentType.builder().typeName(docTypeReqDto.getTypeName()).build());
+			DocumentType.builder().typeName(docTypeReqDto.getTypeName()).delYn(DelYN.N).build());
 		return documentTypeRepository.count();
 	}
 }
