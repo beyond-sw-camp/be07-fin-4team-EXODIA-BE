@@ -84,14 +84,18 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public void checkHrAuthority(String departmentName) {
-        Department hrDepartment = departmentRepository.findByName("인사팀")
+
+    public void checkHrAuthority(String departmentId) {
+        Department hrDepartment = departmentRepository.findById(Long.parseLong(departmentId))
                 .orElseThrow(() -> new RuntimeException("해당 부서가 존재하지 않습니다."));
 
-        if (!hrDepartment.getName().equals(departmentName)) {
+        if (!hrDepartment.getName().equals("인사팀")) {
+            System.out.println("Received departmentId: " + departmentId);
             throw new RuntimeException("권한이 없습니다. 인사팀만 이 작업을 수행할 수 있습니다.");
         }
     }
+
+
 
 
     public List<UserInfoDto> getAllUsers() {
