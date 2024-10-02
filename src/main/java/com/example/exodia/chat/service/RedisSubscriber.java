@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class RedisSubscriber implements MessageListener {
+public class RedisSubscriber{
     private final ObjectMapper objectMapper;
     private final RedisTemplate<String, Object> chatRedisTemplate;
     private final SimpMessageSendingOperations messageSendingOperations;
@@ -27,17 +27,16 @@ public class RedisSubscriber implements MessageListener {
 
     // Redis에서 메시지가 발행(publish)되면 대기하고 있던 onMessage가 메시지를 받아 messagingTemplate를 이용하여 websocket 클라이언트들에게 메시지 전달
 
-    @Override
-    public void onMessage(Message message, byte[] pattern) {
+    public void onMessage(String publishMessage) {
         try {
             // redis에서 발행된 데이터를 받아 역직렬화
-            String publishMessage = (String) chatRedisTemplate.getStringSerializer().deserialize(message.getBody());
+//            String publishMessage = (String) chatRedisTemplate.getStringSerializer().deserialize(message.getBody());
 
             // ChatMessageResponse 객채로 맵핑
             ChatMessageResponse roomMessage = objectMapper.readValue(publishMessage, ChatMessageResponse.class);
 
             // Websocket 구독자에게 채팅 메시지 전송
-            messageSendingOperations.convertAndSend("/topic/chatroom/" + roomMessage.getRoomId(), roomMessage);
+            messageSendingOperations.convertAndSend("/topic/chat/" + roomMessage.getRoomId(), roomMessage);
 
         }catch (Exception e){
             log.error(e.getMessage());

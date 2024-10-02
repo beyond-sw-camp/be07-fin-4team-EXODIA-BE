@@ -33,19 +33,25 @@ public class StompHandler implements ChannelInterceptor {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
         String jwtToken = "";
 
-        if(StompCommand.CONNECT == accessor.getCommand()){
+        if(StompCommand.CONNECT == accessor.getCommand()){ // 웹소켓 연결 요청
             String jwt = accessor.getFirstNativeHeader("Authorization");
             if (StringUtils.hasText(jwt) && jwt.startsWith("Bearer")){
                 jwtToken = Objects.requireNonNull(accessor.getFirstNativeHeader("token")).substring(7);
-
                 jwtTokenProvider.validateToken(jwtToken);
-
                 // chatRoomManage
             }
-        } else if (StompCommand.DISCONNECT == accessor.getCommand()) {
+        }else if(StompCommand.SUBSCRIBE == accessor.getCommand()){ // 채팅룸 구독요청
+
+        }else if (StompCommand.DISCONNECT == accessor.getCommand()) {
             // chatRoomManage
         }
 
+
+//        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
+//        // websocket 연결시 헤더의 jwt token 검증
+//        if (StompCommand.CONNECT == accessor.getCommand()) {
+//            jwtTokenProvider.validateToken(accessor.getFirstNativeHeader("token"));
+//        }
         return message;
     }
 }
