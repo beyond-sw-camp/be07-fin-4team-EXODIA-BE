@@ -64,9 +64,9 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false, length = 11)
     private String phone;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "del_yn", nullable = false)
-    private DelYN delYn = DelYN.N;
+//    @Enumerated(EnumType.STRING)
+//    @Column(name = "del_yn", nullable = false)
+//    private DelYN delYn = DelYN.N;
 
     @Column(nullable = false, length = 20)
     private String socialNum;
@@ -122,7 +122,7 @@ public class User extends BaseTimeEntity {
                 dto.getEmail(),
                 dto.getAddress(),
                 dto.getPhone(),
-                DelYN.N,
+//                DelYN.N,
                 dto.getSocialNum(),
                 dto.getHireType(),
                 dto.getNowStatus(),
@@ -140,14 +140,17 @@ public class User extends BaseTimeEntity {
         this.address = dto.getAddress();
         this.hireType = dto.getHireType();
         this.annualLeave = dto.getAnnualLeave();
+        this.profileImage = dto.getProfileImage();
         this.department = department;
         this.position = position;
     }
 
-    @Override
+
     public void softDelete() {
         super.softDelete();
     }
+
+
 
 
 //    test코드
@@ -164,4 +167,3 @@ public class User extends BaseTimeEntity {
         this.department = department;
     }
 }
-
