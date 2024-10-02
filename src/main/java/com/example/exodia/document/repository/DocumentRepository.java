@@ -16,5 +16,7 @@ public interface DocumentRepository extends JpaRepository<Document,Long> {
 	// Document findByDocumentP_Id(Long documentPId);
 	List<Document> findAllByDocumentVersion(DocumentVersion documentVersion);
 	List<Document> findAllByDocumentType(DocumentType documentType);
+	List<Document> findAllByStatus(String status);
 	List<Document> findByDocumentVersionAndIdGreaterThan(DocumentVersion documentVersion, Long id);
+	List<Document> findAllByIdAndStatus(Long id, String status);
 }

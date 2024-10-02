@@ -27,6 +27,7 @@ public class DocReqDto {
 			.documentType(documentType)
 			.description(docReqDto.description)
 			.user(user)
+			.status("now")
 			.documentVersion(null)
 			.build();
 	}

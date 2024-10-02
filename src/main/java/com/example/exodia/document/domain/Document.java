@@ -46,6 +46,9 @@ public class Document extends BaseTimeEntity {
 	@Column(nullable = true, length = 2083)
 	private String description;
 
+	@Column(nullable = true)
+	private String status;
+
 
 	// @Column(nullable = false)
 	// @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
@@ -110,7 +113,18 @@ public class Document extends BaseTimeEntity {
 
 	public void updateDocumentVersion(DocumentVersion documentVersion) {
 		this.documentVersion = documentVersion;
-
 	}
+
+	public void updateStatus() {
+		this.status = "";
+	}
+
+	public void revertDoc(){
+		this.setDelYn(DelYN.N);
+		this.setDeletedAt(null);
+		this.status = "now";
+	}
+
 }
+
 

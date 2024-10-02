@@ -17,17 +17,16 @@ import lombok.NoArgsConstructor;
 @Builder
 public class DocUpdateReqDto {
 	private Long id;
-	private String typeName;
 	private String description;	// 설명
 
-	public Document toEntity(DocUpdateReqDto docUpdateReqDto, Document document, String fileName, String fileDownloadUrl,
-		DocumentType documentType){
+	public Document toEntity(DocUpdateReqDto docUpdateReqDto, Document document, String fileName, String fileDownloadUrl){
 		return Document.builder()
 			.fileName(fileName)
 			.filePath(fileDownloadUrl)
 			.documentVersion(document.getDocumentVersion())
-			.documentType(documentType)
+			.documentType(document.getDocumentType())
 			.user(document.getUser())
+			.status("now")
 			.description(docUpdateReqDto.getDescription())
 			.build();
 	}
