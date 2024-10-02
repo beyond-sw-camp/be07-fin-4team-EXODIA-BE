@@ -140,9 +140,11 @@ public class User extends BaseTimeEntity {
         this.address = dto.getAddress();
         this.hireType = dto.getHireType();
         this.annualLeave = dto.getAnnualLeave();
+        this.profileImage = dto.getProfileImage();
         this.department = department;
         this.position = position;
     }
+
 
     @Override
     public void softDelete() {
@@ -164,4 +166,3 @@ public class User extends BaseTimeEntity {
         this.department = department;
     }
 }
-
