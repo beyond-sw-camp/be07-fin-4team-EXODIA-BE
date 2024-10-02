@@ -20,6 +20,9 @@ public class UserDetailDto {
     private LocalDate joinDate;
     private HireType hireType;
     private int annualLeave;
+    private String email;
+    private String name;
+    private String profileImage;
 
     public static UserDetailDto fromEntity(User user) {
         return new UserDetailDto(
@@ -30,7 +33,10 @@ public class UserDetailDto {
                 user.getPhone(),
                 user.getCreatedAt().toLocalDate(),
                 user.getHireType(),
-                user.getAnnualLeave()
+                user.getAnnualLeave(),
+                user.getEmail(),
+                user.getName(),
+                user.getProfileImage()
         );
     }
 }

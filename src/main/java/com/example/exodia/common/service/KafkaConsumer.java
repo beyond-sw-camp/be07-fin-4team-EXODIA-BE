@@ -8,6 +8,8 @@ import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,22 +34,17 @@ public class KafkaConsumer {
     // 데이터 중복 입고 처리 수정
     @Transactional
     @KafkaListener(topics = "notice-events", groupId = "notification-group")
-    public void listen(String message) {
-        System.out.println("listen: " + message);
+    public void listen(@Header(KafkaHeaders.RECEIVED_TOPIC) String key, String message) {
+        System.out.println("Kafka 메시지 수신 - 키: " + key + ", 메시지: " + message);
+
+        // 중복된 알림 방지
         List<User> users = userRepository.findAll();
-
-        NotificationType notificationType = message.contains("경조사") ? NotificationType.경조사 : NotificationType.공지사항;
-
         for (User user : users) {
-            // 중복된 알림 방지
             boolean exists = notificationRepository.existsByUserAndMessage(user, message);
             if (!exists) {
-                Notification notification = new Notification(user, notificationType, message);
+                Notification notification = new Notification(user, NotificationType.공지사항, message);
                 notificationRepository.save(notification);
-
-                // SSE 실시간 알림 전송
                 sseEmitters.sendToUser(user.getUserNum(), notification);
-                System.out.println("SSE 이벤트 전송: " + user.getUserNum() + " " + message + " 메세지");
             }
         }
     }

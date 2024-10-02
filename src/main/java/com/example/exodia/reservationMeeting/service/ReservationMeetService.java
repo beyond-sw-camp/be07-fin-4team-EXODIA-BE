@@ -12,6 +12,7 @@ import com.example.exodia.user.repository.UserRepository;
 import com.example.exodia.user.service.UserService;
 import jakarta.persistence.LockModeType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -82,6 +83,8 @@ public class ReservationMeetService {
 //        //}
         ReservationMeet reservationMeet = ReservationMeet.fromEntity(reservationMeetCreateDto, meetingRoom, user);
         reservationMeet = reservationMeetRepository.save(reservationMeet);
+
+        reservationMeetRepository.flush();
 
         // 관리자를 대상으로 알림 전송
         String message = String.format("%s님이 %s 회의실을 %s ~ %s 에 예약하였습니다.", user.getName(), meetingRoom.getName(), reservationMeet.getStartTime().toString(), reservationMeet.getEndTime().toString());
@@ -157,6 +160,7 @@ public class ReservationMeetService {
 
     /* 예약 삭제 */
     @Transactional
+    @CacheEvict(value = "reservations", key = "#reservationId")
     public void cancelReservation(Long reservationId) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUserNum(userNum)
@@ -174,6 +178,7 @@ public class ReservationMeetService {
         }
 
         reservationMeetRepository.delete(reservationMeet);
+        reservationMeetRepository.flush();
     }
 
 

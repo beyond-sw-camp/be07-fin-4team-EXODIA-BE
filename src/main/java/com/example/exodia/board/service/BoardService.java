@@ -13,10 +13,10 @@ import com.example.exodia.comment.domain.Comment;
 import com.example.exodia.comment.dto.CommentResDto;
 import com.example.exodia.comment.repository.CommentRepository;
 import com.example.exodia.common.domain.DelYN;
-import com.example.exodia.common.service.KafkaProducer;
 import com.example.exodia.common.service.UploadAwsFileService;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
+import io.lettuce.core.ScriptOutputType;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -37,20 +37,18 @@ public class BoardService {
     private final UploadAwsFileService uploadAwsFileService;
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
-    private final BoardHitsService boardHitsService;
-    private final KafkaProducer kafkaProducer;
+
 
     @Autowired
     public BoardService(BoardRepository boardRepository, UploadAwsFileService uploadAwsFileService,
                         BoardFileRepository boardFileRepository, UserRepository userRepository,
-                        CommentRepository commentRepository, BoardHitsService boardHitsService, KafkaProducer kafkaProducer) {
+                        CommentRepository commentRepository) {
         this.boardRepository = boardRepository;
         this.uploadAwsFileService = uploadAwsFileService;
         this.boardFileRepository = boardFileRepository;
         this.userRepository = userRepository;
         this.commentRepository = commentRepository;
-        this.boardHitsService = boardHitsService;
-        this.kafkaProducer = kafkaProducer;
+
     }
 
     /**
@@ -78,7 +76,7 @@ public class BoardService {
         board = boardRepository.save(board);
 
         // 게시물 생성 후, 조회수 초기화 (Redis)
-        boardHitsService.resetBoardHits(board.getId());
+//        boardHitsService.resetBoardHits(board.getId());
 
         // 파일이 존재할 경우, AWS S3에 파일을 업로드하고 해당 파일 정보 저장
         if (files != null && !files.isEmpty()) {
@@ -100,13 +98,6 @@ public class BoardService {
             }
         }
 
-        if (category == Category.NOTICE || category == Category.FAMILY_EVENT) {
-            String eventType = category == Category.NOTICE ? "공지사항" : "경조사";
-            String message = String.format("%s가 작성되었습니다: %s", eventType, board.getTitle());
-            kafkaProducer.sendBoardEvent("notice-events", message);
-        }
-
-
         return board;
     }
 
@@ -117,46 +108,49 @@ public class BoardService {
      * @param searchQuery - 검색어
      * @return 검색 조건에 따른 게시물 목록 (Page 형태로 반환)
      */
-    public Page<BoardListResDto> BoardListWithSearch(Pageable pageable, String searchType, String searchQuery) {
+    public Page<BoardListResDto> BoardListWithSearch(Pageable pageable, String searchType, String searchQuery, Category category) {
         Page<Board> boards;
 
-        // 검색어가 있는 경우, 검색 유형에 따라 게시물 목록 조회
         if (searchQuery != null && !searchQuery.isEmpty()) {
             switch (searchType) {
                 case "title":
-                    boards = boardRepository.findByTitleContainingIgnoreCase(searchQuery, DelYN.N, pageable);
+                    boards = boardRepository.findByTitleContainingIgnoreCaseAndCategory(searchQuery, category, DelYN.N, pageable);
                     break;
                 case "content":
-                    boards = boardRepository.findByContentContainingIgnoreCase(searchQuery, DelYN.N, pageable);
+                    boards = boardRepository.findByContentContainingIgnoreCaseAndCategory(searchQuery, category, DelYN.N, pageable);
                     break;
                 case "title+content":
-                    boards = boardRepository.findByTitleContainingIgnoreCaseOrContentContainingIgnoreCase(
-                            searchQuery, searchQuery, DelYN.N, pageable);
+                    boards = boardRepository.findByTitleContainingIgnoreCaseOrContentContainingIgnoreCaseAndCategory(
+                            searchQuery, searchQuery, category, DelYN.N, pageable);
                     break;
                 case "user_num":
                     if (searchQuery.length() != 12) {
                         throw new IllegalArgumentException("사번은 12자리 문자열이어야 합니다.");
                     }
-                    boards = boardRepository.findByUser_UserNumAndDelYn(searchQuery, DelYN.N, pageable);
+                    boards = boardRepository.findByUser_UserNumAndCategoryAndDelYn(searchQuery, category, DelYN.N, pageable);
                     break;
                 case "name":
-                    boards = boardRepository.findByUser_NameContainingIgnoreCase(searchQuery, DelYN.N, pageable);
+                    boards = boardRepository.findByUser_NameContainingIgnoreCaseAndCategory(searchQuery, category, DelYN.N, pageable);
                     break;
                 default:
-                    boards = boardRepository.findAllWithPinned(pageable);
+                    boards = boardRepository.findByCategoryAndDelYn(category, DelYN.N, pageable);
                     break;
             }
+        } else if (category != null) {
+            boards = boardRepository.findByCategoryAndDelYn(category, DelYN.N, pageable);
         } else {
-            boards = boardRepository.findAllWithPinned(pageable);
+            boards = boardRepository.findAllWithPinnedByCategory(category, pageable);
         }
 
-        // 조회된 게시물 목록의 조회수 최신화 후 반환
-        return boards.map(board -> {
-            Long currentHits = boardHitsService.getBoardHits(board.getId());
-            board.updateBoardHitsFromRedis(currentHits);
-            return board.listFromEntity();
-        });
+        return boards.map(Board::listFromEntity);
     }
+
+
+
+
+
+
+
 
     /**
      * 특정 게시물의 상세 정보를 조회하는 메서드
@@ -171,9 +165,9 @@ public class BoardService {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 
         // 조회수 증가 후 업데이트된 조회수 반환
-        Long updatedHits = boardHitsService.incrementBoardHits(id, userNum);
+        Long updatedHits = 1L;
 
-        board.updateBoardHitsFromRedis(updatedHits);
+//        board.updateBoardHitsFromRedis(updatedHits);
         boardRepository.save(board);
 
         // 파일 및 댓글 정보 조회

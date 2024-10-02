@@ -1,5 +1,6 @@
 package com.example.exodia.board.controller;
 
+import com.example.exodia.board.domain.Category;
 import com.example.exodia.board.dto.*;
 import com.example.exodia.board.service.BoardService;
 import com.example.exodia.common.dto.CommonErrorDto;
@@ -63,13 +64,15 @@ public class BoardController {
     public ResponseEntity<?> getBoardList(
             @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
             @RequestParam(value = "searchQuery", required = false) String searchQuery,
-            @RequestParam(value = "searchType", required = false) String searchType) {
+            @RequestParam(value = "searchType", required = false) String searchType,
+            @RequestParam(value = "category", required = false) Category category) {
 
-        // 검색 조건과 페이징 정보를 기반으로 게시물 목록 조회
-        Page<BoardListResDto> boardListResDto = boardService.BoardListWithSearch(pageable, searchType, searchQuery);
+        // 검색 조건과 카테고리를 기반으로 게시물 목록 조회
+        Page<BoardListResDto> boardListResDto = boardService.BoardListWithSearch(pageable, searchType, searchQuery, category);
         CommonResDto response = new CommonResDto(HttpStatus.OK, "게시물 목록을 반환합니다.", boardListResDto);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
 
     /**
      * 특정 게시물의 상세 정보 조회
