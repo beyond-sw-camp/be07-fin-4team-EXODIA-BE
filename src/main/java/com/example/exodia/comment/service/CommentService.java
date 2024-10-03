@@ -10,6 +10,7 @@ import com.example.exodia.comment.repository.CommentRepository;
 import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -17,8 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
-import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class CommentService {
@@ -43,11 +42,11 @@ public class CommentService {
      */
     public Comment saveComment(CommentSaveReqDto dto) {
 
+
         // 현재 인증된 사용자 정보를 가져옴
-        User user = userRepository.findByUserNum(SecurityContextHolder.getContext().getAuthentication().getName())
+        User user = userRepository.findByUserNum(dto.getUserNum())
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 회원입니다람.")); // 사용자 정보가 없을 경우 예외를 발생
 
-        String userNum = user.getUserNum(); // 사용자의 사번 또는 식별자를 가져옵니다.
 
         // 댓글 삭제 여부(delYn) 값이 설정되지 않은 경우 기본값 'N'(삭제되지 않음)으로 설정
         if (dto.getDelYn() == null) {
@@ -63,7 +62,7 @@ public class CommentService {
                     .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 게시글입니다.")); // 게시물이 없을 경우 예외 발생
 
             // DTO에서 전달받은 데이터를 사용하여 새로운 댓글(Comment) 객체를 생성하고 저장
-            savedComment = commentRepository.save(dto.BoardToEntity(user, board, userNum));
+            savedComment = commentRepository.save(dto.BoardToEntity(user, board, dto.getUserNum()));
         } else {
             // 댓글을 달 게시물이 제공되지 않은 경우 예외 발생
             throw new IllegalArgumentException("댓글이 달릴 게시글 필요합니다.");
@@ -106,11 +105,8 @@ public class CommentService {
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 댓글입니다.")); // 댓글이 없을 경우 예외 발생
 
-        // 현재 사용자 ID(사번)를 가져오기
-        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        // 댓글 작성자와 현재 사용자가 동일한지 확인
-        if (!comment.getUser().getUserNum().equals(userNum)) {
+        // 요청에서 받은 userNum을 사용하여 권한 확인
+        if (!comment.getUser().getUserNum().equals(dto.getUserNum())) {
             throw new SecurityException("작성자 본인만 댓글을 수정할 수 있습니다.");
         }
 
@@ -122,30 +118,26 @@ public class CommentService {
         return commentRepository.save(comment);
     }
 
+
     /**
      * 특정 댓글을 삭제하는 메서드
      * @param id - 삭제할 댓글 ID
      * @return 삭제된 댓글 객체를 반환
      */
     @Transactional
-    public Comment commentDelete(Long id) {
+    public void commentDelete(Long id, String userNum) {
         // 삭제할 댓글을 ID로 조회
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 댓글입니다.")); // 댓글이 없을 경우 예외 발생
 
-        // 현재 사용자 사번 가져오기
-        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        // 댓글 작성자와 현재 사용자가 동일한지 확인
+        // 요청에서 받은 userNum을 사용하여 권한 확인
         if (!comment.getUser().getUserNum().equals(userNum)) {
             throw new SecurityException("작성자 본인만 댓글을 삭제할 수 있습니다.");
         }
 
-        // 댓글의 삭제 상태를 'Y'로 업데이트
-        comment.updateDelYN(DelYN.Y);
-
-        // 삭제된 댓글 객체 반환
-        return comment;
+        // 댓글 삭제 처리
+        commentRepository.delete(comment);
     }
+
 
 }

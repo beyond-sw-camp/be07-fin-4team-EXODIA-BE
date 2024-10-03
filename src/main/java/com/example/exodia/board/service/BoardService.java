@@ -112,6 +112,8 @@ public class BoardService {
     }
 
 
+
+
     /**
      * 검색 조건에 따라 게시물 목록을 조회하는 메서드
      * @param pageable - 페이징 및 정렬 정보

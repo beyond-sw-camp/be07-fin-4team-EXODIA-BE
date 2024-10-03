@@ -59,6 +59,7 @@ public class BoardController {
         }
     }
 
+
     /**
      * 게시물 목록 조회
      * @param pageable - 페이징 정보와 정렬 방식을 담은 객체
@@ -165,4 +166,6 @@ public class BoardController {
             return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
     }
+
+
 }
