@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.*;
 
 @RestController
 @RequestMapping("/department")
@@ -17,13 +17,16 @@ public class DepartmentController {
     private final DepartmentService departmentService;
 
     @GetMapping("/hierarchy")
-    public ResponseEntity<List<Department>> getDepartmentHierarchy() {
-        List<Department> hierarchy = departmentService.getDepartmentHierarchy();
+    public ResponseEntity<List<Map<String, Object>>> getDepartmentHierarchy() {
+        List<Map<String, Object>> hierarchy = departmentService.getDepartmentHierarchy();
         return new ResponseEntity<>(hierarchy, HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<Department> createDepartment(@RequestParam String name, @RequestParam(required = false) Long parentId) {
+    public ResponseEntity<Department> createDepartment(@RequestBody Map<String, Object> request) {
+        String name = (String) request.get("name");
+        Long parentId = request.get("parentId") != null ? Long.valueOf(request.get("parentId").toString()) : null;
+
         Department department = departmentService.createDepartment(name, parentId);
         return new ResponseEntity<>(department, HttpStatus.CREATED);
     }

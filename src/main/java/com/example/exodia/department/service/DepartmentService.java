@@ -6,7 +6,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -15,8 +15,32 @@ public class DepartmentService {
     private final DepartmentRepository departmentRepository;
 
     @Transactional
-    public List<Department> getDepartmentHierarchy() {
-        return departmentRepository.findByParentDepartmentIsNull();
+    public List<Map<String, Object>> getDepartmentHierarchy() {
+        List<Department> allDepartments = departmentRepository.findAll();
+        List<Map<String, Object>> hierarchy = new ArrayList<>();
+
+        Map<Long, Map<String, Object>> departmentMap = new HashMap<>();
+
+        for (Department department : allDepartments) {
+            Map<String, Object> departmentData = new HashMap<>();
+            departmentData.put("id", department.getId());
+            departmentData.put("name", department.getName());
+            departmentData.put("parentId", department.getParentDepartment() != null ? department.getParentDepartment().getId() : null);
+            departmentData.put("children", new ArrayList<Map<String, Object>>());
+            departmentMap.put(department.getId(), departmentData);
+        }
+
+        for (Department department : allDepartments) {
+            if (department.getParentDepartment() != null) {
+                Long parentId = department.getParentDepartment().getId();
+                List<Map<String, Object>> children = (List<Map<String, Object>>) departmentMap.get(parentId).get("children");
+                children.add(departmentMap.get(department.getId()));
+            } else {
+                hierarchy.add(departmentMap.get(department.getId()));
+            }
+        }
+
+        return hierarchy;
     }
 
     @Transactional
@@ -36,8 +60,25 @@ public class DepartmentService {
 
     @Transactional
     public void saveAllDepartments(List<Department> departments) {
-        departments.forEach(departmentRepository::save);
+        for (Department department : departments) {
+            Department existingDepartment = departmentRepository.findById(department.getId())
+                    .orElse(null);
+
+            if (existingDepartment != null) {
+                Department parent = department.getParentDepartment() != null ?
+                        departmentRepository.findById(department.getParentDepartment().getId()).orElse(null) : null;
+                existingDepartment.setName(department.getName());
+                existingDepartment.setParentDepartment(parent);
+                departmentRepository.save(existingDepartment);
+            } else {
+                Department parent = department.getParentDepartment() != null ?
+                        departmentRepository.findById(department.getParentDepartment().getId()).orElse(null) : null;
+                department.setParentDepartment(parent);
+                departmentRepository.save(department);
+            }
+        }
     }
+
 
     @Transactional
     public void deleteDepartment(Long id) {
