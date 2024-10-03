@@ -61,8 +61,7 @@ public class DepartmentService {
     @Transactional
     public void saveAllDepartments(List<Department> departments) {
         for (Department department : departments) {
-            Department existingDepartment = departmentRepository.findById(department.getId())
-                    .orElse(null);
+            Department existingDepartment = departmentRepository.findById(department.getId()).orElse(null);
 
             if (existingDepartment != null) {
                 Department parent = department.getParentDepartment() != null ?
@@ -78,6 +77,8 @@ public class DepartmentService {
             }
         }
     }
+
+
 
 
     @Transactional
