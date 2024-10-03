@@ -2,8 +2,13 @@ package com.example.exodia.document.domain;
 
 import java.time.LocalDateTime;
 
-import org.springframework.data.elasticsearch.annotations.*;
 import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
+
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
@@ -38,6 +43,8 @@ public class EsDocument {
 	@Field(type = FieldType.Text)
 	private String userName;
 
+	@JsonSerialize(using = LocalDateTimeSerializer.class)
+	@JsonDeserialize(using = LocalDateTimeDeserializer.class)
 	@Field(type = FieldType.Text)
 	private LocalDateTime createdAt;
 
