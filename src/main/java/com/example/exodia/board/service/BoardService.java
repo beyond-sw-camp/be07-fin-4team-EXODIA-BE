@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -75,31 +76,41 @@ public class BoardService {
         Board board = dto.toEntity(user, category);
         board = boardRepository.save(board);
 
-        // 게시물 생성 후, 조회수 초기화 (Redis)
-//        boardHitsService.resetBoardHits(board.getId());
+        // 업로드할 파일 리스트가 null이거나 비어 있는지 확인하고, 실제 업로드할 파일 리스트만 필터링
+        List<MultipartFile> validFiles = files != null ?
+                files.stream()
+                        .filter(file -> !file.isEmpty())  // 빈 파일 제외
+                        .collect(Collectors.toList()) :
+                Collections.emptyList();
 
-        // 파일이 존재할 경우, AWS S3에 파일을 업로드하고 해당 파일 정보 저장
-        if (files != null && !files.isEmpty()) {
-            List<String> s3FilePaths = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files, "board");
+        // 실제 업로드할 파일이 있는 경우에만 S3 업로드 수행
+        if (!validFiles.isEmpty()) {
+            List<String> s3FilePaths = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(validFiles, "board");
 
-            for (int i = 0; i < files.size(); i++) {
-                MultipartFile file = files.get(i);
-                String s3FilePath = s3FilePaths.get(i);
+            // 파일 리스트 크기와 s3FilePaths 크기가 일치하는지 확인 (업로드된 경로 수가 파일 수와 같아야 함)
+            if (validFiles.size() == s3FilePaths.size()) {
+                for (int i = 0; i < validFiles.size(); i++) {
+                    MultipartFile file = validFiles.get(i);
+                    String s3FilePath = s3FilePaths.get(i);
 
-                BoardFile boardFile = BoardFile.createBoardFile(
-                        board,
-                        s3FilePath,
-                        file.getContentType(),
-                        file.getOriginalFilename(),
-                        file.getSize()
-                );
-
-                boardFileRepository.save(boardFile);
+                    // BoardFile 엔티티 생성 및 저장
+                    BoardFile boardFile = BoardFile.createBoardFile(
+                            board,
+                            s3FilePath,
+                            file.getContentType(),
+                            file.getOriginalFilename(),
+                            file.getSize()
+                    );
+                    boardFileRepository.save(boardFile);
+                }
+            } else {
+                throw new IllegalStateException("파일 업로드에 실패하여, S3 경로와 파일 리스트의 크기가 일치하지 않습니다.");
             }
         }
 
         return board;
     }
+
 
     /**
      * 검색 조건에 따라 게시물 목록을 조회하는 메서드

@@ -15,6 +15,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Collections;
+import java.util.List;
 
 
 @RestController
@@ -41,8 +45,11 @@ public class BoardController {
     @PostMapping("/create")
     public ResponseEntity<?> createBoard(@ModelAttribute BoardSaveReqDto dto) {
         try {
+            // files 값이 null일 경우 빈 리스트로 처리
+            List<MultipartFile> files = (dto.getFiles() != null) ? dto.getFiles() : Collections.emptyList();
+
             // 게시물 정보와 파일 정보 저장
-            boardService.createBoard(dto, dto.getFiles());
+            boardService.createBoard(dto, files);
             CommonResDto response = new CommonResDto(HttpStatus.CREATED, "게시물이 성공적으로 등록되었습니다.", null);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (SecurityException | EntityNotFoundException e) {
