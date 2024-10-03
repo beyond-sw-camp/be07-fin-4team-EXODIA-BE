@@ -53,12 +53,12 @@ public class StompHandler implements ChannelInterceptor {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
         // websocket 연결시 헤더의 jwt token 검증
         if (StompCommand.CONNECT == accessor.getCommand()) {
-//            String jwtToken = "";
-//            jwtToken = Objects.requireNonNull(accessor.getFirstNativeHeader("Authorization")).substring(7);
-//            jwtTokenProvider.validateToken(jwtToken);
+            String jwtToken = "";
+            jwtToken = Objects.requireNonNull(accessor.getFirstNativeHeader("Authorization")).substring(7);
+            jwtTokenProvider.validateToken(jwtToken);
 
-            String jwt = accessor.getFirstNativeHeader("Authorization");
-            jwtTokenProvider.validateToken(jwt);
+//            String jwt = accessor.getFirstNativeHeader("Authorization");
+//            jwtTokenProvider.validateToken(jwt);
         }
         return message;
     }
