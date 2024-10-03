@@ -48,16 +48,6 @@ public class DepartmentController {
         }
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteDepartment(@PathVariable Long id) {
-        try {
-            departmentService.deleteDepartment(id);
-            return new ResponseEntity<>(new CommonResDto(HttpStatus.NO_CONTENT, "Department deleted successfully", null), HttpStatus.NO_CONTENT);
-        } catch (Exception e) {
-            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()), HttpStatus.BAD_REQUEST);
-        }
-    }
-
     @GetMapping
     public ResponseEntity<?> getAllDepartments() {
         try {
@@ -68,13 +58,15 @@ public class DepartmentController {
         }
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getDepartmentById(@PathVariable Long id) {
+    @PostMapping("/save")
+    public ResponseEntity<?> saveAllDepartments(@RequestBody List<Department> departments) {
         try {
-            Department department = departmentService.getDepartmentById(id);
-            return new ResponseEntity<>(new CommonResDto(HttpStatus.OK, "Department retrieved successfully", department), HttpStatus.OK);
+            departmentService.saveAllDepartments(departments);
+            return new ResponseEntity<>(new CommonResDto(HttpStatus.OK, "Departments saved successfully", null), HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.NOT_FOUND, "Department not found"), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()), HttpStatus.BAD_REQUEST);
         }
     }
+
 }
+

@@ -4,6 +4,7 @@ import com.example.exodia.department.domain.Department;
 import com.example.exodia.department.repository.DepartmentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -12,6 +13,19 @@ import java.util.List;
 public class DepartmentService {
 
     private final DepartmentRepository departmentRepository;
+
+    @Transactional
+    public void saveAllDepartments(List<Department> departments) {
+        for (Department department : departments) {
+            Department parentDepartment = null;
+            if (department.getParentDepartment() != null) {
+                parentDepartment = departmentRepository.findById(department.getParentDepartment().getId())
+                        .orElseThrow(() -> new IllegalArgumentException("부모 부서를 찾을 수 없습니다."));
+            }
+            department.setParentDepartment(parentDepartment);
+            departmentRepository.save(department);
+        }
+    }
 
     public Department createDepartment(String name, Long parentId) {
         Department parentDepartment = departmentRepository.findById(parentId).orElse(null);
