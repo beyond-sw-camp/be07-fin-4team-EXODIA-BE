@@ -103,20 +103,16 @@ public class DocumentSearchService {
 		}
 	}
 
-	// @PostConstruct
-	// public void init() {
-	// 	try {
-	// 		ExistsRequest existsRequest = ExistsRequest.of(e -> e.index(INDEX_NAME));
-	// 		BooleanResponse existsResponse = openSearchClient.indices().exists(existsRequest);
-	//
-	// 		if (!existsResponse.value()) {
-	// 			createIndex();
-	// 		} else {
-	// 			log.info("인덱스가 이미 존재합니다: {}", INDEX_NAME);
-	// 		}
-	// 	} catch (Exception e) {
-	// 		log.error("Error initializing FarmSearchService: ", e);
-	// 	}
-	// }
+
+
+	// 기본 검색
+	public List<DocListResDto> searchDocumentsQuery(String keyword) {
+		List<Document> docs = documentRepository.searchByKeyword(keyword);
+		List<DocListResDto> docListResDtos = new ArrayList<>();
+		for (Document doc : docs) {
+			docListResDtos.add(doc.fromEntityList());
+		}
+		return docListResDtos;
+	}
 
 }
