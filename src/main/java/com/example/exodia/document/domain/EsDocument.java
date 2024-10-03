@@ -1,5 +1,7 @@
 package com.example.exodia.document.domain;
 
+import java.time.LocalDateTime;
+
 import org.springframework.data.elasticsearch.annotations.*;
 import org.springframework.data.elasticsearch.annotations.Field;
 
@@ -19,7 +21,7 @@ import lombok.ToString;
 public class EsDocument {
 
 	@Id
-	private String id;
+	private Long id;
 
 	@Field(type = FieldType.Text)
 	private String fileName;
@@ -27,13 +29,25 @@ public class EsDocument {
 	@Field(type = FieldType.Text)
 	private String description;
 
-	// @Field(type = FieldType.Text)
-	// private String content;
+	@Field(type = FieldType.Text)
+	private String type;
+
+	@Field(type = FieldType.Text)
+	private String departmentName;
+
+	@Field(type = FieldType.Text)
+	private String userName;
+
+	@Field(type = FieldType.Text)
+	private LocalDateTime createdAt;
 
 	public static EsDocument toEsDocument(Document document) {
 		return EsDocument.builder()
-			.id(document.getId().toString())
+			.id(document.getId())
 			.fileName(document.getFileName())
+			.type(document.getDocumentType().getTypeName())
+			.userName(document.getUser().getName())
+			.createdAt(document.getCreatedAt())
 			.description(document.getDescription())
 			.build();
 	}
