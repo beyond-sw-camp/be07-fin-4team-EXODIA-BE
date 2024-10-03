@@ -20,15 +20,13 @@ import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.common.service.RedisService;
 import com.example.exodia.common.service.UploadAwsFileService;
 import com.example.exodia.document.domain.Document;
-import com.example.exodia.document.domain.DocumentVersion;
 import com.example.exodia.document.domain.DocumentType;
+import com.example.exodia.document.domain.DocumentVersion;
 import com.example.exodia.document.domain.EsDocument;
 import com.example.exodia.document.dto.DocDetailResDto;
 import com.example.exodia.document.dto.DocHistoryResDto;
 import com.example.exodia.document.dto.DocListResDto;
 import com.example.exodia.document.dto.DocReqDto;
-import com.example.exodia.document.dto.DocRevertReqDto;
-import com.example.exodia.document.dto.DocTypeListReqDto;
 import com.example.exodia.document.dto.DocTypeReqDto;
 import com.example.exodia.document.dto.DocUpdateReqDto;
 import com.example.exodia.document.repository.DocumentRepository;
@@ -70,7 +68,7 @@ public class DocumentService {
 		this.s3Client = s3Client;
 	}
 
-	public Document saveDoc(List<MultipartFile> files, DocReqDto docReqDto) throws IOException {
+	public Document saveDoc(List<MultipartFile> files, DocReqDto docReqDto) throws IOException{
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 		User user = userRepository.findByUserNum(userNum)
 			.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
@@ -98,7 +96,7 @@ public class DocumentService {
 		document.updateDocumentVersion(documentVersion);
 		documentRepository.save(document);
 
-		// opens search 인덱싱
+		// opens search 저장
 		EsDocument esDocument = EsDocument.toEsDocument(document);
 		documentSearchService.indexDocuments(esDocument);
 		return document;
@@ -287,7 +285,7 @@ public class DocumentService {
 		// 	.orElseThrow(() -> new RuntimeException("존재하지 않는 타입입니다."));
 		DocumentType documentType = documentTypeRepository.findById(id)
 			.orElseThrow(() -> new RuntimeException("존재하지 않는 타입입니다."));
-		List<Document> documents = documentRepository.findAllByDocumentType(documentType);
+		List<Document> documents = documentRepository.findAllByDocumentTypeAndStatus(documentType, "now");
 
 		return documents.stream()
 			.map(Document::fromEntityList)
