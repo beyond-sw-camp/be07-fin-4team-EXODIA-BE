@@ -22,7 +22,6 @@ import jakarta.persistence.*;
 
 @Service
 @Slf4j
-@Transactional(readOnly = true)
 public class ChatMessageService {
     private final ChatRoomManage chatRoomManage; // redis로 채팅룸 입장유저들 관리
     @Qualifier("chat")

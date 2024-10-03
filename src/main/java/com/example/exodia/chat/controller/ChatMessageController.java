@@ -4,6 +4,7 @@ import com.example.exodia.chat.dto.ChatMessageRequest;
 import com.example.exodia.chat.service.ChatMessageService;
 import com.example.exodia.common.auth.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
