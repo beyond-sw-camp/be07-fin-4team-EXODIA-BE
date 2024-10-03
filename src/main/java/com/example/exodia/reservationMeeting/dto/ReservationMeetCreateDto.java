@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class ReservationMeetCreateDto {
     private Long meetingRoomId;
-    private Long userId;
+    private String userNum;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private Status status;
