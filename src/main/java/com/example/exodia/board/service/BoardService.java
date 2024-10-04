@@ -24,6 +24,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collections;
@@ -38,18 +39,20 @@ public class BoardService {
     private final UploadAwsFileService uploadAwsFileService;
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
+    private final BoardHitsService boardHitsService;
 
 
     @Autowired
     public BoardService(BoardRepository boardRepository, UploadAwsFileService uploadAwsFileService,
                         BoardFileRepository boardFileRepository, UserRepository userRepository,
-                        CommentRepository commentRepository) {
+                        CommentRepository commentRepository, BoardHitsService boardHitsService) {
         this.boardRepository = boardRepository;
         this.uploadAwsFileService = uploadAwsFileService;
         this.boardFileRepository = boardFileRepository;
         this.userRepository = userRepository;
         this.commentRepository = commentRepository;
 
+        this.boardHitsService = boardHitsService;
     }
 
     /**
@@ -170,17 +173,16 @@ public class BoardService {
      * @param id - 조회할 게시물의 고유 ID
      * @return 게시물의 상세 정보를 포함한 DTO
      */
-    public BoardDetailDto BoardDetail(Long id) {
+    public BoardDetailDto BoardDetail(Long id,String userNum) {
         // 게시물 조회 (존재하지 않을 경우 예외 발생)
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("게시물을 찾을 수 없습니다."));
 
-        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 
         // 조회수 증가 후 업데이트된 조회수 반환
-        Long updatedHits = 1L;
+        Long updatedHits = boardHitsService.incrementBoardHits(id, userNum);
 
-//        board.updateBoardHitsFromRedis(updatedHits);
+        board.updateBoardHitsFromRedis(updatedHits);
         boardRepository.save(board);
 
         // 파일 및 댓글 정보 조회
@@ -194,7 +196,8 @@ public class BoardService {
         BoardDetailDto boardDetailDto = board.detailFromEntity(boardFiles);
         boardDetailDto.setComments(commentResDto);
         boardDetailDto.setHits(updatedHits);
-        boardDetailDto.setUser_num(userNum);
+        boardDetailDto.setUser_num(board.getUser().getUserNum());
+
 
         return boardDetailDto;
     }
