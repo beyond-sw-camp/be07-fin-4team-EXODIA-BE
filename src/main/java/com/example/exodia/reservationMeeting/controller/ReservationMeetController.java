@@ -48,8 +48,20 @@ public class ReservationMeetController {
         return ResponseEntity.ok(reservations);
     }
 
+    /* 예약에 대한 일일 데이터 */
+    @GetMapping("/by-date")
+    public ResponseEntity<List<ReservationMeetListDto>> getReservationsByDate(
+            @RequestParam("date") String date) {
+
+        // date 파라미터를 LocalDate로 변환
+        LocalDate localDate = LocalDate.parse(date);
+
+        // 해당 날짜의 예약 내역 조회
+        List<ReservationMeetListDto> reservations = reservationMeetService.getReservationsByDate(localDate);
+        return ResponseEntity.ok(reservations);
+    }
+
     /* 모든 예약 내역 조회 (관리자 권한) */
-    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/all")
     //@Operation(summary= "[관리자 사용자] 회의실 예약 조회 API")
     public ResponseEntity<List<ReservationMeetListDto>> getAllReservations() {
@@ -86,5 +98,6 @@ public class ReservationMeetController {
 //    @GetMapping("/room/{roomId}")
 //    public ResponseEntity<List<ReservationMeetListDto>> getReservationsForRoom(@PathVariable Long roomId) {
 //        List<ReservationMeetListDto> reservations = reservationMeetService.getReservationsForRoom(roomId);
-//        return ResponseEntity.ok(reservations);
+//        return ResponseEntity.ok(reservatio
+//        ns);
 //    }

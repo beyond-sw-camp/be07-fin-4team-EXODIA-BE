@@ -23,4 +23,6 @@ public interface ReservationMeetRepository extends JpaRepository<ReservationMeet
                                                               @Param("startTime") LocalDateTime startTime,
                                                               @Param("endTime") LocalDateTime endTime);
     List<ReservationMeet> findByUserId(Long userId);
+    List<ReservationMeet> findByStartTimeBetween(LocalDateTime startTime, LocalDateTime endTime);
+
 }
