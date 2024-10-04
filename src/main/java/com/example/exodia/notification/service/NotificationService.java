@@ -19,7 +19,7 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private final SseEmitters sseEmitters;
-    private final UserService userService;//
+    private final UserService userService;
 
     @Autowired
     public NotificationService(NotificationRepository notificationRepository, UserRepository userRepository, SseEmitters sseEmitters, UserService userService) {
