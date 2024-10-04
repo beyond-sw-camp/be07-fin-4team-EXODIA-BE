@@ -207,11 +207,14 @@ public class BoardService {
      */
     @Transactional
     public void updateBoard(Long id, BoardUpdateDto dto, List<MultipartFile> files) {
-        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 
         // 게시물 조회 (존재하지 않을 경우 예외 발생)
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다."));
+        String userNum = board.getUser().getUserNum();
+        System.out.println(userNum);
+
+        System.out.println(board);
 
         // 작성자와 현재 사용자가 동일한지 확인
         if (!board.getUser().getUserNum().equals(userNum)) {

@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 
 @RestController
@@ -45,17 +46,50 @@ public class BoardController {
     @PostMapping("/create")
     public ResponseEntity<?> createBoard(@ModelAttribute BoardSaveReqDto dto) {
         try {
-            // files 값이 null일 경우 빈 리스트로 처리
-            List<MultipartFile> files = (dto.getFiles() != null) ? dto.getFiles() : Collections.emptyList();
+            // 1. DTO 객체의 유효성 확인 (필수 값 체크 등)
+            if (dto.getTitle() == null || dto.getTitle().trim().isEmpty()) {
+                throw new IllegalArgumentException("제목을 입력해 주세요.");
+            }
 
-            // 게시물 정보와 파일 정보 저장
+            if (dto.getContent() == null || dto.getContent().trim().isEmpty()) {
+                throw new IllegalArgumentException("내용을 입력해 주세요.");
+            }
+
+            // 2. 파일이 null이거나 비어 있는지 확인
+            List<MultipartFile> files = dto.getFiles() != null ? dto.getFiles() : Collections.emptyList();
+            if (!files.isEmpty()) {
+                for (MultipartFile file : files) {
+                    if (file.isEmpty()) {
+                        throw new IllegalArgumentException("빈 파일은 업로드할 수 없습니다.");
+                    }
+                }
+            }
+
+            // 3. 게시물 정보와 파일 정보 저장
             boardService.createBoard(dto, files);
             CommonResDto response = new CommonResDto(HttpStatus.CREATED, "게시물이 성공적으로 등록되었습니다.", null);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
-        } catch (SecurityException | EntityNotFoundException e) {
+
+        } catch (SecurityException e) {
+            e.printStackTrace();
+            CommonErrorDto errorResponse = new CommonErrorDto(HttpStatus.FORBIDDEN, "권한이 없습니다.");
+            return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+
+        } catch (EntityNotFoundException e) {
+            e.printStackTrace();
+            CommonErrorDto errorResponse = new CommonErrorDto(HttpStatus.NOT_FOUND, "요청한 엔티티를 찾을 수 없습니다.");
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+
+        } catch (IllegalArgumentException e) {
             e.printStackTrace();
             CommonErrorDto errorResponse = new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage());
             return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            // 기타 예외 처리: 서버 오류
+            CommonErrorDto errorResponse = new CommonErrorDto(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다.");
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -68,15 +102,21 @@ public class BoardController {
      * @return 조회된 게시물 목록을 포함한 ResponseEntity 반환
      * ResponseEntity는 서버가 클라이언트에게 "응답을 어떻게 줄지"에 대한 설정을 할 수 있는 객체
      */
-    @GetMapping("/list")
+    @GetMapping("/{category}/list")
     public ResponseEntity<?> getBoardList(
+            @PathVariable("category") String category,  // 카테고리를 URL 경로에서 받아옴
             @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
             @RequestParam(value = "searchQuery", required = false) String searchQuery,
-            @RequestParam(value = "searchType", required = false) String searchType,
-            @RequestParam(value = "category", required = false) Category category) {
+            @RequestParam(value = "searchType", required = false) String searchType) {
+        Category cate=null;
+        if (Objects.equals(category, "familyevent")) {
+            cate = Category.FAMILY_EVENT;
+        }else{
+            cate = Category.NOTICE;
+        }
 
-        // 검색 조건과 카테고리를 기반으로 게시물 목록 조회
-        Page<BoardListResDto> boardListResDto = boardService.BoardListWithSearch(pageable, searchType, searchQuery, category);
+        // URL 경로로부터 받은 카테고리 값을 사용하여 목록 조회
+        Page<BoardListResDto> boardListResDto = boardService.BoardListWithSearch(pageable, searchType, searchQuery,cate);
         CommonResDto response = new CommonResDto(HttpStatus.OK, "게시물 목록을 반환합니다.", boardListResDto);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -166,6 +206,4 @@ public class BoardController {
             return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
     }
-
-
 }

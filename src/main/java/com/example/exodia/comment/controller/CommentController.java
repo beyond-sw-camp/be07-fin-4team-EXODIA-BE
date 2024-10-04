@@ -132,9 +132,8 @@ public class CommentController {
      * @return 삭제된 댓글의 ID를 포함한 응답 데이터입니다.
      */
     @GetMapping("/delete/{id}")
-    public ResponseEntity<?> deleteComment(@PathVariable Long id, @RequestBody Map<String, String> params) {
+    public ResponseEntity<?> deleteComment(@PathVariable Long id, @RequestParam("userNum") String userNum) {
         try {
-            String userNum = params.get("userNum"); // 요청에서 userNum을 받음
             commentService.commentDelete(id, userNum);
             return ResponseEntity.ok("댓글이 성공적으로 삭제되었습니다.");
         } catch (SecurityException e) {
@@ -143,4 +142,5 @@ public class CommentController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
+
 }
