@@ -1,12 +1,12 @@
 package com.example.exodia.position.domain;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.example.exodia.salary.domain.PositionSalary;
+import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Getter
@@ -24,8 +24,7 @@ public class Position {
 
     private String name;
 
-    //테스트 코드
-    public Position(String name) {
-        this.name = name;
-    }
+    @OneToMany(mappedBy = "position", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<PositionSalary> salaries = new ArrayList<>();
+
 }
