@@ -34,3 +34,10 @@
 
 
 <br>
+
+## 📄 API 명세서
+
+[API 명세서](https://docs.google.com/spreadsheets/d/1VqdbBtMBag14rsCLODUl4LLlspbeZv8nNFEQy_W30PI/edit?gid=234323063#gid=234323063)
+
+
+<br>
