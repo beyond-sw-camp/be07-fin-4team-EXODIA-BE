@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.exodia.common.dto.CommonErrorDto;
 import com.example.exodia.common.dto.CommonResDto;
 import com.example.exodia.document.domain.Document;
+import com.example.exodia.document.domain.EsDocument;
 import com.example.exodia.document.dto.DocDetailResDto;
 import com.example.exodia.document.dto.DocHistoryResDto;
 import com.example.exodia.document.dto.DocListResDto;
@@ -27,6 +28,7 @@ import com.example.exodia.document.dto.DocReqDto;
 import com.example.exodia.document.dto.DocTypeListReqDto;
 import com.example.exodia.document.dto.DocTypeReqDto;
 import com.example.exodia.document.dto.DocUpdateReqDto;
+import com.example.exodia.document.service.DocumentSearchService;
 import com.example.exodia.document.service.DocumentService;
 
 @RestController
@@ -34,10 +36,12 @@ import com.example.exodia.document.service.DocumentService;
 public class DocumentController {
 
 	private final DocumentService documentService;
+	private final DocumentSearchService documentSearchService;
 
 	@Autowired
-	public DocumentController(DocumentService documentService) {
+	public DocumentController(DocumentService documentService, DocumentSearchService documentSearchService) {
 		this.documentService = documentService;
+		this.documentSearchService = documentSearchService;
 	}
 
 	// 	문서 업로드
@@ -148,5 +152,12 @@ public class DocumentController {
 		System.out.println(docListResDtos.size());
 
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "타입별 문서 조회 성공", docListResDtos));
+	}
+
+	@GetMapping("/search")
+	public ResponseEntity<?> searchDocuments(@RequestParam String keyword) {
+		List<DocListResDto> documents = documentSearchService.searchDocumentsQuery(keyword);
+		System.out.println("검색 결과: " + documents.size());
+		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "문서 검색 성공", documents));
 	}
 }
