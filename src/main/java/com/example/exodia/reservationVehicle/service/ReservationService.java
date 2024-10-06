@@ -72,7 +72,7 @@ public class ReservationService {
                 Reservation savedReservation = reservationRepository.save(reservation);
 
                 // 관리자에게 알림 전송 (차량 예약 요청)
-                String message = String.format("%s님이 %s 날짜에 차량 %s를 예약 요청하였습니다.", user.getName(), dto.getStartDate().toString(), car.getCarNum());
+                String message = String.format("%s님이 %s 날짜에 차량 %s를 예약 요청하였습니다. (예약 시간: %s)", user.getName(), dto.getStartDate().toString(), car.getCarNum(), LocalDateTime.now());
                 notificationService.sendReservationReqToAdmins(message);
 
                 return ReservationDto.fromEntity(savedReservation);
@@ -111,7 +111,7 @@ public class ReservationService {
     }
 
     /* 예약 거절 */
-    public ReservationDto rejectReservation(Long reservationId) {
+    public void rejectReservation(Long reservationId) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
@@ -120,15 +120,12 @@ public class ReservationService {
 
         userService.checkHrAuthority(user.getDepartment().getId().toString());
 
-        // 예약 상태를 변경
-        reservation.rejectReservation();
-        Reservation updatedReservation = reservationRepository.save(reservation);
-
         // 사용자에게 알림 전송 (예약 거절)
         String message = String.format("차량 예약이 거절되었습니다: %s", reservation.getCar().getCarNum());
         notificationService.sendReservationRejection(reservation.getUser(), message);
 
-        return ReservationDto.fromEntity(updatedReservation);
+        // 예약 삭제
+        reservationRepository.delete(reservation);
     }
 
 

@@ -16,4 +16,5 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     long countByUserAndIsReadFalse(User user);
     // 사용자 읽지 않은 알림 목록 조회
     List<Notification> findByUserAndIsReadFalse(User user);
+    
 }

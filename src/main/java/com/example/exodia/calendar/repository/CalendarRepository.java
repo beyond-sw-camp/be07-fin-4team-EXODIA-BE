@@ -14,4 +14,6 @@ public interface CalendarRepository extends JpaRepository<Calendar, Long> {
     List<Calendar> findByUserAndDelYn(User user, String delYn);
 
     List<Calendar> findByDepartmentAndDelYn(Department department, String delYn);
+    List<Calendar> findByTypeAndDelYn(String type, String delYn);
+    List<Calendar> findByDelYn(String delYn);
 }

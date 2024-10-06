@@ -31,6 +31,7 @@ public class AttendanceService {
     }
 
     /*출근시간 기록 용*/
+    /* 유저 */
     @Transactional
     public Attendance workIn(AttendanceSaveDto dto) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -41,6 +42,7 @@ public class AttendanceService {
     }
 
     /*퇴근시간 기록 용*/
+    /* 유저 */
     @Transactional
     public Attendance workOut(AttendanceUpdateDto dto) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -53,6 +55,7 @@ public class AttendanceService {
     }
 
     // 주어진 기간의 주차별 근무 시간 합산 정보 조회
+    /* 유저 */
     @Transactional
     public List<WeeklySumDto> getWeeklySummaries(LocalDate startDate, LocalDate endDate) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
