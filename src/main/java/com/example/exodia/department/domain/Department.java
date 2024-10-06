@@ -1,6 +1,8 @@
 package com.example.exodia.department.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,9 +26,11 @@ public class Department {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
+//    @JsonBackReference
     private Department parentDepartment;
 
     @OneToMany(mappedBy = "parentDepartment", cascade = CascadeType.ALL)
+//    @JsonManagedReference
     private List<Department> children = new ArrayList<>();
 
     public Department(String name, Department parentDepartment) {

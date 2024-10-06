@@ -16,6 +16,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findAllByDelYn(DelYN delYn);
     Optional<User> findByNameAndPosition(String userName, Position position);
     List<User> findAllByDepartmentName(String departmentName); // notification 에서 인사팀의 가지고오기
+    List<User> findAllByDepartmentId(Long departmentId);
     List<User> findByDepartmentAndDelYn(Department department, DelYN delYn);
     Page<User> findByDelYn(DelYN delYN, Pageable pageable);
     Page<User> findByNameContainingAndDelYn(String name, DelYN delYN, Pageable pageable);
