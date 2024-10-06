@@ -45,39 +45,12 @@ public class AttendanceService {
     public Attendance workOut(AttendanceUpdateDto dto) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUserNum(userNum).orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
+
         Attendance attendance = attendanceRepository.findTopByUserAndOutTimeIsNull(user).orElseThrow(() -> new RuntimeException("출근 기록이 존재하지 않습니다"));
 
         dto.updateEntity(attendance);
         return attendanceRepository.save(attendance);
     }
-
-//    public WeeklySumDto getWeeklySum() {
-//        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
-//        User user = userRepository.findByUserNum(userNum).orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
-//
-//        LocalDateTime startOfWeek = LocalDate.now().with(DayOfWeek.MONDAY).atStartOfDay();
-//        LocalDateTime endOfWeek = startOfWeek.plusDays(7);
-//
-//        List<Attendance> weeklyAttendance = attendanceRepository.findAllByUserAndWeek(user, startOfWeek, endOfWeek);
-//        return calculateWeeklySum(weeklyAttendance);
-//    }
-
-//    public WeeklySumDto calculateWeeklySum(List<Attendance> weeklyAttendance) {
-//        WeeklySumDto weeklySumDto = new WeeklySumDto();
-//        double totalHours = 0;
-//        double overallHours = 0;
-//
-//        for (Attendance attendance : weeklyAttendance) {
-//            if (attendance.getInTime() != null && attendance.getOutTime() != null) {
-//                double workHour = Duration.between(attendance.getInTime(), attendance.getOutTime()).toHours();
-//                totalHours += workHour -1; // 점심시간 빼고 계산
-//                if(workHour > 8) { // 8시간을 초과할경우 초과로 처리
-//                    overallHours += (workHour - 8);
-//                }
-//            }
-//        }
-//        return new WeeklySumDto(totalHours, overallHours);
-//    }
 
     // 주어진 기간의 주차별 근무 시간 합산 정보 조회
     @Transactional
@@ -113,7 +86,9 @@ public class AttendanceService {
     @Transactional
     public Map<String, List<AttendanceDetailDto>> getWeeklyDetails(LocalDate startDate, LocalDate endDate) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByUserNum(userNum).orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
+
+        User user = userRepository.findByUserNum(userNum).orElseThrow(()
+                -> new RuntimeException("존재하지 않는 사원입니다"));
 
         // 주어진 기간 내의 출퇴근 시간 데이터 가져오기
         List<Attendance> attendances = attendanceRepository.findAllByMemberAndInTimeBetween(user, startDate.atStartOfDay(), endDate.atTime(LocalTime.MAX));
@@ -144,5 +119,33 @@ public class AttendanceService {
         }
         return 0;
     }
+
+    //    public WeeklySumDto getWeeklySum() {
+//        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+//        User user = userRepository.findByUserNum(userNum).orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
+//
+//        LocalDateTime startOfWeek = LocalDate.now().with(DayOfWeek.MONDAY).atStartOfDay();
+//        LocalDateTime endOfWeek = startOfWeek.plusDays(7);
+//
+//        List<Attendance> weeklyAttendance = attendanceRepository.findAllByUserAndWeek(user, startOfWeek, endOfWeek);
+//        return calculateWeeklySum(weeklyAttendance);
+//    }
+
+//    public WeeklySumDto calculateWeeklySum(List<Attendance> weeklyAttendance) {
+//        WeeklySumDto weeklySumDto = new WeeklySumDto();
+//        double totalHours = 0;
+//        double overallHours = 0;
+//
+//        for (Attendance attendance : weeklyAttendance) {
+//            if (attendance.getInTime() != null && attendance.getOutTime() != null) {
+//                double workHour = Duration.between(attendance.getInTime(), attendance.getOutTime()).toHours();
+//                totalHours += workHour -1; // 점심시간 빼고 계산
+//                if(workHour > 8) { // 8시간을 초과할경우 초과로 처리
+//                    overallHours += (workHour - 8);
+//                }
+//            }
+//        }
+//        return new WeeklySumDto(totalHours, overallHours);
+//    }
 
 }
