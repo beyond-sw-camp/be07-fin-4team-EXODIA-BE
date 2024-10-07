@@ -12,6 +12,8 @@ import com.example.exodia.evalutionFrame.evalutionMiddle.repository.EvalutionmRe
 import com.example.exodia.meetingRoom.domain.MeetingRoom;
 import com.example.exodia.meetingRoom.repository.MeetingRoomRepository;
 import com.example.exodia.position.domain.Position;
+import com.example.exodia.submit.domain.SubmitType;
+import com.example.exodia.submit.repository.SubmitTypeRepository;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.domain.Gender;
 import com.example.exodia.user.domain.Status;
@@ -37,6 +39,7 @@ public class InitialDataLoader implements CommandLineRunner {
     private final EvalutionmRepository evalutionmRepository;
     private final PasswordEncoder passwordEncoder;
     private final MeetingRoomRepository meetingRoomRepository;
+    private final SubmitTypeRepository submitTypeRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatUserRepository chatUserRepository;
 
@@ -54,6 +57,7 @@ public class InitialDataLoader implements CommandLineRunner {
         this.evalutionmRepository = evalutionmRepository;
         this.passwordEncoder = passwordEncoder;
         this.meetingRoomRepository = meetingRoomRepository;
+    		this.submitTypeRepository = submitTypeRepository;
         this.chatRoomRepository = chatRoomRepository;
         this.chatUserRepository = chatUserRepository;
     }
@@ -198,6 +202,8 @@ public class InitialDataLoader implements CommandLineRunner {
         }
         meetingRoomRepository.saveAll(initialMeetingRooms);
 
+        submitTypeRepository.save(new SubmitType(1L, "법인 카드 신청"));
+        submitTypeRepository.save( new SubmitType(2L, "휴가 신청"));
 
         ChatRoom chatRoom = ChatRoom.builder().roomName("test").build();
         chatRoomRepository.save(chatRoom);
