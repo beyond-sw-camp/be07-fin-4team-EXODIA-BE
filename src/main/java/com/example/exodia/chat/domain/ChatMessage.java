@@ -43,9 +43,9 @@ public class ChatMessage extends BaseTimeEntity {
 
     private String message;
 
-    @Column(name = "send_at", updatable = false, nullable = false)
-    @JsonFormat(pattern = "yyyy-MM-dd hh:mm", timezone = "Asia/Seoul")
-    private LocalDateTime sendAt;
+//    @Column(name = "send_at", updatable = false, nullable = false)
+//    @JsonFormat(pattern = "yyyy-MM-dd hh:mm", timezone = "Asia/Seoul")
+//    private LocalDateTime sendAt;
 
 
     public static ChatMessage toEntity(User user, ChatRoom chatRoom, ChatMessageRequest chatMessageRequest){
@@ -54,7 +54,7 @@ public class ChatMessage extends BaseTimeEntity {
                 .chatRoom(chatRoom)
                 .messageType(chatMessageRequest.getMessageType())
                 .message(chatMessageRequest.getMessage())
-                .sendAt(chatMessageRequest.getSendAt())
+//                .sendAt(chatMessageRequest.getSendAt())
                 .build();
     }
 
@@ -66,7 +66,7 @@ public class ChatMessage extends BaseTimeEntity {
 //                .roomName(this.chatRoom.getRoomName())
                 .messageType(this.messageType)
                 .message(message)
-                .sendAt(this.sendAt)
+//                .sendAt(this.sendAt)
                 .build();
     }
 }

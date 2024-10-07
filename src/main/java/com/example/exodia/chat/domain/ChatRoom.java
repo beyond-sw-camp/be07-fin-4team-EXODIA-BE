@@ -51,6 +51,10 @@ public class ChatRoom extends BaseTimeEntity {
                 .build();
     }
 
+    public void setChatUsers(List<ChatUser> users){
+        this.chatUsers = users;
+    }
+
     public ChatRoomExistResponse fromEntityExistChatRoom(boolean check){
         List<String> userNums = this.getChatUsers().stream().map(p->p.getUser().getUserNum()).collect(Collectors.toList());
 

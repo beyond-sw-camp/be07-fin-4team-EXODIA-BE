@@ -81,13 +81,14 @@ public class ChatRoomService {
         ChatRoom savedChatRoom = ChatRoom.toEntity(chatRoomRequest);
         chatRoomRepository.save(savedChatRoom);
 
+        List<ChatUser> chatUsers = new ArrayList<>();
         for(User user : participants){
             ChatUser savedChatUser = ChatUser.toEntity(savedChatRoom, user);
             chatUserRepository.save(savedChatUser);
+            chatUsers.add(savedChatUser);
         }
-        System.out.println("-----------------------------------------");
-        System.out.println(savedChatRoom.getChatUsers()); // null 값 들어감. 해결해야한다.
-        System.out.println("-----------------------------------------");
+
+        savedChatRoom.setChatUsers(chatUsers);
 
         return savedChatRoom.fromEntityExistChatRoom(false);
     }
