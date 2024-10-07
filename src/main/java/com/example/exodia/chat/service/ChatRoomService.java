@@ -68,12 +68,16 @@ public class ChatRoomService {
 
         // 채팅방 있는지 확인 // 인원 중복 단체채팅방 생성 불가능
         Set<String> requestUserNums = new HashSet<>(chatRoomRequest.getUserNums());
+        requestUserNums.add(chatRoomRequest.getUserNum());
         List<ChatRoom> existChatRooms = chatRoomRepository.findAll(); // 성능을 위해 채팅방을 조회하는 쿼리에서 먼저 채팅방 만드는 유저가 포함된 채팅방만 조회하도록 쿼리를 최적화
         Long checkRoomId = findExistChatRoom(requestUserNums, existChatRooms);
         if(checkRoomId != 0L){ // 인원 중복 단체 채팅방이 있다. 기존 채팅방을 반환
-            return chatRoomRepository.findByIdAndDelYn(checkRoomId, DelYN.N)
-                    .orElseThrow(()->new EntityNotFoundException("없는 채팅방 입니다."))
-                    .fromEntityExistChatRoom(true);
+            ChatRoom existedRoom = chatRoomRepository.findByIdAndDelYn(checkRoomId, DelYN.N)
+                    .orElseThrow(()->new EntityNotFoundException("없는 채팅방 입니다."));
+            System.out.println("-------------------ff----------------------");
+            System.out.println(existedRoom.getChatUsers());
+            System.out.println("-----------------------------------------");
+            return existedRoom.fromEntityExistChatRoom(true);
         }
 
         // 중복 채팅방 없음 // 새로운 채팅방 생성-채팅방저장, 채팅유저저장
@@ -84,17 +88,23 @@ public class ChatRoomService {
             ChatUser savedChatUser = ChatUser.toEntity(savedChatRoom, user);
             chatUserRepository.save(savedChatUser);
         }
+        System.out.println("-----------------------------------------");
+        System.out.println(savedChatRoom.getChatUsers()); // null 값 들어감. 해결해야한다.
+        System.out.println("-----------------------------------------");
 
         return savedChatRoom.fromEntityExistChatRoom(false);
     }
 
 //    public List<ChatRoomSimpleResponse> viewChatRoomList(String userNum){
+//
+//        User user = userRepository.findByUserNumAndDelYn(userNum, DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 사원입니다."));
 //        // 유저가 포함되어 있는 모든 채팅방 리스트 조회
-//        List<ChatUser> chatUsers = chatUserRepository.findAllByUserNumAndDelYn(userNum,DelYN.N);
+//        List<ChatUser> chatUsers = chatUserRepository.findAllByUserAndDelYn(user, DelYN.N);
 //        List<Long> chatRoomIds = chatUsers.stream().map(p->p.getChatRoom().getId()).distinct().collect(Collectors.toList());
 //
 //        // 어떤 순서를 기준으로 리스트업할것인가 // 수정필요
-//        List<ChatRoom> chatRooms = chatRoomRepository.findAllByIdsAndDelYn(chatRoomIds, DelYN.N);
+//        List<ChatRoom> chatRooms = new ArrayList<>();
+//
 //
 //        // 어떤 정보를 넘겨줄 것인가. // 수정필요
 //        return chatRooms.stream().map(ChatRoom::fromEntitySimpleChatRoom).collect(Collectors.toList());
@@ -116,7 +126,7 @@ public class ChatRoomService {
 //    }
 //
 //    public void quitChatRoom(Long roomId){
-//        // 채팅방 나가기 // 채팅 유저에서 삭제
+//        // 채팅방 완전히 나가기 // 채팅 유저에서 삭제
 //
 //
 //    }
