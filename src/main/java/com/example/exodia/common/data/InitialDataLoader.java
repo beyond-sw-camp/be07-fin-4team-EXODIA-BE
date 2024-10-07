@@ -54,7 +54,7 @@ public class InitialDataLoader implements CommandLineRunner {
                              EvalutionbRepository evalutionbRepository,
                              EvalutionmRepository evalutionmRepository,
                              PasswordEncoder passwordEncoder,
-                             MeetingRoomRepository meetingRoomRepository, ChatRoomRepository chatRoomRepository, ChatUserRepository chatUserRepository, CarRepository carRepository) {
+                             MeetingRoomRepository meetingRoomRepository, ChatRoomRepository chatRoomRepository, ChatUserRepository chatUserRepository, CarRepository carRepository, SubmitTypeRepository submitTypeRepository) {
         this.departmentRepository = departmentRepository;
         this.positionRepository = positionRepository;
         this.userRepository = userRepository;
@@ -63,7 +63,7 @@ public class InitialDataLoader implements CommandLineRunner {
         this.passwordEncoder = passwordEncoder;
         this.meetingRoomRepository = meetingRoomRepository;
         this.carRepository = carRepository;
-    		this.submitTypeRepository = submitTypeRepository;
+        this.submitTypeRepository = submitTypeRepository;
         this.chatRoomRepository = chatRoomRepository;
         this.chatUserRepository = chatUserRepository;
     }
