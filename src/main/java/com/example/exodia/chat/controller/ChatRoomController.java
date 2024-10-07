@@ -33,7 +33,7 @@ public class ChatRoomController {
 
     @GetMapping("/{roomId}")
     public ResponseEntity<?> chatRoomView(@PathVariable("roomId") Long roomId){
-        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "채팅방이 조회되었습니다.", chatRoomService.viewChatMessageList(roomId));
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "채팅방의 메세지가 조회되었습니다.", chatRoomService.viewChatMessageList(roomId));
         return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 

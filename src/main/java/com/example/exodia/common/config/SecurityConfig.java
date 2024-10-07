@@ -61,9 +61,6 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
-            .headers(headers -> headers
-                    .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
-            ) // SockJS 사용을 위한 iframe 설정
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("**").permitAll()
                 .anyRequest().authenticated()

@@ -33,33 +33,19 @@ public class StompHandler implements ChannelInterceptor {
     // WebSocket을 통해 들어온 요청이 처리 되기 전에 실행
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
-//        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
-//        String jwtToken = "";
-//
-//        if(StompCommand.CONNECT == accessor.getCommand()){ // 웹소켓 연결 요청
-//            String jwt = accessor.getFirstNativeHeader("Authorization");
-//            if (StringUtils.hasText(jwt) && jwt.startsWith("Bearer")){
-//                jwtToken = Objects.requireNonNull(accessor.getFirstNativeHeader("token")).substring(7);
-//                jwtTokenProvider.validateToken(jwtToken);
-//                // chatRoomManage
-//            }
-//        }else if(StompCommand.SUBSCRIBE == accessor.getCommand()){ // 채팅룸 구독요청
-//
-//        }else if (StompCommand.DISCONNECT == accessor.getCommand()) {
-//            // chatRoomManage
-//        }
-
-
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
-        // websocket 연결시 헤더의 jwt token 검증
-        if (StompCommand.CONNECT == accessor.getCommand()) {
-            String jwtToken = "";
+        String jwtToken = "";
+
+        if(StompCommand.CONNECT == accessor.getCommand()){ // 웹소켓 연결 요청
             jwtToken = Objects.requireNonNull(accessor.getFirstNativeHeader("Authorization")).substring(7);
             jwtTokenProvider.validateToken(jwtToken);
-
-//            String jwt = accessor.getFirstNativeHeader("Authorization");
-//            jwtTokenProvider.validateToken(jwt);
+        }else if(StompCommand.SUBSCRIBE == accessor.getCommand()){ // 채팅룸 구독요청
+            System.out.println("구독");
+        }else if (StompCommand.DISCONNECT == accessor.getCommand()) {
+            // chatRoomManage
+            System.out.println("채팅룸 관리 안하고 있음");
         }
+
         return message;
     }
 }

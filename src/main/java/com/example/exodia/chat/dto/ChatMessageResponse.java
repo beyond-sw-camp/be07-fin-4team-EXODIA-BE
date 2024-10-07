@@ -28,7 +28,7 @@ public class ChatMessageResponse { // 보여주는 값 // 프론트에 넘겨주
 
     private String message; // file(image)일 경우 url이 들어간다.
 
-    @JsonFormat(pattern = "yyyy-MM-dd hh:mm", timezone = "Asia/Seoul")
-    private LocalDateTime sendAt;
+//    @JsonFormat(pattern = "yyyy-MM-dd hh:mm", timezone = "Asia/Seoul")
+//    private LocalDateTime sendAt;
 
 }
