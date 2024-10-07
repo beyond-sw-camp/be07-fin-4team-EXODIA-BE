@@ -1,10 +1,5 @@
 package com.example.exodia.common.data;
 
-import com.example.exodia.chat.domain.ChatRoom;
-import com.example.exodia.chat.domain.ChatUser;
-import com.example.exodia.chat.repository.ChatRoomRepository;
-import com.example.exodia.chat.repository.ChatUserRepository;
-import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.department.domain.Department;
 import com.example.exodia.evalutionFrame.evalutionBig.domain.Evalutionb;
 import com.example.exodia.evalutionFrame.evalutionBig.repository.EvalutionbRepository;
@@ -38,13 +33,14 @@ public class InitialDataLoader implements CommandLineRunner {
     private final EvalutionmRepository evalutionmRepository;
     private final PasswordEncoder passwordEncoder;
     private final MeetingRoomRepository meetingRoomRepository;
-    private final ChatRoomRepository chatRoomRepository;
-    private final ChatUserRepository chatUserRepository;
 
     public InitialDataLoader(DepartmentRepository departmentRepository,
                              PositionRepository positionRepository,
-                             UserRepository userRepository, EvalutionbRepository evalutionbRepository, EvalutionmRepository evalutionmRepository,
-                             PasswordEncoder passwordEncoder, MeetingRoomRepository meetingRoomRepository, ChatRoomRepository chatRoomRepository, ChatUserRepository chatUserRepository) {
+                             UserRepository userRepository,
+                             EvalutionbRepository evalutionbRepository,
+                             EvalutionmRepository evalutionmRepository,
+                             PasswordEncoder passwordEncoder,
+                             MeetingRoomRepository meetingRoomRepository) {
         this.departmentRepository = departmentRepository;
         this.positionRepository = positionRepository;
         this.userRepository = userRepository;
@@ -52,8 +48,6 @@ public class InitialDataLoader implements CommandLineRunner {
         this.evalutionmRepository = evalutionmRepository;
         this.passwordEncoder = passwordEncoder;
         this.meetingRoomRepository = meetingRoomRepository;
-        this.chatRoomRepository = chatRoomRepository;
-        this.chatUserRepository = chatUserRepository;
     }
 
     @Override
@@ -70,22 +64,34 @@ public class InitialDataLoader implements CommandLineRunner {
         Department hrDepartment = new Department("인사팀", supportHQ);
         departmentRepository.save(hrDepartment);
 
+        // 경영지원부서 밑에 경영1팀 추가
+        Department managementDepartment = new Department("경영지원부서", supportHQ);
+        departmentRepository.save(managementDepartment);
+
+        Department managementTeam1 = new Department("경영1팀", managementDepartment);
+        departmentRepository.save(managementTeam1);
+
+        // 직위 추가
         Position teamLeader = new Position(null, "팀장");
         Position director = new Position(null, "부장");
+        Position assistantManager = new Position(null, "대리");
         positionRepository.save(teamLeader);
         positionRepository.save(director);
+        positionRepository.save(assistantManager);
 
-        String Password1 = passwordEncoder.encode("testtest");
-        String Password2 = passwordEncoder.encode("testtest");
+        // 사용자 추가
+        String password1 = passwordEncoder.encode("testtest");
+        String password2 = passwordEncoder.encode("testtest");
+        String password3 = passwordEncoder.encode("testtest");
 
         User user1 = new User(
                 null,
                 "20240901001",
                 null,
-                "test1",
+                "이예나",
                 Gender.M,
                 Status.재직,
-                Password1,
+                password1,
                 "test1@test",
                 "어양동",
                 "01012345678",
@@ -102,10 +108,10 @@ public class InitialDataLoader implements CommandLineRunner {
                 null,
                 "20240901002",
                 null,
-                "test2",
+                "김수연",
                 Gender.W,
                 Status.재직,
-                Password2,
+                password2,
                 "test2@test",
                 "영등동",
                 "01098765432",
@@ -118,8 +124,30 @@ public class InitialDataLoader implements CommandLineRunner {
                 0
         );
 
+        // 경영1팀 소속 user 추가
+        User user3 = new User(
+                null,
+                "20240901003",
+                null,
+                "test3",
+                Gender.W,
+                Status.재직,
+                password3,
+                "test3@test",
+                "신촌동",
+                "01033333333",
+                "123456-3456789",
+                HireType.정규직,
+                NowStatus.회의,
+                10,
+                managementTeam1,
+                assistantManager,
+                0
+        );
+
         userRepository.save(user1);
         userRepository.save(user2);
+        userRepository.save(user3);
 
         // 대분류 데이터 생성
         Evalutionb workAbility = new Evalutionb(null, "업무 수행 능력");
@@ -161,12 +189,5 @@ public class InitialDataLoader implements CommandLineRunner {
             initialMeetingRooms.add(meetingRoom);
         }
         meetingRoomRepository.saveAll(initialMeetingRooms);
-
-        ChatRoom chatRoom = ChatRoom.builder().roomName("test").build();
-        chatRoomRepository.save(chatRoom);
-        ChatUser chatUser1 = ChatUser.builder().chatRoom(chatRoom).user(user1).build();
-        ChatUser chatUser2 = ChatUser.builder().chatRoom(chatRoom).user(user2).build();
-        chatUserRepository.save(chatUser1);
-        chatUserRepository.save(chatUser2);
     }
 }

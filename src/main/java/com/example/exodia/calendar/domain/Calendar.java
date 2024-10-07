@@ -2,6 +2,7 @@ package com.example.exodia.calendar.domain;
 
 import com.example.exodia.calendar.dto.CalendarSaveDto;
 import com.example.exodia.calendar.dto.CalendarUpdateDto;
+import com.example.exodia.department.domain.Department;
 import com.example.exodia.user.domain.User;
 
 import jakarta.persistence.Column;
@@ -49,6 +50,9 @@ public class Calendar {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+    @ManyToOne
+    @JoinColumn(name = "department_id")
+    private Department department;
 
     public static Calendar fromDto(CalendarSaveDto dto, User user) {
         return Calendar.builder()
@@ -59,6 +63,7 @@ public class Calendar {
                 .type(dto.getType())
                 .delYn("N")
                 .user(user)
+                .department(user.getDepartment())
                 .build();
     }
 

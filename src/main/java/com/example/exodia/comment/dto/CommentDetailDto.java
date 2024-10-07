@@ -1,6 +1,5 @@
 package com.example.exodia.comment.dto;
 
-import com.example.exodia.comment.domain.Comment;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;

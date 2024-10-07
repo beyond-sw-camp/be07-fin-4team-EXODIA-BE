@@ -74,10 +74,7 @@ public class ChatRoomService {
         if(checkRoomId != 0L){ // 인원 중복 단체 채팅방이 있다. 기존 채팅방을 반환
             ChatRoom existedRoom = chatRoomRepository.findByIdAndDelYn(checkRoomId, DelYN.N)
                     .orElseThrow(()->new EntityNotFoundException("없는 채팅방 입니다."));
-            System.out.println("-------------------ff----------------------");
-            System.out.println(existedRoom.getChatUsers());
-            System.out.println("-----------------------------------------");
-            return existedRoom.fromEntityExistChatRoom(true);
+            return existedRoom.fromEntityExistChatRoom(true); // 해결.
         }
 
         // 중복 채팅방 없음 // 새로운 채팅방 생성-채팅방저장, 채팅유저저장

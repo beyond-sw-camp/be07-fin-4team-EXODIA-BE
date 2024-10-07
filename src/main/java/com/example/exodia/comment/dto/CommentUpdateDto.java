@@ -14,4 +14,5 @@ import java.time.LocalDateTime;
 public class CommentUpdateDto {
     private String content;
     private LocalDateTime updatedAt;
+    private String userNum;
 }

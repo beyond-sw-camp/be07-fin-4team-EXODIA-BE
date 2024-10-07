@@ -1,18 +1,20 @@
 package com.example.exodia.comment.controller;
 
+import com.example.exodia.comment.domain.Comment;
 import com.example.exodia.comment.dto.CommentDetailDto;
 import com.example.exodia.comment.dto.CommentSaveReqDto;
+import com.example.exodia.comment.dto.CommentUpdateDto;
 import com.example.exodia.comment.service.CommentService;
 import com.example.exodia.common.dto.CommonErrorDto;
 import com.example.exodia.common.dto.CommonResDto;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
-import jakarta.persistence.EntityNotFoundException;
+import java.util.Map;
 
 @RestController
 @RequestMapping("comment")
@@ -20,10 +22,7 @@ public class CommentController {
 
     private final CommentService commentService;
 
-    /**
-     * @param commentService - 댓글을 저장하고, 조회하고, 삭제하는 로직을 처리하는 서비스 객체
-     */
-    @Autowired // Spring이 자동으로 CommentService 객체를 주입하도록 설정하는 애노테이션입니다.
+    @Autowired
     public CommentController(CommentService commentService) {
         this.commentService = commentService;
     }
@@ -110,22 +109,38 @@ public class CommentController {
     }
 
     /**
+     * 특정 댓글을 수정합니다.
+     * @param id - 수정할 댓글 ID
+     * @param dto - 수정할 내용이 담긴 DTO 객체
+     * @return 수정된 댓글의 ID와 상태 메시지를 포함한 응답 데이터입니다.
+     */
+    @PutMapping("/update/{id}")
+    public ResponseEntity<?> updateComment(@PathVariable Long id, @RequestBody CommentUpdateDto dto) {
+        try {
+            commentService.commentUpdate(id, dto);
+            return ResponseEntity.ok("댓글이 성공적으로 수정되었습니다.");
+        } catch (SecurityException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+
+    /**
      * 특정 댓글을 삭제합니다.
      * @return 삭제된 댓글의 ID를 포함한 응답 데이터입니다.
      */
     @GetMapping("/delete/{id}")
-    public ResponseEntity<?> CommentDelete(@PathVariable Long id){
+    public ResponseEntity<?> deleteComment(@PathVariable Long id, @RequestParam("userNum") String userNum) {
         try {
-            // 서비스 객체를 이용하여 댓글을 삭제합니다.
-            commentService.commentDelete(id);
-            // 성공적으로 댓글이 삭제되었다는 응답 데이터를 반환합니다.
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "댓글이 삭제되었습니다.", id);
-            return new ResponseEntity<>(commonResDto, HttpStatus.OK);
-        } catch (EntityNotFoundException e) {
-            // 댓글을 찾을 수 없는 경우 발생하는 예외 처리
-            e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.NOT_FOUND);
+            commentService.commentDelete(id, userNum);
+            return ResponseEntity.ok("댓글이 성공적으로 삭제되었습니다.");
+        } catch (SecurityException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
+
 }

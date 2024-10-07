@@ -28,20 +28,26 @@ public class JwtTokenProvider {
 		claims.put("position_id", positionId.toString());
 
 		return Jwts.builder()
-			.setClaims(claims)
-			.setSubject(userNum)
-			.setIssuedAt(new Date(System.currentTimeMillis()))
-			.setExpiration(new Date(System.currentTimeMillis() + tokenValidity))
-			.signWith(SignatureAlgorithm.HS512, secret)
-			.compact();
+				.setClaims(claims)
+				.setSubject(userNum)
+				.setIssuedAt(new Date(System.currentTimeMillis()))
+				.setExpiration(new Date(System.currentTimeMillis() + tokenValidity))
+				.signWith(SignatureAlgorithm.HS512, secret)
+				.compact();
 	}
 
 	public Claims getClaimsFromToken(String token) {
-		return Jwts.parser()
-			.setSigningKey(secret)
-			.parseClaimsJws(token)
-			.getBody();
+		try {
+			return Jwts.parser()
+					.setSigningKey(secret)
+					.parseClaimsJws(token)
+					.getBody();
+		} catch (Exception e) {
+			throw new IllegalArgumentException("Invalid JWT Token");
+		}
 	}
+
+
 
 	public Boolean isTokenExpired(String token) {
 		return getClaimsFromToken(token).getExpiration().before(new Date());

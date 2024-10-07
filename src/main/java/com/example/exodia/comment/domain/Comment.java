@@ -6,6 +6,7 @@ import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.qna.domain.QnA;
 import com.example.exodia.user.domain.User;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -41,6 +42,7 @@ public class Comment extends BaseTimeEntity {
 
     @ManyToOne
     @JoinColumn(name = "board_id")
+    @JsonIgnore
     private Board board;
 
     @ManyToOne

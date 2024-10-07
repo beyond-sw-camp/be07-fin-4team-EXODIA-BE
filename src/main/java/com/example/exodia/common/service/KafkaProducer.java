@@ -21,6 +21,7 @@ public class KafkaProducer {
         String uniqueKey = UUID.randomUUID().toString();
         kafkaTemplate.send(topic, message);
         System.out.println("Kafka 이벤트 : " + message); //
+        System.out.println(topic);
     }
 }
 

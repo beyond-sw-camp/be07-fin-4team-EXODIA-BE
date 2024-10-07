@@ -5,8 +5,8 @@ services:
     container_name: zookeeper
     ports:
       - "2181:2181"
-#    volumes:
-#      - zookeeper-data:/var/lib/zookeeper/data
+  #    volumes:
+  #      - zookeeper-data:/var/lib/zookeeper/data
 
   kafka:
     image: wurstmeister/kafka:latest
