@@ -42,12 +42,13 @@ public class ReservationController {
     }
 
     // 예약 거절 API (관리자만 접근 가능)
-    @PutMapping("/car/reject/{reservationId}")
+    @DeleteMapping("/car/reject/{reservationId}")
     @PreAuthorize("hasRole('ADMIN')")
-    //@Operation(summary= "[관리자 사용자] 차량 예약 거절 API")
     public ResponseEntity<CommonResDto> rejectReservation(@PathVariable Long reservationId) {
-        ReservationDto reservationDto = reservationService.rejectReservation(reservationId);
-        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "예약이 거절되었습니다.", reservationDto);
+        // 예약 삭제 처리
+        reservationService.rejectReservation(reservationId);
+        // 삭제 성공 메시지 반환
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "예약이 거절되고 삭제되었습니다.", reservationId);
         return ResponseEntity.ok(commonResDto);
     }
 

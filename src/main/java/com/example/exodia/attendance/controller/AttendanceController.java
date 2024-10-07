@@ -1,11 +1,8 @@
 package com.example.exodia.attendance.controller;
 
-import com.example.exodia.attendance.dto.AttendanceDetailDto;
+import com.example.exodia.attendance.dto.*;
 import com.example.exodia.attendance.service.AttendanceService;
 import com.example.exodia.attendance.domain.Attendance;
-import com.example.exodia.attendance.dto.AttendanceSaveDto;
-import com.example.exodia.attendance.dto.AttendanceUpdateDto;
-import com.example.exodia.attendance.dto.WeeklySumDto;
 import com.example.exodia.common.dto.CommonResDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -65,8 +63,16 @@ public class AttendanceController {
         LocalDate start = LocalDate.parse(startDate);
         LocalDate end = LocalDate.parse(endDate);
 
-        Map<String, List<AttendanceDetailDto>> weeklyDetails = attendanceService.getWeeklyDetails(start, end);
+        Map<String, List<AttendanceDetailDto>> weeklyDetails = attendanceService.getWeeklyDetailsWithOvertime(start, end);
         return new ResponseEntity<>(new CommonResDto(HttpStatus.OK, "주차별 상세 근무 시간 조회 완료", weeklyDetails), HttpStatus.OK);
+    }
+
+
+    @GetMapping("/weekly")
+    public ResponseEntity<List<WeeklyAttendanceDto>> getWeeklyAttendance(@RequestParam("year") int year) {
+        // 서비스 호출 시 로그인된 사용자 정보를 자동으로 처리
+        List<WeeklyAttendanceDto> weeklyAttendance = attendanceService.getWeeklyAttendance(year);
+        return ResponseEntity.ok(weeklyAttendance);
     }
 }
 

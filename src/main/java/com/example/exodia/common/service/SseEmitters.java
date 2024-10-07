@@ -1,6 +1,7 @@
 package com.example.exodia.common.service;
 
 import com.example.exodia.notification.domain.Notification;
+import com.example.exodia.notification.dto.NotificationDTO;
 import com.example.exodia.user.domain.User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -39,15 +40,19 @@ public class SseEmitters {
         });
     }
 
-    public void sendToUser(String userNum, Notification notification) {
+    public void sendToUser(String userNum, NotificationDTO dto) {
         SseEmitter emitter = emitters.get(userNum);
         if (emitter != null) {
             try {
-                emitter.send(SseEmitter.event().data(notification));
+                emitter.send(SseEmitter.event().data(dto));
+                System.out.println("알림 전송 성공: " + userNum);
             } catch (IOException e) {
                 emitters.remove(userNum);
+                System.out.println("알림 전송 실패, SSE 연결 해제: " + userNum);
                 e.printStackTrace();
             }
+        } else {
+            System.out.println("SSE 연결 없음: " + userNum);
         }
     }
 }

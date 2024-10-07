@@ -1,9 +1,13 @@
 package com.example.exodia.common.data;
 
+
+import com.example.exodia.car.domain.Car;
+import com.example.exodia.car.repository.CarRepository;
 import com.example.exodia.chat.domain.ChatRoom;
 import com.example.exodia.chat.domain.ChatUser;
 import com.example.exodia.chat.repository.ChatRoomRepository;
 import com.example.exodia.chat.repository.ChatUserRepository;
+
 import com.example.exodia.department.domain.Department;
 import com.example.exodia.evalutionFrame.evalutionBig.domain.Evalutionb;
 import com.example.exodia.evalutionFrame.evalutionBig.repository.EvalutionbRepository;
@@ -39,6 +43,7 @@ public class InitialDataLoader implements CommandLineRunner {
     private final EvalutionmRepository evalutionmRepository;
     private final PasswordEncoder passwordEncoder;
     private final MeetingRoomRepository meetingRoomRepository;
+    private final CarRepository carRepository;
     private final SubmitTypeRepository submitTypeRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatUserRepository chatUserRepository;
@@ -49,7 +54,7 @@ public class InitialDataLoader implements CommandLineRunner {
                              EvalutionbRepository evalutionbRepository,
                              EvalutionmRepository evalutionmRepository,
                              PasswordEncoder passwordEncoder,
-                             MeetingRoomRepository meetingRoomRepository, ChatRoomRepository chatRoomRepository, ChatUserRepository chatUserRepository) {
+                             MeetingRoomRepository meetingRoomRepository, ChatRoomRepository chatRoomRepository, ChatUserRepository chatUserRepository, CarRepository carRepository) {
         this.departmentRepository = departmentRepository;
         this.positionRepository = positionRepository;
         this.userRepository = userRepository;
@@ -57,6 +62,7 @@ public class InitialDataLoader implements CommandLineRunner {
         this.evalutionmRepository = evalutionmRepository;
         this.passwordEncoder = passwordEncoder;
         this.meetingRoomRepository = meetingRoomRepository;
+        this.carRepository = carRepository;
     		this.submitTypeRepository = submitTypeRepository;
         this.chatRoomRepository = chatRoomRepository;
         this.chatUserRepository = chatUserRepository;
@@ -202,6 +208,17 @@ public class InitialDataLoader implements CommandLineRunner {
         }
         meetingRoomRepository.saveAll(initialMeetingRooms);
 
+
+        List<Car> cars = new ArrayList<>();
+        cars.add(new Car(null, "121가123", "스타랙스"));
+        cars.add(new Car(null, "135나894", "밴츠"));
+        cars.add(new Car(null, "753호159", "SUV"));
+        cars.add(new Car(null, "143라3451", "람보르기니"));
+        cars.add(new Car(null, "429호7318", "G70"));
+        cars.add(new Car(null, "14라 8222", "소나타"));
+        cars.add(new Car(null, "18유3752", "황금마티즈"));
+        carRepository.saveAll(cars);
+      
         submitTypeRepository.save(new SubmitType(1L, "법인 카드 신청"));
         submitTypeRepository.save( new SubmitType(2L, "휴가 신청"));
 
@@ -211,5 +228,6 @@ public class InitialDataLoader implements CommandLineRunner {
         ChatUser chatUser2 = ChatUser.builder().chatRoom(chatRoom).user(user2).build();
         chatUserRepository.save(chatUser1);
         chatUserRepository.save(chatUser2);
+
     }
 }

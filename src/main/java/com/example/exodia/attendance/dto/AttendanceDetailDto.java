@@ -1,6 +1,7 @@
 package com.example.exodia.attendance.dto;
 
 import com.example.exodia.attendance.domain.Attendance;
+import com.example.exodia.attendance.domain.DayStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,13 +18,31 @@ public class AttendanceDetailDto {
     private LocalDateTime inTime;
     private LocalDateTime outTime;
     private double hoursWorked;
+    private double overtimeHours;
+    private DayStatus dayStatus;
+
+//    public static AttendanceDetailDto fromEntity(Attendance attendance) {
+//        double hoursWorked = 0;
+//        if (attendance.getInTime() != null && attendance.getOutTime() != null) {
+//            hoursWorked = Duration.between(attendance.getInTime(), attendance.getOutTime()).toHours();
+//        }
+//
+//        return new AttendanceDetailDto(attendance.getInTime(), attendance.getOutTime(), hoursWorked);
+//    }
 
     public static AttendanceDetailDto fromEntity(Attendance attendance) {
-        double hoursWorked = 0;
-        if (attendance.getInTime() != null && attendance.getOutTime() != null) {
-            hoursWorked = Duration.between(attendance.getInTime(), attendance.getOutTime()).toHours();
-        }
+        return AttendanceDetailDto.builder()
+                .inTime(attendance.getInTime())
+                .outTime(attendance.getOutTime())
+                .dayStatus(attendance.getDayStatus())
+                .overtimeHours(attendance.getHoursWorked())
+                .build();
+    }
 
-        return new AttendanceDetailDto(attendance.getInTime(), attendance.getOutTime(), hoursWorked);
+    public AttendanceDetailDto(LocalDateTime inTime, LocalDateTime outTime, double hoursWorked, double overtimeHours) {
+        this.inTime = inTime;
+        this.outTime = outTime;
+        this.hoursWorked = hoursWorked;
+        this.overtimeHours = overtimeHours;
     }
 }

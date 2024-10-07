@@ -55,10 +55,10 @@
         @Transactional
         @Lock(LockModeType.PESSIMISTIC_WRITE)
         public ReservationMeetListDto createReservation(ReservationMeetCreateDto reservationMeetCreateDto) {
-
+            String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
             MeetingRoom meetingRoom = meetingRoomRepository.findById(reservationMeetCreateDto.getMeetingRoomId())
                     .orElseThrow(() -> new IllegalArgumentException("회의실이 존재하지 않습니다."));
-            User user = userRepository.findByUserNum(reservationMeetCreateDto.getUserNum())
+            User user = userRepository.findByUserNum(userNum)
                     .orElseThrow(() -> new IllegalArgumentException("사용자가 존재하지 않습니다."));
 
 
@@ -88,7 +88,7 @@
             reservationMeetRepository.flush();
 
             // 관리자를 대상으로 알림 전송
-            String message = String.format("%s님이 %s 회의실을 %s ~ %s 에 예약하였습니다.", user.getName(), meetingRoom.getName(), reservationMeet.getStartTime().toString(), reservationMeet.getEndTime().toString());
+            String message = String.format("%s님이 %s 회의실을 %s ~ %s 에 예약하였습니다. (예약 시간: %s)", user.getName(), meetingRoom.getName(), reservationMeet.getStartTime().toString(), reservationMeet.getEndTime().toString(), LocalDateTime.now());
             notificationService.sendMeetReservationReqToAdmins(message);
 
             return ReservationMeetListDto.fromEntity(reservationMeet);
@@ -181,7 +181,6 @@
 
         /* 예약 삭제 */
         @Transactional
-        @CacheEvict(value = "reservations", key = "#reservationId")
         public void cancelReservation(Long reservationId) {
             String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
             User user = userRepository.findByUserNum(userNum)
@@ -198,7 +197,7 @@
                 }
             }
 
-            reservationMeetRepository.delete(reservationMeet);
+            reservationMeetRepository.deleteById(reservationId);
             reservationMeetRepository.flush();
         }
 

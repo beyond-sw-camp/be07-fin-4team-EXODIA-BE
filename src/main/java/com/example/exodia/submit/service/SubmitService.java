@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.example.exodia.common.service.KafkaProducer;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -30,15 +31,16 @@ public class SubmitService {
 	private final UserRepository userRepository;
 	private final PositionRepository positionRepository;
 	private final SubmitLineRepository submitLineRepository;
+	private final KafkaProducer kafkaProducer;
 	private final SubmitTypeRepository submitTypeRepository;
-
+  
 	public SubmitService(SubmitRepository submitRepository, UserRepository userRepository,
-		PositionRepository positionRepository, SubmitLineRepository submitLineRepository,
-		SubmitTypeRepository submitTypeRepository) {
+                         PositionRepository positionRepository, SubmitLineRepository submitLineRepository,SubmitTypeRepository submitTypeRepository, KafkaProducer kafkaProducer) {
 		this.submitRepository = submitRepository;
 		this.userRepository = userRepository;
 		this.positionRepository = positionRepository;
 		this.submitLineRepository = submitLineRepository;
+    this.kafkaProducer = kafkaProducer;
 		this.submitTypeRepository = submitTypeRepository;
 	}
 
@@ -63,10 +65,15 @@ public class SubmitService {
 
 			submit.getSubmitLines().add(submitLine);
 			submitLine.updateSubmit(submit);
+
+			// Kafka 이벤트 전송
+			String message = String.format("%s님에게 %s 결재 요청이 도착했습니다.", user.getName(), dto.getSubmitType());
+			kafkaProducer.sendSubmitNotification("submit-events", user.getUserNum(), message);
 		}
 
 		submitRepository.save(submit);
 		submitLineRepository.save(submitLine);
+
 		return submit;
 	}
 
