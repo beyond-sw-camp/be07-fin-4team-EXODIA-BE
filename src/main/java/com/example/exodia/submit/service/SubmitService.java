@@ -2,6 +2,7 @@ package com.example.exodia.submit.service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.example.exodia.common.service.KafkaProducer;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -12,10 +13,12 @@ import com.example.exodia.position.repository.PositionRepository;
 import com.example.exodia.submit.domain.Submit;
 import com.example.exodia.submit.domain.SubmitLine;
 import com.example.exodia.submit.domain.SubmitStatus;
+import com.example.exodia.submit.domain.SubmitType;
 import com.example.exodia.submit.dto.SubmitSaveReqDto;
 import com.example.exodia.submit.dto.SubmitStatusUpdateDto;
 import com.example.exodia.submit.repository.SubmitLineRepository;
 import com.example.exodia.submit.repository.SubmitRepository;
+import com.example.exodia.submit.repository.SubmitTypeRepository;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 
@@ -29,15 +32,17 @@ public class SubmitService {
 	private final PositionRepository positionRepository;
 	private final SubmitLineRepository submitLineRepository;
 	private final KafkaProducer kafkaProducer;
-
+	private final SubmitTypeRepository submitTypeRepository;
+  
 	public SubmitService(SubmitRepository submitRepository, UserRepository userRepository,
-                         PositionRepository positionRepository, SubmitLineRepository submitLineRepository, KafkaProducer kafkaProducer) {
+                         PositionRepository positionRepository, SubmitLineRepository submitLineRepository,SubmitTypeRepository submitTypeRepository, KafkaProducer kafkaProducer) {
 		this.submitRepository = submitRepository;
 		this.userRepository = userRepository;
 		this.positionRepository = positionRepository;
 		this.submitLineRepository = submitLineRepository;
-        this.kafkaProducer = kafkaProducer;
-    }
+    this.kafkaProducer = kafkaProducer;
+		this.submitTypeRepository = submitTypeRepository;
+	}
 
 	// 	결재라인 등록
 	public Submit createSubmit(SubmitSaveReqDto dto) {
@@ -114,6 +119,13 @@ public class SubmitService {
 			line.updateStatus(SubmitStatus.REJECT);
 			submitLineRepository.save(line);
 		}
+	}
+
+	public List<?> getTypeList(){
+		List<SubmitType> types = submitTypeRepository.findAll();
+		return types.stream()
+			.map(SubmitType::getTypeName)
+			.collect(Collectors.toList());
 	}
 
 
