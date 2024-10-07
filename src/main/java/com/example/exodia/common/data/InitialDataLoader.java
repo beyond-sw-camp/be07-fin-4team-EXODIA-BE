@@ -8,6 +8,8 @@ import com.example.exodia.evalutionFrame.evalutionMiddle.repository.EvalutionmRe
 import com.example.exodia.meetingRoom.domain.MeetingRoom;
 import com.example.exodia.meetingRoom.repository.MeetingRoomRepository;
 import com.example.exodia.position.domain.Position;
+import com.example.exodia.submit.domain.SubmitType;
+import com.example.exodia.submit.repository.SubmitTypeRepository;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.domain.Gender;
 import com.example.exodia.user.domain.Status;
@@ -33,6 +35,7 @@ public class InitialDataLoader implements CommandLineRunner {
     private final EvalutionmRepository evalutionmRepository;
     private final PasswordEncoder passwordEncoder;
     private final MeetingRoomRepository meetingRoomRepository;
+    private final SubmitTypeRepository submitTypeRepository;
 
     public InitialDataLoader(DepartmentRepository departmentRepository,
                              PositionRepository positionRepository,
@@ -40,7 +43,7 @@ public class InitialDataLoader implements CommandLineRunner {
                              EvalutionbRepository evalutionbRepository,
                              EvalutionmRepository evalutionmRepository,
                              PasswordEncoder passwordEncoder,
-                             MeetingRoomRepository meetingRoomRepository) {
+                             MeetingRoomRepository meetingRoomRepository, SubmitTypeRepository submitTypeRepository) {
         this.departmentRepository = departmentRepository;
         this.positionRepository = positionRepository;
         this.userRepository = userRepository;
@@ -48,7 +51,8 @@ public class InitialDataLoader implements CommandLineRunner {
         this.evalutionmRepository = evalutionmRepository;
         this.passwordEncoder = passwordEncoder;
         this.meetingRoomRepository = meetingRoomRepository;
-    }
+		this.submitTypeRepository = submitTypeRepository;
+	}
 
     @Override
     public void run(String... args) throws Exception {
@@ -189,5 +193,8 @@ public class InitialDataLoader implements CommandLineRunner {
             initialMeetingRooms.add(meetingRoom);
         }
         meetingRoomRepository.saveAll(initialMeetingRooms);
+
+        submitTypeRepository.save(new SubmitType(1L, "법인 카드 신청"));
+        submitTypeRepository.save( new SubmitType(2L, "휴가 신청"));
     }
 }
