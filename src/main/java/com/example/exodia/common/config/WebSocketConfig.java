@@ -1,6 +1,7 @@
 package com.example.exodia.common.config;
 
 import com.example.exodia.chat.handler.StompHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -13,7 +14,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final StompHandler stompHandler;
-
+    @Autowired
     public WebSocketConfig(StompHandler stompHandler) {
         this.stompHandler = stompHandler;
     }
@@ -24,9 +25,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         config.setApplicationDestinationPrefixes("/app"); // pub
     }
 
+    // 스프링 5.3, 스프링부트 2.4 버전 부터 allowCredentials이 true인 경우 setAllowedOrigins 메서드에서
+    // 와일드 카드 `'*'`을 사용하실 수 없습니다.
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws").setAllowedOrigins("*").withSockJS();
+        registry.addEndpoint("/ws").setAllowedOrigins("http://localhost:8087", "http://localhost:8082").withSockJS();
     }
 
     @Override

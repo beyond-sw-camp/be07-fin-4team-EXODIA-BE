@@ -37,6 +37,7 @@ public class ChatRoom extends BaseTimeEntity {
     private List<ChatMessage> chatMessages = new ArrayList<>();
 
     public static ChatRoom toEntity(ChatRoomRequest chatRoomRequest){
+
         return ChatRoom.builder()
                 .roomName(chatRoomRequest.getRoomName())
                 .build();
@@ -48,6 +49,10 @@ public class ChatRoom extends BaseTimeEntity {
                 .roomName(this.getRoomName())
                 .userNums(userNums)
                 .build();
+    }
+
+    public void setChatUsers(List<ChatUser> users){
+        this.chatUsers = users;
     }
 
     public ChatRoomExistResponse fromEntityExistChatRoom(boolean check){

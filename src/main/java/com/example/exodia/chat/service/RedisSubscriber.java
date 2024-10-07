@@ -37,8 +37,10 @@ public class RedisSubscriber implements MessageListener {
             ChatMessageResponse roomMessage = objectMapper.readValue(publishMessage, ChatMessageResponse.class);
 
             // Websocket 구독자에게 채팅 메시지 전송
-            messageSendingOperations.convertAndSend("/topic/chatroom/" + roomMessage.getRoomId(), roomMessage);
-
+            System.out.println("start");
+            messageSendingOperations.convertAndSend("/topic/chat/room/" + roomMessage.getRoomId(), roomMessage);
+            System.out.println(roomMessage);
+            System.out.println("end");
         }catch (Exception e){
             log.error(e.getMessage());
             // throw new ChatMessageNotFoundException(); // exception을 만들거나 맞는 예외 던져주기

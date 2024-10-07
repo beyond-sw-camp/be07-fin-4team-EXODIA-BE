@@ -1,5 +1,9 @@
 package com.example.exodia.common.data;
 
+import com.example.exodia.chat.domain.ChatRoom;
+import com.example.exodia.chat.domain.ChatUser;
+import com.example.exodia.chat.repository.ChatRoomRepository;
+import com.example.exodia.chat.repository.ChatUserRepository;
 import com.example.exodia.department.domain.Department;
 import com.example.exodia.evalutionFrame.evalutionBig.domain.Evalutionb;
 import com.example.exodia.evalutionFrame.evalutionBig.repository.EvalutionbRepository;
@@ -33,6 +37,8 @@ public class InitialDataLoader implements CommandLineRunner {
     private final EvalutionmRepository evalutionmRepository;
     private final PasswordEncoder passwordEncoder;
     private final MeetingRoomRepository meetingRoomRepository;
+    private final ChatRoomRepository chatRoomRepository;
+    private final ChatUserRepository chatUserRepository;
 
     public InitialDataLoader(DepartmentRepository departmentRepository,
                              PositionRepository positionRepository,
@@ -40,7 +46,7 @@ public class InitialDataLoader implements CommandLineRunner {
                              EvalutionbRepository evalutionbRepository,
                              EvalutionmRepository evalutionmRepository,
                              PasswordEncoder passwordEncoder,
-                             MeetingRoomRepository meetingRoomRepository) {
+                             MeetingRoomRepository meetingRoomRepository, ChatRoomRepository chatRoomRepository, ChatUserRepository chatUserRepository) {
         this.departmentRepository = departmentRepository;
         this.positionRepository = positionRepository;
         this.userRepository = userRepository;
@@ -48,6 +54,8 @@ public class InitialDataLoader implements CommandLineRunner {
         this.evalutionmRepository = evalutionmRepository;
         this.passwordEncoder = passwordEncoder;
         this.meetingRoomRepository = meetingRoomRepository;
+        this.chatRoomRepository = chatRoomRepository;
+        this.chatUserRepository = chatUserRepository;
     }
 
     @Override
@@ -189,5 +197,13 @@ public class InitialDataLoader implements CommandLineRunner {
             initialMeetingRooms.add(meetingRoom);
         }
         meetingRoomRepository.saveAll(initialMeetingRooms);
+
+
+        ChatRoom chatRoom = ChatRoom.builder().roomName("test").build();
+        chatRoomRepository.save(chatRoom);
+        ChatUser chatUser1 = ChatUser.builder().chatRoom(chatRoom).user(user1).build();
+        ChatUser chatUser2 = ChatUser.builder().chatRoom(chatRoom).user(user2).build();
+        chatUserRepository.save(chatUser1);
+        chatUserRepository.save(chatUser2);
     }
 }
