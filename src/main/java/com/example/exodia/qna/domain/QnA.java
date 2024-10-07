@@ -66,11 +66,11 @@ public class QnA extends BaseTimeEntity {
     private Boolean anonymous = false;
 
     @Builder.Default
-    @OneToMany(mappedBy = "qna", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "answer", cascade = CascadeType.ALL)
     private List<BoardFile> answererFiles = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(mappedBy = "qna", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
     private List<BoardFile> questionerFiles = new ArrayList<>();
 
     @ManyToOne
