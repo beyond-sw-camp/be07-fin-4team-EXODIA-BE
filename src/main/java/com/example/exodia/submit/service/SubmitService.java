@@ -1,6 +1,7 @@
 package com.example.exodia.submit.service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -14,6 +15,7 @@ import com.example.exodia.submit.domain.Submit;
 import com.example.exodia.submit.domain.SubmitLine;
 import com.example.exodia.submit.domain.SubmitStatus;
 import com.example.exodia.submit.domain.SubmitType;
+import com.example.exodia.submit.dto.SubmitListResDto;
 import com.example.exodia.submit.dto.SubmitSaveReqDto;
 import com.example.exodia.submit.dto.SubmitStatusUpdateDto;
 import com.example.exodia.submit.repository.SubmitLineRepository;
@@ -33,7 +35,7 @@ public class SubmitService {
 	private final SubmitLineRepository submitLineRepository;
 	private final KafkaProducer kafkaProducer;
 	private final SubmitTypeRepository submitTypeRepository;
-  
+
 	public SubmitService(SubmitRepository submitRepository, UserRepository userRepository,
                          PositionRepository positionRepository, SubmitLineRepository submitLineRepository,SubmitTypeRepository submitTypeRepository, KafkaProducer kafkaProducer) {
 		this.submitRepository = submitRepository;
@@ -50,7 +52,7 @@ public class SubmitService {
 
 		User submitUser = userRepository.findByUserNum(userNum)
 			.orElseThrow(() -> new EntityNotFoundException("회원정보가 존재하지 않습니다."));
-		// Submit submit = Submit.builder().user(submitUser).submitLines(new ArrayList<>()).build();
+
 		Submit submit = dto.toEntity(submitUser);
 		SubmitLine submitLine = SubmitLine.builder().build();
 
@@ -121,6 +123,7 @@ public class SubmitService {
 		}
 	}
 
+	// 결재 타입 리스트 전체 조회
 	public List<?> getTypeList(){
 		List<SubmitType> types = submitTypeRepository.findAll();
 		return types.stream()
@@ -128,8 +131,35 @@ public class SubmitService {
 			.collect(Collectors.toList());
 	}
 
+	// 나에게 요청 들어온 결재 리스트 조회
+	public List<?> getSubmitList(){
+		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 
+		List<SubmitLine> submitLines = submitLineRepository.findAllByUserNum(userNum);
+		List<SubmitListResDto> mySubmitList = submitLines.stream()
+			.map(submitLine -> {
+				User user = submitLine.getSubmit().getUser();
+				return new SubmitListResDto().fromLineEntity(user, submitLine);
+			})
+			.collect(Collectors.toList());
+		return mySubmitList;
+	}
 
+	// 내가 요청한 결재 리스트 조회
+	public List<?> getMySubmitList(){
+		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+		User user=  userRepository.findByUserNum(userNum)
+			.orElseThrow(() -> new EntityNotFoundException("회원 정보가 존재하지 않습니다."));
+
+		List<Submit> submits = submitRepository.findAllByUser(user);
+
+		List<SubmitListResDto> mySubmitList = submits.stream()
+			.map(submit -> {
+				return new SubmitListResDto().fromEntity(submit);
+			})
+			.collect(Collectors.toList());
+		return mySubmitList;
+	}
 
 
 

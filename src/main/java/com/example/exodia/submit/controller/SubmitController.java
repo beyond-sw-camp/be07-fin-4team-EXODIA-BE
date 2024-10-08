@@ -60,11 +60,25 @@ public class SubmitController {
 		}
 	}
 
-	// 결제 타입 전체 조회
-	@GetMapping("/list")
+	// 결재 타입 리스트 전체 조회
+	@GetMapping("/type/list")
 	public ResponseEntity<?> findAll() {
 		List<?> submitTypes = submitService.getTypeList();
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "결재 타입 리스트 조회 성공", submitTypes));
+	}
+
+	// 나에게 요청 들어온 결재 리스트 조회
+	@GetMapping("/list")
+	public ResponseEntity<?> findReqSubmits() {
+		List<?> submitTypes = submitService.getSubmitList();
+		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "나에게 요청 된 결재 리스트 조회 성공", submitTypes));
+	}
+
+	// 내가 요청한 결재 리스트 조회
+	@GetMapping("/list/my")
+	public ResponseEntity<?> findMySubmits() {
+		List<?> submitTypes = submitService.getMySubmitList();
+		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "내가 요청한 결재 리스트 조회 성공", submitTypes));
 	}
 
 }
