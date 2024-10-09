@@ -26,11 +26,11 @@ public class Department {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
-//    @JsonBackReference
+    @JsonBackReference
     private Department parentDepartment;
 
     @OneToMany(mappedBy = "parentDepartment", cascade = CascadeType.ALL)
-//    @JsonManagedReference
+    @JsonManagedReference
     private List<Department> children = new ArrayList<>();
 
     public Department(String name, Department parentDepartment) {

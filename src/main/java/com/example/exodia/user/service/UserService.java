@@ -70,6 +70,9 @@ public class UserService {
     }
 
     public User updateUser(String userNum, UserUpdateDto updateDto, String departmentId) {
+        System.out.println("Update DTO Department ID: " + updateDto.getDepartmentId());
+        System.out.println("Update DTO Position ID: " + updateDto.getPositionId());
+
         checkHrAuthority(departmentId);
         User user = userRepository.findByUserNumAndDelYn(userNum, DelYN.N)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
@@ -86,6 +89,7 @@ public class UserService {
 
 
     public void checkHrAuthority(String departmentId) {
+        System.out.println("Received departmentId: " + departmentId);
         Department hrDepartment = departmentRepository.findById(Long.parseLong(departmentId))
                 .orElseThrow(() -> new RuntimeException("해당 부서가 존재하지 않습니다."));
 

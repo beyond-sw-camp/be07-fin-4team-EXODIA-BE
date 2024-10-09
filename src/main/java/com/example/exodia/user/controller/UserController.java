@@ -76,13 +76,20 @@ public class UserController {
             @RequestHeader("Authorization") String token) {
         try {
             String departmentId = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
+
+            if (updateDto.getDepartmentId() == null || updateDto.getPositionId() == null) {
+                return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, "부서 또는 직급 ID가 누락되었습니다."), HttpStatus.BAD_REQUEST);
+            }
+
             User updatedUser = userService.updateUser(userNum, updateDto, departmentId);
             return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 정보 수정 완료", updatedUser));
+
         } catch (RuntimeException e) {
             e.printStackTrace();
             return new ResponseEntity<>(new CommonErrorDto(HttpStatus.UNAUTHORIZED, e.getMessage()), HttpStatus.UNAUTHORIZED);
         }
     }
+
 
    @DeleteMapping("/delete")
     public ResponseEntity<?> deleteUser(@RequestBody UserDeleteDto userDeleteDto, @RequestHeader("Authorization") String token) {
