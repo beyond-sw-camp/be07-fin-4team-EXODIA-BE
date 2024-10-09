@@ -43,6 +43,10 @@ public class DepartmentService {
         return hierarchy;
     }
 
+    public List<Department> getAllDepartments() {
+        return departmentRepository.findAll();
+    }
+
     @Transactional
     public Department createDepartment(String name, Long parentId) {
         Department parent = parentId != null ? departmentRepository.findById(parentId).orElse(null) : null;
