@@ -10,5 +10,5 @@ import com.example.exodia.user.domain.User;
 
 @Repository
 public interface SubmitRepository extends JpaRepository<Submit, Long> {
-	List<Submit> findAllByUser(User user);
+	List<Submit> findAllByUserOrderByCreatedAtDesc(User user);
 }
