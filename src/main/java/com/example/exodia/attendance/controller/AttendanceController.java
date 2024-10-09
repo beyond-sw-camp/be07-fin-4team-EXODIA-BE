@@ -74,6 +74,11 @@ public class AttendanceController {
         List<WeeklyAttendanceDto> weeklyAttendance = attendanceService.getWeeklyAttendance(year);
         return ResponseEntity.ok(weeklyAttendance);
     }
+    @GetMapping("/today")
+    public ResponseEntity<?> getTodayAttendance() {
+        DailyAttendanceDto dto = attendanceService.getTodayAttendance();
+        return new ResponseEntity<>(new CommonResDto(HttpStatus.OK, "오늘 출퇴근 기록 조회 성공", dto), HttpStatus.OK);
+    }
 }
 
 

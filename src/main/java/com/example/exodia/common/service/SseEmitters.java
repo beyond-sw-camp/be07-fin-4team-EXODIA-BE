@@ -17,13 +17,18 @@ public class SseEmitters {
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
 
     public SseEmitter addEmitter(String userNum) {
-        SseEmitter emitter = new SseEmitter(180_000L); // 3분 타임아웃
+        SseEmitter emitter = new SseEmitter(180_000L); // 무제한 타임아웃
         emitters.put(userNum, emitter);
 
+        // SSE 종료/에러 -> 백업처리로직
         emitter.onCompletion(() -> emitters.remove(userNum));
-        emitter.onTimeout(() -> emitters.remove(userNum));
+        emitter.onTimeout(() -> {
+            emitters.remove(userNum);
+            System.out.println("SSE 연결 타임아웃 발생: " + userNum);
+        });
         emitter.onError(e -> {
             emitters.remove(userNum);
+            System.out.println("SSE 연결 오류 발생: " + userNum);
             e.printStackTrace();
         });
 

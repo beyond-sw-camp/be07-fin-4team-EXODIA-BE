@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -15,9 +17,8 @@ public class NotificationDTO {
     private NotificationType type;
     private String message;
     private boolean isRead;
-
-    // 필요하면 user의 특정 정보만 포함
     private String userName;
+    private LocalDateTime notificationTime;
 
     public NotificationDTO(Notification notification) {
         this.id = notification.getId();
@@ -27,5 +28,14 @@ public class NotificationDTO {
         this.userName = notification.getUser().getName();
     }
 
-    // Getter, Setter
+    public static NotificationDTO fromEntity(Notification notification) {
+        return new NotificationDTO(
+                notification.getId(),
+                notification.getType(),
+                notification.getMessage(),
+                notification.getIsRead(),
+                notification.getUser().getName(),
+                notification.getCreatedAt()
+        );
+    }
 }

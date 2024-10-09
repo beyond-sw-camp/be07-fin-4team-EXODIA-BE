@@ -235,4 +235,23 @@ public class AttendanceService {
 
         return overtimeMinutes / 60.0; // 시간을 반환
     }
+
+    /* 당일 출 퇴근 조회 */
+    public DailyAttendanceDto getTodayAttendance() {
+        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUserNum(userNum)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 사용자입니다."));
+
+        // 오늘의 날짜 범위를 계산 (00:00:00 ~ 23:59:59)
+        LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
+        LocalDateTime endOfToday = LocalDateTime.of(LocalDate.now(), LocalTime.MAX);
+
+        // 오늘의 출퇴근 기록을 조회
+        Attendance attendance = attendanceRepository.findByUserAndInTimeBetween(
+                        user, startOfToday, endOfToday)
+                .orElseThrow(() -> new RuntimeException("오늘 출퇴근 기록이 존재하지 않습니다."));
+
+        // 출퇴근 기록을 DTO로 변환
+        return DailyAttendanceDto.fromEntity(attendance);
+    }
 }

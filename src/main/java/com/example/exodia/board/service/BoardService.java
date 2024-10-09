@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -81,9 +82,11 @@ public class BoardService {
 
 
         // 공지사항 또는 경조사 게시물일 경우 모든 사용자에게 알림 전송
-        if (category == Category.NOTICE || category == Category.FAMILY_EVENT) {
-            String message = user.getName() + " 님이 " + dto.getTitle() + "를 작성했습니다: " + dto.getTitle();
-            kafkaProducer.sendBoardEvent("notice-events", message);
+        String message = user.getDepartment().getName() + " 에서 " + dto.getTitle() + "를 작성했습니다";
+        if (category == Category.NOTICE) {
+            kafkaProducer.sendBoardEvent("notice-events", message); // 공지사항 토픽
+        } else if (category == Category.FAMILY_EVENT) {
+            kafkaProducer.sendBoardEvent("family-event-notices", message); // 경조사 토픽
         }
 
         // 업로드할 파일 리스트가 null이거나 비어 있는지 확인하고, 실제 업로드할 파일 리스트만 필터링
