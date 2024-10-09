@@ -16,6 +16,8 @@ import com.example.exodia.evalutionFrame.evalutionMiddle.repository.EvalutionmRe
 import com.example.exodia.meetingRoom.domain.MeetingRoom;
 import com.example.exodia.meetingRoom.repository.MeetingRoomRepository;
 import com.example.exodia.position.domain.Position;
+import com.example.exodia.salary.domain.Salary;
+import com.example.exodia.salary.repository.SalaryRepository;
 import com.example.exodia.submit.domain.SubmitType;
 import com.example.exodia.submit.repository.SubmitTypeRepository;
 import com.example.exodia.user.domain.User;
@@ -47,6 +49,7 @@ public class InitialDataLoader implements CommandLineRunner {
     private final SubmitTypeRepository submitTypeRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatUserRepository chatUserRepository;
+    private final SalaryRepository salaryRepository;  // 급여 리포지토리 추가
 
     public InitialDataLoader(DepartmentRepository departmentRepository,
                              PositionRepository positionRepository,
@@ -54,7 +57,12 @@ public class InitialDataLoader implements CommandLineRunner {
                              EvalutionbRepository evalutionbRepository,
                              EvalutionmRepository evalutionmRepository,
                              PasswordEncoder passwordEncoder,
-                             MeetingRoomRepository meetingRoomRepository, ChatRoomRepository chatRoomRepository, ChatUserRepository chatUserRepository, CarRepository carRepository, SubmitTypeRepository submitTypeRepository) {
+                             MeetingRoomRepository meetingRoomRepository,
+                             ChatRoomRepository chatRoomRepository,
+                             ChatUserRepository chatUserRepository,
+                             CarRepository carRepository,
+                             SubmitTypeRepository submitTypeRepository,
+                             SalaryRepository salaryRepository) {  // Constructor에 추가
         this.departmentRepository = departmentRepository;
         this.positionRepository = positionRepository;
         this.userRepository = userRepository;
@@ -66,6 +74,7 @@ public class InitialDataLoader implements CommandLineRunner {
         this.submitTypeRepository = submitTypeRepository;
         this.chatRoomRepository = chatRoomRepository;
         this.chatUserRepository = chatUserRepository;
+        this.salaryRepository = salaryRepository;  // 주입
     }
 
     @Override
@@ -166,6 +175,24 @@ public class InitialDataLoader implements CommandLineRunner {
         userRepository.save(user1);
         userRepository.save(user2);
         userRepository.save(user3);
+
+        Salary salary1 = Salary.builder()
+                .user(user1)
+                .baseSalary(5000000.0)
+                .taxAmount(500000.0)
+                .finalSalary(4500000.0)
+                .build();
+
+        Salary salary2 = Salary.builder()
+                .user(user2)
+                .baseSalary(7000000.0)
+                .taxAmount(700000.0)
+                .finalSalary(6300000.0)
+                .build();
+
+        salaryRepository.save(salary1);
+        salaryRepository.save(salary2);
+
 
         // 대분류 데이터 생성
         Evalutionb workAbility = new Evalutionb(null, "업무 수행 능력");
