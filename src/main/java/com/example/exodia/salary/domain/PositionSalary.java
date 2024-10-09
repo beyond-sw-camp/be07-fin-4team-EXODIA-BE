@@ -20,6 +20,6 @@ public class PositionSalary {
     @JoinColumn(name = "position_id")
     private Position position;
 
-    private int yearsOfExperience; 
+    private int yearsOfExperience;
     private Double baseSalary;
 }

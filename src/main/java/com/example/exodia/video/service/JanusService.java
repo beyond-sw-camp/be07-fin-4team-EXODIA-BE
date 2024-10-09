@@ -1,8 +1,8 @@
 package com.example.exodia.video.service;
 
-import com.example.exodia.common.dto.*;
-import com.example.exodia.common.dto.JanusCandidateRequest;
-import com.example.exodia.common.dto.JanusSDPRequest;
+import com.example.exodia.video.dto.*;
+import com.example.exodia.video.dto.JanusCandidateRequest;
+import com.example.exodia.video.dto.JanusSDPRequest;
 import com.example.exodia.video.dto.JanusRequest;
 import com.example.exodia.video.dto.JanusResponse;
 import org.springframework.stereotype.Service;
@@ -11,7 +11,7 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class JanusService {
 
-    private static final String JANUS_URL = "http://janus-server:8088/janus";
+    private static final String JANUS_URL = "http://43.201.35.213:8088/janus";
 
     public String createSession() {
         RestTemplate restTemplate = new RestTemplate();

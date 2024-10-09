@@ -12,4 +12,5 @@ public interface VideoRoomRepository extends JpaRepository<VideoRoom, Long> {
     List<VideoRoom> findAllByIsActiveTrue();
     Optional<VideoRoom> findByJanusRoomIdAndIsActiveTrue(Long janusRoomId);
     Optional<VideoRoom> findByJanusRoomId(Long janusRoomId);
+    boolean existsByJanusRoomId(Long janusRoomId);
 }

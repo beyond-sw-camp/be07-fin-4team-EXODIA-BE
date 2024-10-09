@@ -24,7 +24,12 @@ public class Position {
 
     private String name;
 
-    @OneToMany(mappedBy = "position", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "position", cascade = CascadeType.ALL)
     private List<PositionSalary> salaries = new ArrayList<>();
 
+    public Position(Long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
 }
+
