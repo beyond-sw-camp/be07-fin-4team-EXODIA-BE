@@ -15,7 +15,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.*;
 
@@ -59,15 +64,35 @@ public class UserService {
                 user.getPosition().getId());
     }
 
-    public User registerUser(UserRegisterDto registerDto, String departmentName) {
-        checkHrAuthority(departmentName);
+    public User registerUser(UserRegisterDto registerDto, MultipartFile profileImage, String departmentId) {
+        String savedProfileImagePath = null;
+
+        // 파일이 비어있지 않을 때 파일 저장 처리
+        if (profileImage != null && !profileImage.isEmpty()) {
+            try {
+                String fileName = profileImage.getOriginalFilename();
+                Path filePath = Paths.get("C:/Users/Playdata/Desktop/티니핑", fileName);
+
+                Files.write(filePath, profileImage.getBytes());
+
+                savedProfileImagePath = filePath.toString();
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new RuntimeException("프로필 이미지 저장 중 오류가 발생했습니다.", e);
+            }
+        }
+
+        registerDto.setProfileImage(savedProfileImagePath);
+
         Department department = departmentRepository.findById(registerDto.getDepartmentId())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 부서입니다."));
         Position position = positionRepository.findById(registerDto.getPositionId())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 직급입니다."));
-        User user = User.fromRegisterDto(registerDto, department, position, registerDto.getPassword());
-        return userRepository.save(user);
+
+        User newUser = User.fromRegisterDto(registerDto, department, position, passwordEncoder.encode(registerDto.getPassword()));
+        return userRepository.save(newUser);
     }
+
 
     public User updateUser(String userNum, UserUpdateDto updateDto, String departmentId) {
         System.out.println("Update DTO Department ID: " + updateDto.getDepartmentId());

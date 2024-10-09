@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -51,13 +52,25 @@ public class UserController {
         }
     }
 
+//    @PostMapping("/register")
+//    public ResponseEntity<?> registerUser(@RequestBody UserRegisterDto registerDto, @RequestHeader("Authorization") String token) {
+////        String departmentName = jwtTokenProvider.getDepartmentNameFromToken(token.substring(7));
+//        String departmentid = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
+//        User newUser = userService.registerUser(registerDto, departmentid);
+//        return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 등록 성공", newUser));
+//    }
+
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody UserRegisterDto registerDto, @RequestHeader("Authorization") String token) {
-//        String departmentName = jwtTokenProvider.getDepartmentNameFromToken(token.substring(7));
-        String departmentid = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
-        User newUser = userService.registerUser(registerDto, departmentid);
+    public ResponseEntity<?> registerUser(@RequestPart("user") UserRegisterDto registerDto,
+                                          @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
+                                          @RequestHeader("Authorization") String token) {
+        String departmentId = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
+        if (profileImage != null && !profileImage.isEmpty()) {
+        }
+        User newUser = userService.registerUser(registerDto, profileImage, departmentId);
         return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 등록 성공", newUser));
     }
+
 
     @GetMapping("/list")
     public ResponseEntity<List<UserInfoDto>> getAllUsers() {
