@@ -47,7 +47,7 @@ public class CommentSaveReqDto {
                 .delYn(this.delYn)
                 .createdAt(this.createdAt != null ? this.createdAt : LocalDateTime.now())
                 .user(user)
-                .name(this.name)
+                .name(user.getName())
                 .userNum(userNum)
                 .qna(qna)
                 .build();

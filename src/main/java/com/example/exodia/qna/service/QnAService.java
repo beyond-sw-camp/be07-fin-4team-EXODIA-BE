@@ -17,7 +17,9 @@ import com.example.exodia.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,26 +54,30 @@ public class QnAService {
     }
 
     @Transactional
-    public QnA createQuestion(QnASaveReqDto dto, List<MultipartFile> files, Department department) {
+    public QnA createQuestion(QnASaveReqDto dto, List<MultipartFile> files) {
+        // 유저 정보 가져오기
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사번을 가진 유저가 없습니다."));
 
-        if (department.getId() == null) {
-            departmentRepository.save(department);
+        // dto.getDepartmentId()로 Department 객체 조회
+        if (dto.getDepartmentId() == null || dto.getDepartmentId() == 0) {
+            throw new IllegalArgumentException("유효하지 않은 부서 ID 입니다.");
         }
 
+        Department department = departmentRepository.findById(dto.getDepartmentId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 ID의 부서를 찾을 수 없습니다."));
+
+        // QnA 객체 생성
         QnA qna = dto.toEntity(user, department);
 
-        // 파일이 null이거나 비어있지 않은 경우만 파일 처리
+        // 파일 처리 로직 (필요 시 추가)
         files = files == null ? Collections.emptyList() : files;
         if (!files.isEmpty()) {
             List<String> s3FilePaths = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files, "qna");
             for (int i = 0; i < files.size(); i++) {
                 MultipartFile file = files.get(i);
-                // 빈 파일일 경우 처리 건너뜀
                 if (file.isEmpty()) {
-                    System.out.println("빈 파일이므로 업로드를 건너뜁니다. 파일 이름: " + file.getOriginalFilename());
                     continue;
                 }
 
@@ -86,6 +92,8 @@ public class QnAService {
         return qnARepository.save(qna);
     }
 
+
+
     public Page<QnAListResDto> qnaListByGroup(Long departmentId, Pageable pageable) {
         Department department = departmentRepository.findDepartmentById(departmentId);
         Page<QnA> qnAS = qnARepository.findAllByDepartmentIdAndDelYN(department.getId(), DelYN.N, pageable);
@@ -93,22 +101,45 @@ public class QnAService {
     }
 
     public Page<QnAListResDto> qnaListWithSearch(Pageable pageable, String searchType, String searchQuery) {
-        if (searchQuery != null && !searchQuery.isEmpty()) {
+        Page<QnA> qnAS;
+
+        // 검색 조건이 없는 경우: 최신 작성일 순으로 정렬된 Pageable 사용
+        if (searchQuery == null || searchQuery.isEmpty()) {
+            Pageable sortedByDate = PageRequest.of(
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    Sort.by(Sort.Direction.DESC, "createdAt")
+            );
+            qnAS = qnARepository.findByDelYN(DelYN.N, sortedByDate);
+        } else {
             switch (searchType) {
                 case "title":
-                    return qnARepository.findByTitleContainingIgnoreCaseAndDelYN(searchQuery, DelYN.N, pageable).map(QnA::listFromEntity);
+                    qnAS = qnARepository.findByTitleContainingIgnoreCaseAndDelYN(searchQuery, DelYN.N, pageable);
+                    break;
                 case "content":
-                    return qnARepository.findByQuestionTextContainingIgnoreCaseAndDelYN(searchQuery, DelYN.N, pageable).map(QnA::listFromEntity);
+                    qnAS = qnARepository.findByQuestionTextContainingIgnoreCaseAndDelYN(searchQuery, DelYN.N, pageable);
+                    break;
                 case "title+content":
-                    return qnARepository.findByTitleContainingIgnoreCaseOrQuestionTextContainingIgnoreCaseAndDelYN(
-                            searchQuery, searchQuery, DelYN.N, pageable).map(QnA::listFromEntity);
+                    qnAS = qnARepository.findByTitleContainingIgnoreCaseOrQuestionTextContainingIgnoreCaseAndDelYN(
+                            searchQuery, searchQuery, DelYN.N, pageable);
+                    break;
                 default:
-                    return qnARepository.findByDelYN(DelYN.N, pageable).map(QnA::listFromEntity);
+                    qnAS = qnARepository.findByDelYN(DelYN.N, pageable);
             }
-        } else {
-            return qnARepository.findByDelYN(DelYN.N, pageable).map(QnA::listFromEntity);
         }
+
+        // QnA 객체를 QnAListResDto로 변환하여 반환
+        Page<QnAListResDto> qnaListResDtoPage = qnAS.map(QnA::listFromEntity);
+
+        // 로그 출력으로 각 DTO 확인
+        qnaListResDtoPage.forEach(dto -> System.out.println("QnAListResDto 반환 - ID: " + dto.getId() + ", departmentName: " + dto.getDepartmentName()));
+
+        return qnaListResDtoPage;
     }
+
+
+
+
 
     public List<QnAListResDto> getUserQnAs() {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();

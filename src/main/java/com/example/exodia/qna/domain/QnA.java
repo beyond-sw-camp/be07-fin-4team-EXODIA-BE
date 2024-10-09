@@ -78,16 +78,18 @@ public class QnA extends BaseTimeEntity {
     private Department department;
 
     public QnAListResDto listFromEntity() {
+        String departmentName = (this.department != null ? this.department.getName() : "N/A");
+        System.out.println("QnAListResDto 생성 - departmentName: " + departmentName);
         return QnAListResDto.builder()
                 .id(this.id)
-                .questionUserName(this.questioner.getName()) // 질문자 이름
+                .questionUserName(this.questioner.getName())
                 .title(this.getTitle())
                 .createdAt(this.getCreatedAt())
                 .updatedAt(this.getUpdatedAt())
                 .answeredAt(this.answeredAt)
                 .secretBoard(this.secretBoard)
                 .anonymous(this.anonymous)
-                .department(this.department)
+                .departmentName(this.department.getName())
                 .build();
     }
 

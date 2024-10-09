@@ -34,29 +34,29 @@ public class CommentController {
      */
     @PostMapping("/create")
     public ResponseEntity<?> createComment(@RequestBody CommentSaveReqDto dto) {
+        // 로그를 추가하여 전달받은 dto의 내용을 출력합니다.
+        System.out.println("Received CommentSaveReqDto: " + dto.toString());
+
         try {
-            // 서비스 객체를 이용하여 새로운 댓글을 저장합니다.
             commentService.saveComment(dto);
             CommonResDto commonResDto;
 
-            // 댓글이 특정 게시물에 등록되었는지 확인하고 응답 메시지를 설정
             if (dto.getBoard_id() != null) {
-                // 댓글이 성공적으로 등록되었다는 응답 메시지와 함께 게시물 ID를 반환
                 commonResDto = new CommonResDto(HttpStatus.CREATED, "댓글이 성공적으로 등록되었습니다.", dto.getBoard_id());
                 return new ResponseEntity<>(commonResDto, HttpStatus.CREATED);
+            } else if (dto.getQuestion_id() != null) {
+                commonResDto = new CommonResDto(HttpStatus.CREATED, "댓글이 성공적으로 등록되었습니다.", dto.getQuestion_id());
+                return new ResponseEntity<>(commonResDto, HttpStatus.CREATED);
             } else {
-                // 댓글 등록 시 필수 데이터가 누락되었을 때 발생하는 예외 처리
                 throw new IllegalArgumentException("게시물 ID 또는 QnA ID가 제공되어야 합니다.");
             }
         } catch (IllegalArgumentException | EntityNotFoundException e) {
-            // IllegalArgumentException: 잘못된 파라미터가 전달된 경우
-            // EntityNotFoundException: 데이터베이스에서 해당 게시물이나 QnA를 찾을 수 없는 경우
             e.printStackTrace();
-            // 에러 메시지를 담은 응답 데이터를 반환합니다. 400 상태 코드
             CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage());
             return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
         }
     }
+
 
     /**
      * 특정 게시물의 댓글 목록을 조회
