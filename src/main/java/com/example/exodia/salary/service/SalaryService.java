@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.List;
 import java.util.Optional;
 
@@ -57,4 +59,17 @@ public class SalaryService {
     public void deleteSalary(Long salaryId) {
         salaryRepository.deleteById(salaryId);
     }
+
+    @Transactional(readOnly = true)
+    public List<Salary> getSalariesByPosition(Long positionId) {
+        return salaryRepository.findByUser_Position_Id(positionId);
+    }
+
+    // 입사일을 기준으로 몇 년차인지 계산
+    public int calculateYearsOfService(User user) {
+        LocalDate joinDate = user.getCreatedAt().toLocalDate();  // 입사일
+        LocalDate currentDate = LocalDate.now();
+        return Period.between(joinDate, currentDate).getYears();  // 몇 년차인지 계산
+    }
+
 }

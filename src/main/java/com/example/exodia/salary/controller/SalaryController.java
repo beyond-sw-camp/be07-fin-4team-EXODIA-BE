@@ -1,6 +1,7 @@
 package com.example.exodia.salary.controller;
 
 import com.example.exodia.salary.domain.Salary;
+import com.example.exodia.salary.dto.SalaryDto;
 import com.example.exodia.salary.service.SalaryService;
 import com.example.exodia.user.domain.User;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/salary")
@@ -37,9 +39,22 @@ public class SalaryController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Salary>> getAllSalaries() {
+    public ResponseEntity<List<SalaryDto>> getAllSalaries() {
         List<Salary> salaries = salaryService.getAllSalaries();
-        return ResponseEntity.ok(salaries);
+        List<SalaryDto> salaryDtos = salaries.stream()
+                .map(salary -> SalaryDto.fromEntity(salary))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(salaryDtos);
     }
+
+    @GetMapping("/byPosition/{positionId}")
+    public ResponseEntity<List<SalaryDto>> getSalariesByPosition(@PathVariable Long positionId) {
+        List<Salary> salaries = salaryService.getSalariesByPosition(positionId);
+        List<SalaryDto> salaryDtos = salaries.stream()
+                .map(SalaryDto::fromEntity)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(salaryDtos);
+    }
+
 
 }
