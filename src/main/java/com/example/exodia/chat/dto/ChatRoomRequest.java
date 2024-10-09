@@ -13,5 +13,6 @@ import java.util.List;
 @NoArgsConstructor
 public class ChatRoomRequest { // 받아오는 값
     private String roomName;
-    private List<String> userNums; // 채팅유저정보 (시작한 사람 포함?)
+    private String userNum; // 방만드는 사람
+    private List<String> userNums; // 초대하는 채팅유저정보
 }

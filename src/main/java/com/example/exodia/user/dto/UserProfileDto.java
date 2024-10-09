@@ -20,6 +20,7 @@ public class UserProfileDto {
     private LocalDate joinDate; // 입사일
     private String name; // 이름
     private String profileImage; // 프로필 이미지
+    private int annualLeave; // 휴가 정보
 
     public static UserProfileDto fromProfileEntity(User user) {
         return new UserProfileDto(
@@ -30,8 +31,8 @@ public class UserProfileDto {
                 user.getPhone(),
                 user.getCreatedAt().toLocalDate(),
                 user.getName(),
-                user.getProfileImage()
-
+                user.getProfileImage(),
+                user.getAnnualLeave()
         );
     }
 }

@@ -50,8 +50,7 @@ public class DocumentController {
 		@RequestPart(value = "file", required = true) List<MultipartFile> files,
 		@RequestPart(value = "data") DocReqDto docReqDto) {
 		try {
-			documentService.saveDoc(files, docReqDto);
-			return ResponseEntity.ok("파일 저장 성공");
+			return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "파일 저장 성공", documentService.saveDoc(files, docReqDto)));
 		} catch (IOException e) {
 			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage()), HttpStatus.NOT_FOUND);
 		}

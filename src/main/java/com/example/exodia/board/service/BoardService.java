@@ -13,6 +13,7 @@ import com.example.exodia.comment.domain.Comment;
 import com.example.exodia.comment.dto.CommentResDto;
 import com.example.exodia.comment.repository.CommentRepository;
 import com.example.exodia.common.domain.DelYN;
+import com.example.exodia.common.service.KafkaProducer;
 import com.example.exodia.common.service.UploadAwsFileService;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
@@ -38,18 +39,20 @@ public class BoardService {
     private final UploadAwsFileService uploadAwsFileService;
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
+    private final KafkaProducer kafkaProducer;
 
 
     @Autowired
     public BoardService(BoardRepository boardRepository, UploadAwsFileService uploadAwsFileService,
                         BoardFileRepository boardFileRepository, UserRepository userRepository,
-                        CommentRepository commentRepository) {
+                        CommentRepository commentRepository, KafkaProducer kafkaProducer) {
         this.boardRepository = boardRepository;
         this.uploadAwsFileService = uploadAwsFileService;
         this.boardFileRepository = boardFileRepository;
         this.userRepository = userRepository;
         this.commentRepository = commentRepository;
 
+        this.kafkaProducer = kafkaProducer;
     }
 
     /**
@@ -75,6 +78,13 @@ public class BoardService {
         // 게시물 정보 저장
         Board board = dto.toEntity(user, category);
         board = boardRepository.save(board);
+
+
+        // 공지사항 또는 경조사 게시물일 경우 모든 사용자에게 알림 전송
+        if (category == Category.NOTICE || category == Category.FAMILY_EVENT) {
+            String message = user.getName() + " 님이 " + dto.getTitle() + "를 작성했습니다: " + dto.getTitle();
+            kafkaProducer.sendBoardEvent("notice-events", message);
+        }
 
         // 업로드할 파일 리스트가 null이거나 비어 있는지 확인하고, 실제 업로드할 파일 리스트만 필터링
         List<MultipartFile> validFiles = files != null ?
@@ -107,6 +117,7 @@ public class BoardService {
                 throw new IllegalStateException("파일 업로드에 실패하여, S3 경로와 파일 리스트의 크기가 일치하지 않습니다.");
             }
         }
+
 
         return board;
     }

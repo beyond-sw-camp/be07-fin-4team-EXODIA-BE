@@ -16,6 +16,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 
@@ -42,4 +43,12 @@ public class Attendance {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    public double getHoursWorked() {
+        if (inTime != null && outTime != null) {
+            // inTime과 outTime 사이의 시간을 계산 (초 단위)
+            Duration duration = Duration.between(inTime, outTime);
+            return duration.toHours() + (duration.toMinutesPart() / 60.0); // 시간을 소수점 단위로 반환
+        }
+        return 0.0;
+    }
 }

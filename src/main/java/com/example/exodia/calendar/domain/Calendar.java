@@ -40,7 +40,8 @@ public class Calendar {
     private LocalDateTime endTime;
 
     @Column(nullable = false)
-    private String type;
+    private String type; // "회사일정" , "부서" , "유저"
+
     @Column(name = "del_yn", nullable = false)
     private String delYn = "N";
 
