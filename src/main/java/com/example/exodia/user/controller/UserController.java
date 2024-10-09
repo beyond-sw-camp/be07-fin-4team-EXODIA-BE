@@ -103,6 +103,11 @@ public class UserController {
         UserProfileDto userProfile = userService.getUserProfile(userNum);
         return ResponseEntity.ok(userProfile);
     }
+    @GetMapping("/department-users/{departmentId}")
+    public ResponseEntity<List<UserInfoDto>> getUsersByDepartment(@PathVariable Long departmentId) {
+        List<UserInfoDto> users = userService.getUsersByDepartment(departmentId);
+        return ResponseEntity.ok(users); // 리스트를 HTTP 200 OK와 함께 반환
+    }
 
     @GetMapping("/search")
     public ResponseEntity<List<User>> searchUsers(
@@ -110,6 +115,5 @@ public class UserController {
     ) {
         List<User> users = userService.searchUsers(search, searchType, pageable);
         return ResponseEntity.ok(users);
-
     }
 }

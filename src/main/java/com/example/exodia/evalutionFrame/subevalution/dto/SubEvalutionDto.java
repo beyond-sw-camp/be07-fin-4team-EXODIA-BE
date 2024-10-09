@@ -28,7 +28,7 @@ public class SubEvalutionDto {
 
     public static SubEvalutionDto fromEntity(SubEvalution subEvalution) {
         return SubEvalutionDto.builder()
-                .evalutionmId(subEvalution.getId())
+                .evalutionmId(subEvalution.getEvalutionm().getId())
                 .content(subEvalution.getContent())
                 .user(UserDto.fromEntity(subEvalution.getUser()))
                 .build();

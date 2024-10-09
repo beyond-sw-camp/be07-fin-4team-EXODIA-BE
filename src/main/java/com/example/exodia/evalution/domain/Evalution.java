@@ -1,5 +1,6 @@
 package com.example.exodia.evalution.domain;
 
+import com.example.exodia.common.domain.BaseTimeEntity;
 import com.example.exodia.evalution.dto.EvalutionDto;
 import com.example.exodia.evalutionFrame.subevalution.domain.SubEvalution;
 import com.example.exodia.user.domain.User;
@@ -24,7 +25,7 @@ import jakarta.persistence.Id;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-public class Evalution {
+public class Evalution extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -61,9 +62,11 @@ public class Evalution {
                 .subEvalutionId(evalution.getSubEvalution().getId())
                 .targetName(evalution.getTarget().getName())
                 .targetDepartment(evalution.getTarget().getDepartment().getName())
+                .evalutorUserNum(evalution.getEvaluator().getUserNum())
                 .evaluatorName(evalution.getEvaluator().getName())
                 .evaluatorDepartment(evalution.getEvaluator().getDepartment().getName())
                 .score(evalution.getScore())
+                .evaluationDate(evalution.getCreatedAt())
                 .build();
     }
 }

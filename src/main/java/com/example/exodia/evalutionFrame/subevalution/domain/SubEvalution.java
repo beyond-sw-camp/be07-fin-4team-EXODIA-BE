@@ -39,7 +39,7 @@ public class SubEvalution {
 
     // 재귀 호출에 의해서 중분류와 무환 순환 구조 발생으로 jsonIgnore 조치
     // 다른 부분에서 오류 시 Evalutionm 에서 sub-Evalutation 삭제
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "evalutionm_id", nullable = false)
     @JsonIgnore
     private Evalutionm evalutionm; // 중분류 상속

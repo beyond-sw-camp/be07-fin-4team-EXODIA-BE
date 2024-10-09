@@ -135,6 +135,17 @@ public class UserService {
         return UserProfileDto.fromProfileEntity(user);
     }
 
+    @Transactional(readOnly = true)
+    public List<UserInfoDto> getUsersByDepartment(Long departmentId) {
+        Department department = departmentRepository.findById(departmentId)
+                .orElseThrow(() -> new RuntimeException("해당 부서가 존재하지 않습니다."));
+
+        List<User> users = userRepository.findAllByDepartmentId(departmentId);
+        return users.stream()
+                .map(UserInfoDto::fromEntity)
+                .collect(Collectors.toList());
+    }
+
     public List<User> searchUsers(String search, String searchType, Pageable pageable) {
         if (search == null || search.isEmpty()) {
             return userRepository.findByDelYn(DelYN.N, pageable).getContent();

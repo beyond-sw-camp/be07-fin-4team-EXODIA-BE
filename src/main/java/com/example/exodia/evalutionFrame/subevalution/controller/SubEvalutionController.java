@@ -1,6 +1,8 @@
 package com.example.exodia.evalutionFrame.subevalution.controller;
 
 import com.example.exodia.evalutionFrame.subevalution.dto.SubEvalutionDto;
+import com.example.exodia.evalutionFrame.subevalution.dto.SubEvalutionResponseDto;
+import com.example.exodia.evalutionFrame.subevalution.dto.SubEvalutionWithUserDetailsDto;
 import com.example.exodia.evalutionFrame.subevalution.service.SubEvalutionService;
 import com.example.exodia.evalutionFrame.subevalution.domain.SubEvalution;
 import com.example.exodia.evalutionFrame.subevalution.dto.SubEvalutionUpdateDto;
@@ -47,4 +49,25 @@ public class SubEvalutionController {
         subEvalutionService.deleteSubEvalution(id);
         return ResponseEntity.noContent().build();
     }
+
+    // 소분류 조회 (대분류명 및 중분류명 포함)
+    @GetMapping("/list-with-categories")
+    public ResponseEntity<List<SubEvalutionResponseDto>> getAllSubEvalutionsWithCategoriesForUser() {
+        List<SubEvalutionResponseDto> subEvalutions = subEvalutionService.getAllSubEvalutionsWithCategoriesForUser();
+        return ResponseEntity.ok(subEvalutions);
+    }
+
+    @GetMapping("/team-evaluations/{userNum}")
+    public ResponseEntity<List<SubEvalutionWithUserDetailsDto>> getTeamMembersSubEvalutions(@PathVariable String userNum) {
+        List<SubEvalutionWithUserDetailsDto> evalutions = subEvalutionService.getTeamMembersSubEvalutions(userNum);
+        return ResponseEntity.ok(evalutions);
+    }
+
+    // 일괄 저장 기능
+    @PostMapping("/create-multiple")
+    public ResponseEntity<List<SubEvalution>> createMultipleSubEvalutions(@RequestBody List<SubEvalutionDto> subEvalutionDtoList) {
+        List<SubEvalution> createdSubEvalutions = subEvalutionService.createMultipleSubEvalutions(subEvalutionDtoList);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdSubEvalutions);
+    }
+
 }

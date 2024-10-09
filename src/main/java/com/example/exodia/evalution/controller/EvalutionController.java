@@ -31,4 +31,11 @@ public class EvalutionController {
         List<EvalutionDto> evalutionList = evalutionService.getAllEvalutions();
         return ResponseEntity.ok(evalutionList);
     }
+
+    @PostMapping("/batch-create")
+    public ResponseEntity<List<Evalution>> batchCreateEvalutions(@RequestBody List<EvalutionDto> evalutionDtos) {
+        List<Evalution> createdEvalutions = evalutionService.batchCreateEvalutions(evalutionDtos);
+        return ResponseEntity.status(201).body(createdEvalutions);
+    }
+
 }
