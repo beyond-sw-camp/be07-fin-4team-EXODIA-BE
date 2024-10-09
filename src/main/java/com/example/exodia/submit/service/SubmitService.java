@@ -15,6 +15,7 @@ import com.example.exodia.submit.domain.Submit;
 import com.example.exodia.submit.domain.SubmitLine;
 import com.example.exodia.submit.domain.SubmitStatus;
 import com.example.exodia.submit.domain.SubmitType;
+import com.example.exodia.submit.dto.SubmitDetResDto;
 import com.example.exodia.submit.dto.SubmitListResDto;
 import com.example.exodia.submit.dto.SubmitSaveReqDto;
 import com.example.exodia.submit.dto.SubmitStatusUpdateDto;
@@ -94,6 +95,7 @@ public class SubmitService {
 						dto.chkReason();
 						submit.updateStatus(SubmitStatus.REJECT, dto.getReason());
 						changeToReject(dto.getSubmitId());
+						submit.updateStatus(SubmitStatus.REJECT, "반려 이유 필요함");
 					} else if (dto.getStatus() == SubmitStatus.ACCEPT) {
 						line.updateStatus(dto.getStatus());
 						submitLineRepository.save(line);
@@ -117,12 +119,14 @@ public class SubmitService {
 	public void changeToReject(Long submitId) {
 		// 히스토리 모든 문서들 REJECT
 		List<SubmitLine> submitLines = submitLineRepository.findBySubmitIdOrderByUserNumDesc(submitId);
-		for(SubmitLine line : submitLines) {
+		for (SubmitLine line : submitLines) {
 			line.updateStatus(SubmitStatus.REJECT);
 			submitLineRepository.save(line);
 		}
+		Submit submit = submitRepository.findById(submitId)
+			.orElseThrow(() -> new EntityNotFoundException("결재 정보가 존재하지 않습니다."));
+		submit.updateStatus(SubmitStatus.REJECT, "reject 이유");
 	}
-
 	// 결재 타입 리스트 전체 조회
 	public List<?> getTypeList(){
 		List<SubmitType> types = submitTypeRepository.findAll();
@@ -161,6 +165,10 @@ public class SubmitService {
 		return mySubmitList;
 	}
 
-
+	public SubmitDetResDto getSubmitDetail(Long id){
+		Submit submit = submitRepository.findById(id)
+			.orElseThrow(() -> new EntityNotFoundException("결재 정보가 존재하지 않습니다."));
+		return submit.fromEntity();
+	}
 
 }

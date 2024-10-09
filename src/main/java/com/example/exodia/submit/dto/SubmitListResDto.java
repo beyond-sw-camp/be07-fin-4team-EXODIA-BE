@@ -18,6 +18,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class SubmitListResDto {
+	private Long id;
 	private String userName;
 	private String department;
 	private String submitStatus;
@@ -28,6 +29,7 @@ public class SubmitListResDto {
 
 	public SubmitListResDto fromLineEntity(User user,  SubmitLine submitLine){
 		return SubmitListResDto.builder()
+			.id(submitLine.getSubmit().getId())
 			.userName(user.getUserNum())
 			.department(user.getDepartment().getName())
 			.submitStatus(submitLine.getSubmitStatus().toString())
@@ -39,6 +41,7 @@ public class SubmitListResDto {
 
 	public SubmitListResDto fromEntity(Submit submit){
 		return SubmitListResDto.builder()
+			.id(submit.getId())
 			.userName(submit.getUser().getUserNum())
 			.department(submit.getUser().getDepartment().getName())
 			.submitStatus(submit.getSubmitStatus().toString())

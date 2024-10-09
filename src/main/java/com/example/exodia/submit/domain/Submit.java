@@ -7,6 +7,7 @@ import org.hibernate.annotations.Where;
 
 import com.example.exodia.common.domain.BaseTimeEntity;
 import com.example.exodia.common.domain.DelYN;
+import com.example.exodia.submit.dto.SubmitDetResDto;
 import com.example.exodia.user.domain.User;
 
 import jakarta.persistence.CascadeType;
@@ -69,6 +70,19 @@ public class Submit extends BaseTimeEntity {
 	public void updateStatus(SubmitStatus status, String reason) {
 		this.submitStatus = status;
 		this.reason = reason;
+	}
+
+	public SubmitDetResDto fromEntity(){
+		return SubmitDetResDto.builder()
+			.userName(this.getUser().getName())
+			.department(this.getDepartment_id().toString())
+			.contents(this.contents)
+			.submitStatus(this.submitStatus.toString())
+			.submitType(this.submitType)
+			.submitUserDtos(null)
+			.rejectReason(this.getReason())
+			.submitTime(this.getCreatedAt())
+			.build();
 	}
 }
 

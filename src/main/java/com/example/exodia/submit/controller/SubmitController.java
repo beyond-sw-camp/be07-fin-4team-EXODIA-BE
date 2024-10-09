@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.exodia.common.dto.CommonErrorDto;
 import com.example.exodia.common.dto.CommonResDto;
+import com.example.exodia.document.dto.DocDetailResDto;
+import com.example.exodia.submit.dto.SubmitDetResDto;
 import com.example.exodia.submit.dto.SubmitSaveReqDto;
 import com.example.exodia.submit.dto.SubmitStatusUpdateDto;
 import com.example.exodia.submit.repository.SubmitTypeRepository;
@@ -79,6 +82,13 @@ public class SubmitController {
 	public ResponseEntity<?> findMySubmits() {
 		List<?> submitTypes = submitService.getMySubmitList();
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "내가 요청한 결재 리스트 조회 성공", submitTypes));
+	}
+
+
+	@GetMapping("/detail/{id}")
+	public ResponseEntity<?> detailDocument(@PathVariable Long id) {
+		SubmitDetResDto submitDetail = submitService.getSubmitDetail(id);
+		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "결재 정보 조회 성공", submitDetail));
 	}
 
 }
