@@ -34,10 +34,21 @@ public class DepartmentController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Department> updateDepartment(@PathVariable Long id, @RequestParam String name, @RequestParam(required = false) Long parentId) {
-        Department department = departmentService.updateDepartment(id, name, parentId);
-        return new ResponseEntity<>(department, HttpStatus.OK);
+    public ResponseEntity<Department> updateDepartment(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> request) {
+
+        String name = (String) request.get("name");
+        Long parentId = request.get("parentId") != null ? Long.valueOf(request.get("parentId").toString()) : null;
+
+        try {
+            Department updatedDepartment = departmentService.updateDepartment(id, name, parentId);
+            return ResponseEntity.ok(updatedDepartment);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
+
 
     @PostMapping("/saveAll")
     public ResponseEntity<Void> saveAllDepartments(@RequestBody List<Department> departments) {

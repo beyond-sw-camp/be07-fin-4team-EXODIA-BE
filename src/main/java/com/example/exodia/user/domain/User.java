@@ -115,7 +115,7 @@ public class User extends BaseTimeEntity {
         return new User(
                 null,
                 dto.getUserNum(),
-                dto.getProfileImage(),
+                null,
                 dto.getName(),
                 Gender.valueOf(dto.getGender()),
                 Status.valueOf(dto.getStatus()),
@@ -123,7 +123,6 @@ public class User extends BaseTimeEntity {
                 dto.getEmail(),
                 dto.getAddress(),
                 dto.getPhone(),
-//                DelYN.N,
                 dto.getSocialNum(),
                 dto.getHireType(),
                 dto.getNowStatus(),
@@ -133,6 +132,7 @@ public class User extends BaseTimeEntity {
                 0
         );
     }
+
 
     public void updateFromDto(UserUpdateDto dto, Department department, Position position) {
         this.name = dto.getName();

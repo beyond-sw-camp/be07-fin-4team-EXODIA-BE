@@ -67,11 +67,10 @@ public class UserService {
     public User registerUser(UserRegisterDto registerDto, MultipartFile profileImage, String departmentId) {
         String savedProfileImagePath = null;
 
-        // 파일이 비어있지 않을 때 파일 저장 처리
         if (profileImage != null && !profileImage.isEmpty()) {
             try {
                 String fileName = profileImage.getOriginalFilename();
-                Path filePath = Paths.get("C:/Users/Playdata/Desktop/티니핑", fileName);
+                Path filePath = Paths.get("C:/Users/Playdata/Desktop/티니핑/test", fileName);
 
                 Files.write(filePath, profileImage.getBytes());
 
@@ -82,16 +81,16 @@ public class UserService {
             }
         }
 
-        registerDto.setProfileImage(savedProfileImagePath);
-
         Department department = departmentRepository.findById(registerDto.getDepartmentId())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 부서입니다."));
         Position position = positionRepository.findById(registerDto.getPositionId())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 직급입니다."));
 
         User newUser = User.fromRegisterDto(registerDto, department, position, passwordEncoder.encode(registerDto.getPassword()));
+        newUser.setProfileImage(savedProfileImagePath);
         return userRepository.save(newUser);
     }
+
 
 
     public User updateUser(String userNum, UserUpdateDto updateDto, String departmentId) {

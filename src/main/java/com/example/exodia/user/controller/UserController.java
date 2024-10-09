@@ -61,12 +61,11 @@ public class UserController {
 //    }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestPart("user") UserRegisterDto registerDto,
-                                          @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
-                                          @RequestHeader("Authorization") String token) {
+    public ResponseEntity<?> registerUser(
+            @RequestPart("user") UserRegisterDto registerDto,
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
+            @RequestHeader("Authorization") String token) {
         String departmentId = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
-        if (profileImage != null && !profileImage.isEmpty()) {
-        }
         User newUser = userService.registerUser(registerDto, profileImage, departmentId);
         return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 등록 성공", newUser));
     }
