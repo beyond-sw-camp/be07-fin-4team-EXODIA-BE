@@ -1,6 +1,7 @@
 package com.example.exodia.department.controller;
 
 import com.example.exodia.department.domain.Department;
+import com.example.exodia.department.dto.DepartmentDto;
 import com.example.exodia.department.service.DepartmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -8,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/department")
@@ -47,5 +49,16 @@ public class DepartmentController {
     public ResponseEntity<Void> deleteDepartment(@PathVariable Long id) {
         departmentService.deleteDepartment(id);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+
+    @GetMapping
+    public ResponseEntity<List<DepartmentDto>> getDepartments() {
+        List<DepartmentDto> departments = departmentService.getAllDepartments()
+                .stream()
+                .map(department -> new DepartmentDto(department.getId(), department.getName()))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(departments);
     }
 }

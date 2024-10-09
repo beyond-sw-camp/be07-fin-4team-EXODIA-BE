@@ -1,14 +1,18 @@
 package com.example.exodia.position.controller;
 
 import com.example.exodia.position.domain.Position;
+import com.example.exodia.position.dto.PositionDto;
 import com.example.exodia.position.repository.PositionRepository;
+import com.example.exodia.position.service.PositionService;
 import com.example.exodia.salary.domain.PositionSalary;
 import com.example.exodia.salary.repository.PositionSalaryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+
 @RestController
 @RequestMapping("/positions")
 @RequiredArgsConstructor
@@ -16,12 +20,7 @@ public class PositionController {
 
     private final PositionRepository positionRepository;
     private final PositionSalaryRepository positionSalaryRepository;
-
-    @GetMapping
-    public ResponseEntity<List<Position>> getPositions() {
-        List<Position> positions = positionRepository.findAll();
-        return ResponseEntity.ok(positions);
-    }
+    private final PositionService positionService;
 
     @PostMapping
     public ResponseEntity<Position> createPosition(@RequestBody Position position) {
@@ -47,6 +46,16 @@ public class PositionController {
 
         positionRepository.delete(position);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping
+    public ResponseEntity<List<PositionDto>> getPositions() {
+        List<PositionDto> positions = positionService.getAllPositions()
+                .stream()
+                .map(position -> new PositionDto(position.getId(), position.getName()))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(positions);
     }
 }
 
