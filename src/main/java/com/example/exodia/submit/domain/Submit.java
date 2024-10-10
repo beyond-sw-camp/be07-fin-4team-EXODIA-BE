@@ -7,6 +7,7 @@ import org.hibernate.annotations.Where;
 
 import com.example.exodia.common.domain.BaseTimeEntity;
 import com.example.exodia.common.domain.DelYN;
+import com.example.exodia.submit.dto.SubmitDetResDto;
 import com.example.exodia.user.domain.User;
 
 import jakarta.persistence.CascadeType;
@@ -18,6 +19,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
@@ -33,7 +35,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @Where(clause = "del_yn = 'N'")
 public class Submit extends BaseTimeEntity {
-  
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -61,13 +63,26 @@ public class Submit extends BaseTimeEntity {
 	@Column(name = "del_yn", nullable = false)
 	private DelYN delYn = DelYN.N;
 
-	@OneToOne
-	@JoinColumn(name = "user_id", nullable = false)
+	@ManyToOne
+	@JoinColumn(name = "user_num", referencedColumnName = "user_num", nullable = false)
 	private User user;
 
 	public void updateStatus(SubmitStatus status, String reason) {
 		this.submitStatus = status;
 		this.reason = reason;
+	}
+
+	public SubmitDetResDto fromEntity(){
+		return SubmitDetResDto.builder()
+			.userName(this.getUser().getName())
+			.department(this.getDepartment_id().toString())
+			.contents(this.contents)
+			.submitStatus(this.submitStatus.toString())
+			.submitType(this.submitType)
+			.submitUserDtos(null)
+			.rejectReason(this.getReason())
+			.submitTime(this.getCreatedAt())
+			.build();
 	}
 }
 
