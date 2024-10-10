@@ -52,17 +52,9 @@ public class UserController {
         }
     }
 
-//    @PostMapping("/register")
-//    public ResponseEntity<?> registerUser(@RequestBody UserRegisterDto registerDto, @RequestHeader("Authorization") String token) {
-////        String departmentName = jwtTokenProvider.getDepartmentNameFromToken(token.substring(7));
-//        String departmentid = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
-//        User newUser = userService.registerUser(registerDto, departmentid);
-//        return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 등록 성공", newUser));
-//    }
-
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(
-            @RequestPart("user") UserRegisterDto registerDto,
+            @ModelAttribute UserRegisterDto registerDto,
             @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
             @RequestHeader("Authorization") String token) {
         String departmentId = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
