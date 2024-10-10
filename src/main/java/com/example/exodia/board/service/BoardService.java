@@ -25,6 +25,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
@@ -40,19 +41,25 @@ public class BoardService {
     private final UploadAwsFileService uploadAwsFileService;
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
+    private final BoardHitsService boardHitsService;
     private final KafkaProducer kafkaProducer;
+
 
 
     @Autowired
     public BoardService(BoardRepository boardRepository, UploadAwsFileService uploadAwsFileService,
                         BoardFileRepository boardFileRepository, UserRepository userRepository,
+
+                        CommentRepository commentRepository, BoardHitsService boardHitsService) {
+
                         CommentRepository commentRepository, KafkaProducer kafkaProducer) {
+
         this.boardRepository = boardRepository;
         this.uploadAwsFileService = uploadAwsFileService;
         this.boardFileRepository = boardFileRepository;
         this.userRepository = userRepository;
         this.commentRepository = commentRepository;
-
+        this.boardHitsService = boardHitsService;
         this.kafkaProducer = kafkaProducer;
     }
 
@@ -141,23 +148,27 @@ public class BoardService {
         if (searchQuery != null && !searchQuery.isEmpty()) {
             switch (searchType) {
                 case "title":
-                    boards = boardRepository.findByTitleContainingIgnoreCaseAndCategory(searchQuery, category, DelYN.N, pageable);
+                    boards = boardRepository.findByTitleContainingIgnoreCaseAndCategoryAndDelYn(
+                            searchQuery, category, DelYN.N, pageable);
                     break;
                 case "content":
-                    boards = boardRepository.findByContentContainingIgnoreCaseAndCategory(searchQuery, category, DelYN.N, pageable);
+                    boards = boardRepository.findByContentContainingIgnoreCaseAndCategoryAndDelYn(
+                            searchQuery, category, DelYN.N, pageable);
                     break;
                 case "title+content":
-                    boards = boardRepository.findByTitleContainingIgnoreCaseOrContentContainingIgnoreCaseAndCategory(
+                    boards = boardRepository.findByTitleContainingIgnoreCaseOrContentContainingIgnoreCaseAndCategoryAndDelYn(
                             searchQuery, searchQuery, category, DelYN.N, pageable);
                     break;
                 case "user_num":
                     if (searchQuery.length() != 12) {
                         throw new IllegalArgumentException("사번은 12자리 문자열이어야 합니다.");
                     }
-                    boards = boardRepository.findByUser_UserNumAndCategoryAndDelYn(searchQuery, category, DelYN.N, pageable);
+                    boards = boardRepository.findByUser_UserNumAndCategoryAndDelYn(
+                            searchQuery, category, DelYN.N, pageable);
                     break;
                 case "name":
-                    boards = boardRepository.findByUser_NameContainingIgnoreCaseAndCategory(searchQuery, category, DelYN.N, pageable);
+                    boards = boardRepository.findByUser_NameContainingIgnoreCaseAndCategoryAndDelYn(
+                            searchQuery, category, DelYN.N, pageable);
                     break;
                 default:
                     boards = boardRepository.findByCategoryAndDelYn(category, DelYN.N, pageable);
@@ -179,22 +190,23 @@ public class BoardService {
 
 
 
+
+
     /**
      * 특정 게시물의 상세 정보를 조회하는 메서드
      * @param id - 조회할 게시물의 고유 ID
      * @return 게시물의 상세 정보를 포함한 DTO
      */
-    public BoardDetailDto BoardDetail(Long id) {
+    public BoardDetailDto BoardDetail(Long id,String userNum) {
         // 게시물 조회 (존재하지 않을 경우 예외 발생)
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("게시물을 찾을 수 없습니다."));
 
-        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 
         // 조회수 증가 후 업데이트된 조회수 반환
-        Long updatedHits = 1L;
+        Long updatedHits = boardHitsService.incrementBoardHits(id, userNum);
 
-//        board.updateBoardHitsFromRedis(updatedHits);
+        board.updateBoardHitsFromRedis(updatedHits);
         boardRepository.save(board);
 
         // 파일 및 댓글 정보 조회
@@ -208,7 +220,8 @@ public class BoardService {
         BoardDetailDto boardDetailDto = board.detailFromEntity(boardFiles);
         boardDetailDto.setComments(commentResDto);
         boardDetailDto.setHits(updatedHits);
-        boardDetailDto.setUser_num(userNum);
+        boardDetailDto.setUser_num(board.getUser().getUserNum());
+
 
         return boardDetailDto;
     }

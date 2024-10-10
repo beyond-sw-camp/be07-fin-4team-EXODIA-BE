@@ -59,18 +59,16 @@ public class QnA extends BaseTimeEntity {
     @OneToMany(mappedBy = "qna", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments;
 
-    @Column(name = "secret_board", nullable = false)
-    private Boolean secretBoard = false;
 
     @Column(name = "anonymous", nullable = false)
     private Boolean anonymous = false;
 
     @Builder.Default
-    @OneToMany(mappedBy = "qna", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "answer", cascade = CascadeType.ALL)
     private List<BoardFile> answererFiles = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(mappedBy = "qna", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
     private List<BoardFile> questionerFiles = new ArrayList<>();
 
     @ManyToOne
@@ -78,16 +76,17 @@ public class QnA extends BaseTimeEntity {
     private Department department;
 
     public QnAListResDto listFromEntity() {
+        String departmentName = (this.department != null ? this.department.getName() : "N/A");
+        System.out.println("QnAListResDto 생성 - departmentName: " + departmentName);
         return QnAListResDto.builder()
                 .id(this.id)
-                .questionUserName(this.questioner.getName()) // 질문자 이름
+                .questionUserName(this.questioner.getName())
                 .title(this.getTitle())
                 .createdAt(this.getCreatedAt())
                 .updatedAt(this.getUpdatedAt())
                 .answeredAt(this.answeredAt)
-                .secretBoard(this.secretBoard)
                 .anonymous(this.anonymous)
-                .department(this.department)
+                .departmentName(this.department.getName())
                 .build();
     }
 
@@ -101,8 +100,7 @@ public class QnA extends BaseTimeEntity {
         this.title = dto.getTitle();
         this.questionText = dto.getQuestionText();
 
-        // 비밀 여부 및 익명 여부 업데이트
-        this.secretBoard = dto.getSecretBoard();
+        // 익명 여부 업데이트
         this.anonymous = dto.getAnonymous();
 
         // 업데이트 시간을 현재 시간으로 설정

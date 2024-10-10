@@ -23,27 +23,22 @@ public class QnASaveReqDto {
     private String title;
     private String questionText;
     private User questioner;
+    private Long departmentId;  // department 객체 대신 departmentId 필드 사용
     @Builder.Default
     private DelYN delYN = DelYN.N;
     @Builder.Default
-    private Boolean secretBoard = false;
-    @Builder.Default
     private Boolean anonymous = false;
     private List<MultipartFile> files;
-    private Department department;
 
-    // DTO를 Entity로 변환하는 메서드
-    public QnA toEntity(User user,Department department) {
-        QnA qna = QnA.builder()
+    // DTO를 Entity로 변환하는 메서드 (Department는 서비스에서 직접 할당)
+    public QnA toEntity(User user, Department department) {
+        return QnA.builder()
                 .questioner(user)
                 .title(this.title)
                 .questionText(this.questionText)
-                .secretBoard(this.secretBoard)
                 .anonymous(this.anonymous)
                 .delYN(this.delYN)
                 .department(department)
                 .build();
-
-        return qna;
     }
 }

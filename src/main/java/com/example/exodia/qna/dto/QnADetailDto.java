@@ -25,6 +25,8 @@ public class QnADetailDto {
     private String answerText;
     private String questionUserName;
     private String answerUserName;
+    private String questionUserNum;
+    private String answerUserNum;
     private Long department;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -32,6 +34,8 @@ public class QnADetailDto {
     private List<FileDto> qFiles;
     private List<FileDto> aFiles;
     private List<CommentResDto> comments;
+    @Builder.Default
+    private Boolean anonymous = false;
 
     // QnA 엔티티를 QnADetailDto로 변환하는 메서드
     public static QnADetailDto fromEntity(QnA qna, List<CommentResDto> comments) {
@@ -49,6 +53,9 @@ public class QnADetailDto {
                 .aFiles(convertFileListToDto(qna.getAnswererFiles())) // 답변자 파일 리스트를 FileDto 리스트로 변환
                 .comments(comments != null ? comments : List.of()) // 댓글 리스트 null 체크
                 .department(qna.getDepartment().getId()) // department 객체의 id만 설정
+                .questionUserNum(qna.getQuestioner().getUserNum())
+                .answerUserNum(qna.getAnswerer() != null ? qna.getAnswerer().getUserNum() : null)
+                .anonymous(qna.getAnonymous())
                 .build();
     }
 }

@@ -128,9 +128,9 @@ public class BoardController {
      * @return 게시물 상세 정보를 포함한 ResponseEntity 반환
      */
     @GetMapping("/detail/{id}")
-    public ResponseEntity<?> getBoardDetail(@PathVariable Long id) {
+    public ResponseEntity<?> getBoardDetail(@PathVariable Long id,@RequestParam String userNum) {
         try {
-            BoardDetailDto boardDetail = boardService.BoardDetail(id);
+            BoardDetailDto boardDetail = boardService.BoardDetail(id,userNum);
             CommonResDto response = new CommonResDto(HttpStatus.OK, "게시물 상세 정보를 반환합니다.", boardDetail);
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (EntityNotFoundException e) {

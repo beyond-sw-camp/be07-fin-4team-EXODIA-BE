@@ -102,9 +102,9 @@ public class Board extends BaseTimeEntity {
                 .build();
     }
 
-//    public void updateBoardHitsFromRedis(Long hits) {
-//        this.hits = hits;
-//    }
+    public void updateBoardHitsFromRedis(Long hits) {
+        this.hits = hits;
+    }
 
 
 }

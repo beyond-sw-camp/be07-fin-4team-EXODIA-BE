@@ -34,8 +34,12 @@ public class BoardFile {
     private Board board;
 
     @ManyToOne
-    @JoinColumn(name = "qna_id")
-    private QnA qna;
+    @JoinColumn(name = "question_id")
+    private QnA question;
+
+    @ManyToOne
+    @JoinColumn(name = "answer_id")
+    private QnA answer;
 
     @Column(nullable = false, length = 2083)
     private String filePath;
@@ -62,9 +66,19 @@ public class BoardFile {
                 .build();
     }
 
-    public static BoardFile createQnAFile(QnA qna, String filePath, String fileType, String fileName, Long fileSize) {
+    public static BoardFile createQuestionFile(QnA question, String filePath, String fileType, String fileName, Long fileSize) {
         return BoardFile.builder()
-                .qna(qna)
+                .question(question)
+                .filePath(filePath)
+                .fileType(fileType)
+                .fileName(fileName)
+                .fileSize(fileSize)
+                .build();
+    }
+
+    public static BoardFile createAnswerFile(QnA answer, String filePath, String fileType, String fileName, Long fileSize) {
+        return BoardFile.builder()
+                .answer(answer)
                 .filePath(filePath)
                 .fileType(fileType)
                 .fileName(fileName)

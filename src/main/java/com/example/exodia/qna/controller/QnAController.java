@@ -7,6 +7,8 @@ import com.example.exodia.department.domain.Department;
 import com.example.exodia.qna.domain.QnA;
 import com.example.exodia.qna.dto.*;
 import com.example.exodia.qna.service.QnAService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -15,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,46 +31,49 @@ public class QnAController {
 
     private final QnAService qnAService;
 
-    @Autowired
     public QnAController(QnAService qnAService) {
         this.qnAService = qnAService;
     }
 
-    /**
-     * 새로운 QnA 질문을 생성하는 메서드
-     * @param dto - 클라이언트에서 전달된 질문 정보가 담긴 객체
-     * @param files - 첨부 파일 목록 (선택적)
-     * @param department - 질문을 등록할 부서 정보
-     * @return 생성된 질문의 ID를 포함한 응답 데이터 반환
-     */
-    @PostMapping("/create")
-    public ResponseEntity<?> createQuestion(QnASaveReqDto dto, @RequestPart(value = "files", required = false) List<MultipartFile> files, Department department) {
+
+
+    @PostMapping(value = "/create", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    public ResponseEntity<?> createQuestion(
+            @RequestPart(value = "files", required = false) List<MultipartFile> files,
+            @RequestPart(value = "dto") String dtoJson) {  // JSON 형태의 dto 데이터를 String으로 받기
+
+        // JSON을 DTO로 매핑
+        ObjectMapper objectMapper = new ObjectMapper();
+        QnASaveReqDto dto = null;
         try {
-            // 서비스 객체를 이용하여 새로운 질문을 저장함
-            QnA qna = qnAService.createQuestion(dto, files, department);
-            // 질문이 성공적으로 생성되었다는 응답 데이터를 생성함
+            dto = objectMapper.readValue(dtoJson, QnASaveReqDto.class);  // JSON 문자열을 QnASaveReqDto로 변환
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("JSON 파싱 오류: " + e.getMessage());
+        }
+
+        // DTO의 유효성 검사
+        if (dto.getDepartmentId() == null) {
+            throw new IllegalArgumentException("부서 ID가 유효하지 않습니다. DTO에서 부서 ID가 null입니다.");
+        }
+
+        try {
+            // departmentId를 사용하여 새로운 질문을 저장
+            QnA qna = qnAService.createQuestion(dto, files);
             CommonResDto commonResDto = new CommonResDto(HttpStatus.CREATED, "질문이 성공적으로 등록되었습니다.", qna.getId());
             return new ResponseEntity<>(commonResDto, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
-            // 잘못된 입력 값이 전달된 경우 발생하는 예외 처리
             e.printStackTrace();
             CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage());
             return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
         }
     }
 
-    /**
-     * 모든 QnA 질문 목록을 조회하는 메서드
-     * @param pageable - 페이징 정보를 포함한 객체
-     * @param searchCategory - 검색 카테고리 (선택적)
-     * @param searchQuery - 검색어 (선택적)
-     * @param departmentId - 부서 ID (선택적)
-     * @return 조회된 질문 목록 반환
-     */
+
+
     @GetMapping("/list")
     public ResponseEntity<?> getAllQuestions(
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
-            @RequestParam(required = false) String searchCategory,
+            @RequestParam(required = false) String searchType,
             @RequestParam(required = false) String searchQuery,
             @RequestParam(required = false) Long departmentId) {
 
@@ -78,7 +84,7 @@ public class QnAController {
             qnaList = qnAService.qnaListByGroup(departmentId, pageable);
         } else {
             // 부서 ID가 없으면, 검색 카테고리와 검색어를 이용하여 질문 목록을 조회함
-            qnaList = qnAService.qnaListWithSearch(pageable, searchCategory, searchQuery);
+            qnaList = qnAService.qnaListWithSearch(pageable, searchType, searchQuery);
         }
 
         // 조회된 질문 목록을 포함한 응답 데이터를 생성함
@@ -89,7 +95,6 @@ public class QnAController {
     /**
      * 특정 QnA 질문의 상세 정보를 조회하는 메서드
      * @param id - 조회할 질문의 고유 ID
-     * @return 조회된 질문의 상세 정보 반환
      */
     @GetMapping("/detail/{id}")
     public ResponseEntity<?> getQuestionDetail(@PathVariable Long id) {
@@ -112,7 +117,6 @@ public class QnAController {
      * @param id - 답변할 질문의 고유 ID
      * @param dto - 답변 정보가 담긴 객체
      * @param files - 첨부 파일 목록 (선택적)
-     * @return 답변이 성공적으로 등록되었다는 응답 데이터 반환
      */
     @PostMapping("/answer/{id}")
     public ResponseEntity<?> answerQuestion(@PathVariable Long id, QnAAnswerReqDto dto,
@@ -136,7 +140,6 @@ public class QnAController {
      * @param id - 수정할 질문의 고유 ID
      * @param dto - 수정할 질문 정보가 담긴 객체
      * @param files - 첨부 파일 목록 (선택적)
-     * @return 수정된 질문의 ID를 포함한 응답 데이터 반환
      */
     @PostMapping("/update/question/{id}")
     public ResponseEntity<?> qnaQUpdate(@PathVariable Long id, QnAQtoUpdateDto dto,

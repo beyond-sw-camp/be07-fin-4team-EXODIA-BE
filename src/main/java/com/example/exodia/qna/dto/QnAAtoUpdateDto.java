@@ -14,7 +14,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class QnAAtoUpdateDto {
-    private String answererName;
     private String answerText;
     private LocalDateTime updatedAt;
     private List<MultipartFile> files;
