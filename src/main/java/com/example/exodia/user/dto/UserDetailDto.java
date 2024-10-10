@@ -23,6 +23,9 @@ public class UserDetailDto {
     private String email;
     private String name;
     private String profileImage;
+    private String address;
+    private String password;
+    private String socialNum;
 
     public static UserDetailDto fromEntity(User user) {
         return new UserDetailDto(
@@ -36,8 +39,10 @@ public class UserDetailDto {
                 user.getAnnualLeave(),
                 user.getEmail(),
                 user.getName(),
-                user.getProfileImage()
+                user.getProfileImage(),
+                user.getAddress(),
+                user.getPassword(),
+                user.getSocialNum()
         );
     }
-
 }
