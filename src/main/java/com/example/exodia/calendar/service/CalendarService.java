@@ -38,48 +38,33 @@ public class CalendarService {
     @Autowired
     private final UserService userService;
 
-    public CalendarService(CalendarRepository calendarRepository, UserRepository userRepository, GoogleCalendarService googleCalendarService, UserService userService) {
+    public CalendarService(CalendarRepository calendarRepository, UserRepository userRepository,
+                           GoogleCalendarService googleCalendarService, UserService userService) {
         this.calendarRepository = calendarRepository;
         this.userRepository = userRepository;
         this.googleCalendarService = googleCalendarService;
         this.userService = userService;
     }
-    /* 현재 인증된 사용자 정보 */
-    private User getAuthenticatedUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new IllegalArgumentException("인증된 사용자가 없습니다.");
-        }
-        if (authentication.getPrincipal() instanceof UserDetails) {
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            return userRepository.findByUserNum(userDetails.getUsername())
-                    .orElseThrow(() -> new IllegalArgumentException("해당 사용자는 존재하지 않습니다."));
-        } else {
-            throw new IllegalArgumentException("UserDetails 타입이 아닙니다.");
-        }
+    /* 인증된 사용자 정보 */
+    private User getAuthenticatedUser() {
+        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByUserNum(userNum)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자는 존재하지 않습니다."));
     }
 
-    /* 이벤트 생성 */
+    /* 캘린더 이벤트 생성 */
     @Transactional
     public CalendarResponseDto createCalendarEvent(CalendarSaveDto dto) throws Exception {
         User user = getAuthenticatedUser();
 
-        // "회사일정" 타입일 경우 관리자 권한 체크
-        if ("회사".equals(dto.getType())) {
+        // 회사일정 타입일 경우 관리자 권한 체크
+        if ("회사일정".equals(dto.getType())) {
             userService.checkHrAuthority(user.getDepartment().getId().toString());
         }
 
         Calendar calendar = Calendar.fromDto(dto, user);
-
-        if ("부서".equals(dto.getType())) {
-            List<User> departmentUsers = userRepository.findByDepartmentAndDelYn(user.getDepartment(), DelYN.N);
-            calendarRepository.save(calendar);
-        }
-        // "유저" 또는 "회사" 타입일 경우 일반적으로 저장
-        else {
-            calendarRepository.save(calendar);
-        }
+        calendarRepository.save(calendar);
 
         // Google Calendar API 연동 로직 추가
         Event googleEvent = googleCalendarService.addEventToGoogleCalendar(dto);
@@ -88,13 +73,10 @@ public class CalendarService {
         return CalendarResponseDto.fromEntity(calendar);
     }
 
-
-
-
-    /* 이벤트 업데이트 */
+    /* 캘린더 이벤트 업데이트 */
     @Transactional
     public CalendarResponseDto updateCalendarEvent(Long calendarId, CalendarUpdateDto dto) throws Exception {
-        User user = getAuthenticatedUser();//
+        User user = getAuthenticatedUser();
         Calendar calendar = calendarRepository.findById(calendarId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 이벤트가 없습니다."));
 
@@ -110,10 +92,11 @@ public class CalendarService {
 
         return CalendarResponseDto.fromEntity(calendar);
     }
-    /* 이벤트 삭제 */
+
+    /* 캘린더 이벤트 삭제 */
     @Transactional
     public void deleteCalendarEvent(Long calendarId) throws Exception {
-        User user = getAuthenticatedUser();//
+        User user = getAuthenticatedUser();
         Calendar calendar = calendarRepository.findById(calendarId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 이벤트가 없습니다."));
 
@@ -128,25 +111,111 @@ public class CalendarService {
         googleCalendarService.deleteEventInGoogleCalendar(calendar.getGoogleEventId());
     }
 
+    /* 사용자 별 캘린더 조회 */
+    @Transactional(readOnly = true)
+    public List<CalendarResponseDto> getUserCalendarsForAuthenticatedUser() {
+        User user = getAuthenticatedUser();
+        List<Calendar> calendars = calendarRepository.findByUserAndDelYn(user, "N");
+
+        return calendars.stream()
+                .filter(calendar -> {
+                    switch (calendar.getType()) {
+                        case "유저":
+                            // "유저" 타입: 본인이 작성한 이벤트만 볼 수 있음
+                            return calendar.getUser().getId().equals(user.getId());
+                        case "부서":
+                            // "부서" 타입: 같은 부서의 사람들만 볼 수 있음
+                            return calendar.getDepartment().getId().equals(user.getDepartment().getId());
+                        case "회사일정":
+                            // "회사일정" 타입: 모든 사용자가 볼 수 있음
+                            return true;
+                        default:
+                            return false;
+                    }
+                })
+                .map(CalendarResponseDto::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    /* 부서별 캘린더 조회 */
+    @Transactional(readOnly = true)
+    public List<CalendarResponseDto> getDepartmentEvents() {
+        User user = getAuthenticatedUser();
+        List<Calendar> departmentEvents = calendarRepository.findByDepartmentAndDelYn(user.getDepartment(), "N");
+
+        return departmentEvents.stream()
+                .map(CalendarResponseDto::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    /* 회사일정 조회 */
+    @Transactional(readOnly = true)
+    public List<CalendarResponseDto> getCompanyEvents() {
+        List<Calendar> companyEvents = calendarRepository.findByTypeAndDelYn("회사일정", "N");
+
+        return companyEvents.stream()
+                .map(CalendarResponseDto::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    /* 유저 및 부서 일정 조회 */
+    @Transactional(readOnly = true)
+    public List<CalendarResponseDto> getUserAndDepartmentEvents() {
+        User user = getAuthenticatedUser();
+
+        // 본인이 작성한 유저 타입의 이벤트 조회
+        List<CalendarResponseDto> userEvents = getUserCalendarsForAuthenticatedUser();
+
+        // 부서 이벤트 조회 (같은 부서의 사람들만 볼 수 있음)
+        List<CalendarResponseDto> departmentEvents = getDepartmentEvents();
+
+        // 모든 유저가 볼 수 있는 회사일정 이벤트 조회
+        List<CalendarResponseDto> companyEvents = getCompanyEvents();
+
+        // 전체 이벤트 리스트 반환
+        List<CalendarResponseDto> allEvents = new ArrayList<>();
+        allEvents.addAll(userEvents);
+        allEvents.addAll(departmentEvents);
+        allEvents.addAll(companyEvents);
+
+        return allEvents;
+    }
+
+    /* 로그인된 개인이 볼 수 있는 자신의 이벤트 리스트 조회 (유저 타입만 반환) */
+    @Transactional(readOnly = true)
+    public List<CalendarResponseDto> getPersonalEventsForAuthenticatedUser() {
+        User user = getAuthenticatedUser();
+
+        // 유저 타입의 이벤트만 필터링
+        List<Calendar> personalEvents = calendarRepository.findByUserAndDelYn(user, "N").stream()
+                .filter(calendar -> "유저".equals(calendar.getType()))  // "유저" 타입 필터링
+                .collect(Collectors.toList());
+
+        return personalEvents.stream()
+                .map(CalendarResponseDto::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    /* 사용자, 부서, 회사, 공휴일 일정 조회 */
     @Transactional(readOnly = true)
     public List<CalendarResponseDto> getUserAndHolidayCalendars() throws GeneralSecurityException, IOException {
         User user = getAuthenticatedUser();
 
-        List<CalendarResponseDto> userCalendars = getUserCalendars(user.getId());
+        List<CalendarResponseDto> userCalendars = getUserCalendarsForAuthenticatedUser();
 
         // 부서 이벤트 조회
-        List<CalendarResponseDto> departmentCalendars = getDepartmentEvents(user);
+        List<CalendarResponseDto> departmentCalendars = getDepartmentEvents();
 
-        // googleCalendarService에서 한국 공휴일 목록
+        // Google Calendar API에서 한국 공휴일 목록 가져오기
         List<Event> holidayEvents = googleCalendarService.getHolidayEvents(
                 "ko.south_korea#holiday@group.v.calendar.google.com",
-                LocalDateTime.now().withDayOfYear(1), // 현 연도의 첫
-                LocalDateTime.now().withDayOfYear(365) // 현 연도의 막
+                LocalDateTime.now().withDayOfYear(1), // 연도의 첫 날
+                LocalDateTime.now().withDayOfYear(365) // 연도의 마지막 날
         );
 
+        // 공휴일 데이터를 CalendarResponseDto로 변환
         List<CalendarResponseDto> holidayDtos = holidayEvents.stream()
                 .map(event -> {
-                    // localdateTime으로 이벤트를 저장할 수 없기 때문에 localDate 으로 파싱
                     LocalDate startDate = event.getStart().getDate() != null ? LocalDate.parse(event.getStart().getDate().toString()) : null;
                     LocalDate endDate = event.getEnd().getDate() != null ? LocalDate.parse(event.getEnd().getDate().toString()) : null;
                     LocalDateTime startDateTime = startDate != null ? startDate.atStartOfDay() : null;
@@ -164,30 +233,14 @@ public class CalendarService {
                     );
                 })
                 .collect(Collectors.toList());
-        // user가 생성한 events 을 불러와서 allEvents 저장
+
+        // 전체 이벤트 리스트 생성
         List<CalendarResponseDto> allEvents = new ArrayList<>(userCalendars);
         allEvents.addAll(departmentCalendars); // 부서 이벤트
         allEvents.addAll(holidayDtos); // 공휴일
+
         return allEvents;
     }
-
-    @Transactional(readOnly = true)
-    public List<CalendarResponseDto> getUserCalendars(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("해당 사원은 없는 사원입니다"));
-        List<Calendar> calendars = calendarRepository.findByUserAndDelYn(user, "N");
-
-        return calendars.stream()
-                .map(CalendarResponseDto::fromEntity)
-                .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public List<CalendarResponseDto> getDepartmentEvents(User user) {
-        List<Calendar> departmentEvents = calendarRepository.findByDepartmentAndDelYn(user.getDepartment(), "N");
-
-        return departmentEvents.stream()
-                .map(CalendarResponseDto::fromEntity)
-                .collect(Collectors.toList());
-    }
-
 }
+
+

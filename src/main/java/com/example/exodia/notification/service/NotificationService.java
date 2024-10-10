@@ -3,6 +3,7 @@ package com.example.exodia.notification.service;
 import com.example.exodia.common.service.SseEmitters;
 import com.example.exodia.notification.domain.Notification;
 import com.example.exodia.notification.domain.NotificationType;
+import com.example.exodia.notification.dto.NotificationDTO;
 import com.example.exodia.notification.repository.NotificationRepository;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
@@ -66,9 +67,11 @@ public class NotificationService {
         for (User admin : admins) {
             Notification notification = new Notification(admin, NotificationType.예약, message);
             notificationRepository.save(notification);
-
+//            sseEmitters.sendToUser(admin.getUserNum(), notification);
             // SSE 실시간 알림 전송
-            sseEmitters.sendToUser(admin.getUserNum(), notification);
+            NotificationDTO dto = new NotificationDTO(notification);
+            sseEmitters.sendToUser(admin.getUserNum(), dto);
+
         }
     }
 
@@ -76,14 +79,18 @@ public class NotificationService {
     public void sendReservationApproval(User user, String message) {
         Notification notification = new Notification(user, NotificationType.차량예약승인, message);
         notificationRepository.save(notification);
-        sseEmitters.sendToUser(user.getUserNum(), notification);
+//        sseEmitters.sendToUser(user.getUserNum(), notification);
+        NotificationDTO dto = new NotificationDTO(notification);
+        sseEmitters.sendToUser(user.getUserNum(), dto);
     }
 
     // 관리자 거절 -> 사용자 알림(거절)
     public void sendReservationRejection(User user, String message) {
         Notification notification = new Notification(user, NotificationType.차량예약거절, message);
         notificationRepository.save(notification);
-        sseEmitters.sendToUser(user.getUserNum(), notification);
+//        sseEmitters.sendToUser(user.getUserNum(), notification);
+        NotificationDTO dto = new NotificationDTO(notification);
+        sseEmitters.sendToUser(user.getUserNum(), dto);
     }
 
     // 관리자들에게 회의실 예약 요청 알림을 전송
@@ -95,7 +102,9 @@ public class NotificationService {
             notificationRepository.save(notification);
 
             // SSE로 실시간 알림 전송
-            sseEmitters.sendToUser(admin.getUserNum(), notification);
+//            sseEmitters.sendToUser(admin.getUserNum(), notification);
+            NotificationDTO dto = new NotificationDTO(notification);
+            sseEmitters.sendToUser(admin.getUserNum(), dto);
         }
     }
 }

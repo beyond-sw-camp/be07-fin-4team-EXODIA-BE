@@ -7,6 +7,7 @@ import com.example.exodia.position.domain.Position;
 import com.example.exodia.user.dto.UserRegisterDto;
 import com.example.exodia.user.dto.UserUpdateDto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

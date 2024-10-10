@@ -2,10 +2,12 @@ package com.example.exodia.document.service;
 
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.example.exodia.common.service.KafkaProducer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -53,6 +55,7 @@ public class DocumentService {
 	private final UploadAwsFileService uploadAwsFileService;
 	private final DocumentSearchService documentSearchService;
 	private S3Client s3Client;
+	private KafkaProducer kafkaProducer;
 
 	@Autowired
 	public DocumentService(DocumentRepository documentRepository, DocumentVersionRepository documentVersionRepository,
@@ -222,6 +225,12 @@ public class DocumentService {
 		// opens search 인덱싱
 		EsDocument esDocument = EsDocument.toEsDocument(newDocument);
 		documentSearchService.indexDocuments(esDocument);
+
+		// 문서 업데이트 후 Kafka에 이벤트 전송
+		String departmentId = document.getUser().getDepartment().getId().toString();
+		String userName = document.getUser().getName();
+		kafkaProducer.sendDocumentUpdateEvent("document-events", document.getDescription(), userName, departmentId, LocalDateTime.now().toString());
+
 
 		return newDocument;
 	}

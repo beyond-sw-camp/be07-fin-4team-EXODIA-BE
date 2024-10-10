@@ -3,11 +3,13 @@ package com.example.exodia.chat.controller;
 import com.example.exodia.chat.dto.ChatRoomRequest;
 import com.example.exodia.chat.service.ChatRoomService;
 import com.example.exodia.common.dto.CommonResDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/chatRoom")
 public class ChatRoomController {
@@ -17,7 +19,7 @@ public class ChatRoomController {
         this.chatRoomService = chatRoomService;
     }
 
-    @PutMapping("/create")
+    @PostMapping("/create")
     public ResponseEntity<?> chatRoomCreate(@RequestBody ChatRoomRequest dto){
         CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "채팅방이 생성되었습니다.", chatRoomService.createChatRoom(dto));
         return new ResponseEntity<>(commonResDto, HttpStatus.OK);
@@ -31,7 +33,7 @@ public class ChatRoomController {
 
     @GetMapping("/{roomId}")
     public ResponseEntity<?> chatRoomView(@PathVariable("roomId") Long roomId){
-        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "채팅방이 조회되었습니다.", chatRoomService.viewChatMessageList(roomId));
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "채팅방의 메세지가 조회되었습니다.", chatRoomService.viewChatMessageList(roomId));
         return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
