@@ -33,7 +33,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Service // 해당 클래스가 서비스 레이어의 역할을 수행하며, 스프링 빈으로 등록됨을 나타냄
+@Service
 public class BoardService {
 
     private final BoardRepository boardRepository;
