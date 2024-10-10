@@ -76,13 +76,18 @@ public class UserController {
     @PutMapping("/list/{userNum}")
     public ResponseEntity<?> updateUser(
             @PathVariable String userNum,
-            @RequestBody UserUpdateDto updateDto,
+            @ModelAttribute UserUpdateDto updateDto,
+            @RequestPart(value = "profileImage", required = false) String profileImageUrl,  // Profile Image URL 처리
             @RequestHeader("Authorization") String token) {
         try {
             String departmentId = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
 
             if (updateDto.getDepartmentId() == null || updateDto.getPositionId() == null) {
                 return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, "부서 또는 직급 ID가 누락되었습니다."), HttpStatus.BAD_REQUEST);
+            }
+
+            if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
+                updateDto.setProfileImage(profileImageUrl);
             }
 
             User updatedUser = userService.updateUser(userNum, updateDto, departmentId);
@@ -93,6 +98,7 @@ public class UserController {
             return new ResponseEntity<>(new CommonErrorDto(HttpStatus.UNAUTHORIZED, e.getMessage()), HttpStatus.UNAUTHORIZED);
         }
     }
+
 
 
    @DeleteMapping("/delete")

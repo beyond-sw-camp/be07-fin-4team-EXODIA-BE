@@ -24,5 +24,6 @@ public class UserRegisterDto {
     private Long departmentId;
     private Long positionId;
     private int annualLeave;
+    private String profileImage;
 }
 

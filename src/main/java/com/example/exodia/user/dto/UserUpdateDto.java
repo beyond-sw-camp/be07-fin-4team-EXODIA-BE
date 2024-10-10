@@ -18,4 +18,6 @@ public class UserUpdateDto {
     private Long departmentId;
     private Long positionId;
     private int annualLeave;
+    private String password;
+    private String socialNum;
 }
