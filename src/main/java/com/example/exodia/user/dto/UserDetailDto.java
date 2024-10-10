@@ -27,8 +27,8 @@ public class UserDetailDto {
     public static UserDetailDto fromEntity(User user) {
         return new UserDetailDto(
                 user.getUserNum(),
-                user.getDepartment().getId(),
-                user.getPosition().getId(),
+                user.getDepartment() != null ? user.getDepartment().getId() : null,
+                user.getPosition() != null ? user.getPosition().getId() : null,
                 UserDto.parseBirthDate(user.getSocialNum()),
                 user.getPhone(),
                 user.getCreatedAt().toLocalDate(),
@@ -39,4 +39,5 @@ public class UserDetailDto {
                 user.getProfileImage()
         );
     }
+
 }
