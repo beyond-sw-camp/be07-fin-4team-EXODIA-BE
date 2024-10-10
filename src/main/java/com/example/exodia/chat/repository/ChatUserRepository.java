@@ -10,5 +10,5 @@ import java.util.List;
 
 @Repository
 public interface ChatUserRepository extends JpaRepository<ChatUser, Long> {
-    List<ChatUser> findAllByUserAndDelYn(User user, DelYN delYn);
+    List<ChatUser> findAllByUser(User user);
 }

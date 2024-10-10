@@ -28,22 +28,13 @@ public class ChatRoom extends BaseTimeEntity {
     @Column(nullable = false)
     private String roomName;
 
-//    private Integer userCount; // 채팅방 인원수
-
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL)
     private List<ChatUser> chatUsers = new ArrayList<>();
 
-    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL)
-    private List<ChatMessage> chatMessages = new ArrayList<>();
 
-    public static ChatRoom toEntity(ChatRoomRequest chatRoomRequest){
+    public ChatRoomResponse fromEntity (){ // 단일 조회 , 목록 조회
+        List<String> userNums = this.getChatUsers().stream().map(p->p.getUser().getUserNum()).collect(Collectors.toList());
 
-        return ChatRoom.builder()
-                .roomName(chatRoomRequest.getRoomName())
-                .build();
-    }
-
-    public ChatRoomResponse fromEntity (List<String> userNums){
         return ChatRoomResponse.builder()
                 .roomId(this.getId())
                 .roomName(this.getRoomName())
@@ -51,11 +42,7 @@ public class ChatRoom extends BaseTimeEntity {
                 .build();
     }
 
-    public void setChatUsers(List<ChatUser> users){
-        this.chatUsers = users;
-    }
-
-    public ChatRoomExistResponse fromEntityExistChatRoom(boolean check){
+    public ChatRoomExistResponse fromEntityExistChatRoom(boolean check){ // 생성 결과
         List<String> userNums = this.getChatUsers().stream().map(p->p.getUser().getUserNum()).collect(Collectors.toList());
 
         return ChatRoomExistResponse.builder()
@@ -63,14 +50,6 @@ public class ChatRoom extends BaseTimeEntity {
                 .roomId(this.getId())
                 .roomName(this.getRoomName())
                 .userNums(userNums)
-                .build();
-    }
-
-    public ChatRoomSimpleResponse fromEntitySimpleChatRoom (){
-        return ChatRoomSimpleResponse.builder()
-                .roomId(this.getId())
-                .roomName(this.getRoomName())
-                .userNumbers(this.getChatUsers().size())
                 .build();
     }
 }
