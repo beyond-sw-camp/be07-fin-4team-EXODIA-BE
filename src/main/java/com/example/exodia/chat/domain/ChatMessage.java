@@ -1,5 +1,7 @@
 package com.example.exodia.chat.domain;
 
+import com.example.exodia.chat.dto.ChatFileMetaDataResponse;
+import com.example.exodia.chat.dto.ChatFileSaveListDto;
 import com.example.exodia.chat.dto.ChatMessageRequest;
 import com.example.exodia.chat.dto.ChatMessageResponse;
 import com.example.exodia.common.domain.BaseTimeEntity;
@@ -13,6 +15,8 @@ import org.hibernate.annotations.Where;
 
 import jakarta.persistence.*;// 얘 있음 안된다.
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Entity
@@ -31,7 +35,7 @@ public class ChatMessage extends BaseTimeEntity {
     //    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @ManyToOne
     @JoinColumn(name = "chat_user_id", nullable = false)
-    private User chatUser; // 누가 보냈는지 // ChatUser말고 그냥 멤버를 참조할까.. 채팅방정보가 중복된다.
+    private User chatUser; // 누가 보냈는지
 
     @ManyToOne
     @JoinColumn(name = "chat_room_id", nullable = false)
@@ -43,30 +47,37 @@ public class ChatMessage extends BaseTimeEntity {
 
     private String message;
 
-//    @Column(name = "send_at", updatable = false, nullable = false)
-//    @JsonFormat(pattern = "yyyy-MM-dd hh:mm", timezone = "Asia/Seoul")
-//    private LocalDateTime sendAt;
+    @OneToMany(mappedBy = "chatMessage", cascade = CascadeType.ALL)
+    private List<ChatFile> chatFiles = new ArrayList<>();
 
-
-    public static ChatMessage toEntity(User user, ChatRoom chatRoom, ChatMessageRequest chatMessageRequest){
-        return ChatMessage.builder()
-                .chatUser(user)
-                .chatRoom(chatRoom)
-                .messageType(chatMessageRequest.getMessageType())
-                .message(chatMessageRequest.getMessage())
-//                .sendAt(chatMessageRequest.getSendAt())
-                .build();
-    }
 
     public ChatMessageResponse fromEntity(){
         return ChatMessageResponse.builder()
-                .sendUserNum(this.getChatUser().getUserNum())
-                .sendName(this.getChatUser().getName())
-                .roomId(this.chatRoom.getId())
-//                .roomName(this.chatRoom.getRoomName())
-                .messageType(this.messageType)
-                .message(message)
-//                .sendAt(this.sendAt)
+                .senderNum(this.getChatUser().getUserNum())
+                .senderName(this.getChatUser().getName())
+                .senderDepName(this.getChatUser().getDepartment().getName())
+                .senderPosName(this.getChatUser().getPosition().getName())
+                .roomId(this.getChatRoom().getId())
+                .messageType(this.getMessageType())
+                .message(this.getMessage())
+                .createAt(this.getCreatedAt().toString())
+                .build();
+    }
+
+    public ChatMessageResponse fromEntityWithFile(){
+
+        List<ChatFileMetaDataResponse> files = this.getChatFiles().stream().map(ChatFile::fromEntity).toList();
+
+        return ChatMessageResponse.builder()
+                .senderNum(this.getChatUser().getUserNum())
+                .senderName(this.getChatUser().getName())
+                .senderDepName(this.getChatUser().getDepartment().getName())
+                .senderPosName(this.getChatUser().getPosition().getName())
+                .roomId(this.getChatRoom().getId())
+                .messageType(this.getMessageType())
+                .message(this.getMessage())
+                .files(files)
+                .createAt(this.getCreatedAt().toString())
                 .build();
     }
 }

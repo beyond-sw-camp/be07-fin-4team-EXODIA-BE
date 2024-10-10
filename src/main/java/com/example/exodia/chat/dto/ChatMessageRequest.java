@@ -1,28 +1,40 @@
 package com.example.exodia.chat.dto;
 
+import com.example.exodia.chat.domain.ChatFile;
+import com.example.exodia.chat.domain.ChatMessage;
+import com.example.exodia.chat.domain.ChatRoom;
 import com.example.exodia.chat.domain.MessageType;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.example.exodia.user.domain.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ChatMessageRequest { // 받아오는 값
+public class ChatMessageRequest { // 받아오는 값 - 만드는 값
 
-    private String userNum; // 보내는 사람
+    private String senderNum; // 보내는 사람
 
     private Long roomId;
 
     private MessageType messageType;
 
-    private String message; // file(image)일 경우 url이 들어간다.
+    private String message;
 
-//    @JsonFormat(pattern = "yyyy-MM-dd hh:mm", timezone = "Asia/Seoul")
-//    private LocalDateTime sendAt;
+    private List<ChatFileSaveListDto> files;
+
+    public ChatMessage toEntity(User user, ChatRoom chatRoom){
+        return ChatMessage.builder()
+                .chatUser(user)
+                .chatRoom(chatRoom)
+                .messageType(this.getMessageType())
+                .message(this.getMessage())
+                .build();
+    }
+
 }

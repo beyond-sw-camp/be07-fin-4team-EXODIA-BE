@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ChatRoomSimpleResponse {
-    private Long roomId;
-    private String roomName;
-    private Integer userNumbers; // 채팅유저수
+public class ChatFileRequest { // presigned url 만들 때 받는 값
+    private String chatFileName;
+    private long fileSize; // 최대 용량 100MB
+
 }

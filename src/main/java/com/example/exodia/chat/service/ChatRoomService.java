@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @Transactional
 public class ChatRoomService {
 
-    private final ChatRoomManage chatRoomManage; // redis로 채팅룸 입장유저들 관리 -> 읽음처리...
+    private final ChatRoomManage chatRoomManage; // redis로 채팅룸 입장유저들 관리 -> 읽음처리
     private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatUserRepository chatUserRepository;
@@ -42,9 +42,9 @@ public class ChatRoomService {
         this.userRepository = userRepository;
     }
 
-    // 인원 중복 채팅방 조회 // 쿼리문 추가 수정 필요
-    public Long findExistChatRoom(Set<String> requestUserNums, List<ChatRoom> exisiChatRooms){
-        for(ChatRoom chatRoom : exisiChatRooms){
+    // 인원 중복 채팅방 조회
+    public Long findExistChatRoom(Set<String> requestUserNums, List<ChatRoom> existChatRooms){
+        for(ChatRoom chatRoom : existChatRooms){
             Set<String> existUserNums = chatRoom.getChatUsers().stream().map(chatUser->chatUser.getUser().getUserNum()).collect(Collectors.toSet());
             if(requestUserNums.equals(existUserNums)){
                 log.info("해당 인원들이 포함된 채팅방이 이미 존재합니다.");
@@ -54,12 +54,11 @@ public class ChatRoomService {
         return 0L;
     }
 
+    // 채팅방 만들기
     public ChatRoomExistResponse createChatRoom(ChatRoomRequest chatRoomRequest){
-        // 채팅방 만들기
-
-        // 유저들 존재여부 확인
+        // 유저들 존재여부 확인 -> 채팅구성원
         List<User> participants = new ArrayList<>();
-        // 채팅방 생성하는 유저는 맨처음에 들어간다.
+        // 채팅방 생성한 유저는 맨처음에 들어간다.
         participants.add(userRepository.findByUserNumAndDelYn(chatRoomRequest.getUserNum(), DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다.")));
         // 나머지 채팅방에 초대된 인원
         for(String userNum : chatRoomRequest.getUserNums()){
@@ -69,48 +68,42 @@ public class ChatRoomService {
         // 채팅방 있는지 확인 // 인원 중복 단체채팅방 생성 불가능
         Set<String> requestUserNums = new HashSet<>(chatRoomRequest.getUserNums());
         requestUserNums.add(chatRoomRequest.getUserNum());
-        List<ChatRoom> existChatRooms = chatRoomRepository.findAll(); // 성능을 위해 채팅방을 조회하는 쿼리에서 먼저 채팅방 만드는 유저가 포함된 채팅방만 조회하도록 쿼리를 최적화
+        List<ChatRoom> existChatRooms = chatRoomRepository.findAll(); // ⭐⭐⭐ 성능을 위해 채팅방을 조회하는 쿼리에서 먼저 채팅방 만드는 유저가 포함된 채팅방만 조회하도록 쿼리를 최적화
         Long checkRoomId = findExistChatRoom(requestUserNums, existChatRooms);
         if(checkRoomId != 0L){ // 인원 중복 단체 채팅방이 있다. 기존 채팅방을 반환
-            ChatRoom existedRoom = chatRoomRepository.findByIdAndDelYn(checkRoomId, DelYN.N)
+            ChatRoom existedRoom = chatRoomRepository.findById(checkRoomId)
                     .orElseThrow(()->new EntityNotFoundException("없는 채팅방 입니다."));
-            return existedRoom.fromEntityExistChatRoom(true); // 해결.
+            return existedRoom.fromEntityExistChatRoom(true);
         }
 
-        // 중복 채팅방 없음 // 새로운 채팅방 생성-채팅방저장, 채팅유저저장
-        ChatRoom savedChatRoom = ChatRoom.toEntity(chatRoomRequest);
+        // 중복 채팅방 없음 // 새로운 채팅방 생성- 1. 채팅방저장
+        ChatRoom savedChatRoom = chatRoomRequest.toEntity();
         chatRoomRepository.save(savedChatRoom);
 
-        List<ChatUser> chatUsers = new ArrayList<>();
+        // 새로운 채팅방 생성 - 2. 채팅유저저장
         for(User user : participants){
             ChatUser savedChatUser = ChatUser.toEntity(savedChatRoom, user);
             chatUserRepository.save(savedChatUser);
-            chatUsers.add(savedChatUser);
+            savedChatRoom.getChatUsers().add(savedChatUser);
         }
-
-        savedChatRoom.setChatUsers(chatUsers);
 
         return savedChatRoom.fromEntityExistChatRoom(false);
     }
 
-//    public List<ChatRoomSimpleResponse> viewChatRoomList(String userNum){
-//
-//        User user = userRepository.findByUserNumAndDelYn(userNum, DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 사원입니다."));
-//        // 유저가 포함되어 있는 모든 채팅방 리스트 조회
-//        List<ChatUser> chatUsers = chatUserRepository.findAllByUserAndDelYn(user, DelYN.N);
-//        List<Long> chatRoomIds = chatUsers.stream().map(p->p.getChatRoom().getId()).distinct().collect(Collectors.toList());
-//
-//        // 어떤 순서를 기준으로 리스트업할것인가 // 수정필요
-//        List<ChatRoom> chatRooms = new ArrayList<>();
-//
-//
-//        // 어떤 정보를 넘겨줄 것인가. // 수정필요
-//        return chatRooms.stream().map(ChatRoom::fromEntitySimpleChatRoom).collect(Collectors.toList());
-//    }
+    // 채팅방 목록 조회 ⭐⭐⭐ 어떤 기준으로 리스트 업할것인가.. res부터 새로 만들어야할수도..
+    public List<ChatRoomResponse> viewChatRoomList(String userNum){
+        // 채팅방 목록 조회하는 유저 확인
+        User user = userRepository.findByUserNumAndDelYn(userNum, DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 사원입니다."));
+        // 유저가 포함되어 있는 모든 채팅방 리스트 조회
+        List<ChatUser> chatUsers = chatUserRepository.findAllByUser(user);
+        List<ChatRoom> chatRooms = chatUsers.stream().map(ChatUser::getChatRoom).toList();
+
+        return chatRooms.stream().map(ChatRoom::fromEntity).collect(Collectors.toList());
+    }
 
     public List<ChatMessageResponse> viewChatMessageList(Long roomId){
-        // 채팅방 입장시 메세지 조회 // 어떤 순서를 기준으로 리스트업할것인가 // 수정필요 // 쿼리문
-        return chatMessageRepository.findAllByChatRoomIdAndDelYn(roomId, DelYN.N)
+        // ⭐⭐⭐ 채팅방 입장시 메세지 조회 // 어떤 순서를 기준으로 리스트업할것인가 // 수정필요 // 쿼리문
+        return chatMessageRepository.findAllByChatRoomId(roomId)
                 .stream().map(ChatMessage::fromEntity).collect(Collectors.toList());
     }
 

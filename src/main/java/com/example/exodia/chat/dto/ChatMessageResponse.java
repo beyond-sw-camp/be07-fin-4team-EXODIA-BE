@@ -7,7 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.util.List;
+
 
 @Data
 @Builder
@@ -15,20 +16,18 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class ChatMessageResponse { // 보여주는 값 // 프론트에 넘겨주는 값
 
-//    private String profileImageUrl; // 수정필요
-//    private String department; // 수정 필요
-    private String sendUserNum;
-    private String sendName;
-//    private String position; // 수정필요
+    private String senderNum;
+    private String senderName;
+    private String senderDepName;
+    private String senderPosName;
 
-    private Long roomId; // pubsub보내온 dto이랑 리스트업하는 dto랑 구분해야하나
-//    private String roomName; // pubsub보내온 dto이랑 리스트업하는 dto랑 구분해야하나
+    private Long roomId;
 
     private MessageType messageType;
 
-    private String message; // file(image)일 경우 url이 들어간다.
+    private String message;
 
-//    @JsonFormat(pattern = "yyyy-MM-dd hh:mm", timezone = "Asia/Seoul")
-//    private LocalDateTime sendAt;
+    private List<ChatFileMetaDataResponse> files;
 
+    private String createAt;
 }
