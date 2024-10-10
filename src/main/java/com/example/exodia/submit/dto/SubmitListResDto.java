@@ -30,7 +30,7 @@ public class SubmitListResDto {
 	public SubmitListResDto fromLineEntity(User user,  SubmitLine submitLine){
 		return SubmitListResDto.builder()
 			.id(submitLine.getSubmit().getId())
-			.userName(user.getUserNum())
+			.userName(user.getName())
 			.department(user.getDepartment().getName())
 			.submitStatus(submitLine.getSubmitStatus().toString())
 			.submitType(submitLine.getSubmit().getSubmitType())
