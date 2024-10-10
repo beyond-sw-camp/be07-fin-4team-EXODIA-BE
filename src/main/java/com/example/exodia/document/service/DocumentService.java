@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -136,14 +137,12 @@ public class DocumentService {
 			.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
 
 		Page<Document> docs = documentRepository.findAllByStatus("now", pageable);
-		return docs.map(doc -> {
-			return doc.fromEntityList();
-		});
 		// Page<DocListResDto> docListResDtos = new ArrayList<>();
 		// for (Document doc : docs) {
 		// 	docListResDtos.add(doc.fromEntityList());
 		// }
 		// return docListResDtos;
+		return docs.map(Document::fromEntityList);
 	}
 
 	// 최근 열람 문서 조회
