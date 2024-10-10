@@ -44,24 +44,17 @@ public class BoardService {
     private final BoardHitsService boardHitsService;
     private final KafkaProducer kafkaProducer;
 
-
-
     @Autowired
-    public BoardService(BoardRepository boardRepository, UploadAwsFileService uploadAwsFileService,
-                        BoardFileRepository boardFileRepository, UserRepository userRepository,
-
-                        CommentRepository commentRepository, BoardHitsService boardHitsService) {
-
-                        CommentRepository commentRepository, KafkaProducer kafkaProducer) {
-
+    public BoardService(BoardRepository boardRepository, BoardFileRepository boardFileRepository, UploadAwsFileService uploadAwsFileService, UserRepository userRepository, CommentRepository commentRepository, BoardHitsService boardHitsService, KafkaProducer kafkaProducer) {
         this.boardRepository = boardRepository;
-        this.uploadAwsFileService = uploadAwsFileService;
         this.boardFileRepository = boardFileRepository;
+        this.uploadAwsFileService = uploadAwsFileService;
         this.userRepository = userRepository;
         this.commentRepository = commentRepository;
         this.boardHitsService = boardHitsService;
         this.kafkaProducer = kafkaProducer;
     }
+
 
     /**
      * 새로운 게시물을 생성하는 메서드
