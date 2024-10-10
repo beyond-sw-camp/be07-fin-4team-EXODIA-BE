@@ -73,7 +73,7 @@ public class QnAController {
     @GetMapping("/list")
     public ResponseEntity<?> getAllQuestions(
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
-            @RequestParam(required = false) String searchCategory,
+            @RequestParam(required = false) String searchType,
             @RequestParam(required = false) String searchQuery,
             @RequestParam(required = false) Long departmentId) {
 
@@ -84,7 +84,7 @@ public class QnAController {
             qnaList = qnAService.qnaListByGroup(departmentId, pageable);
         } else {
             // 부서 ID가 없으면, 검색 카테고리와 검색어를 이용하여 질문 목록을 조회함
-            qnaList = qnAService.qnaListWithSearch(pageable, searchCategory, searchQuery);
+            qnaList = qnAService.qnaListWithSearch(pageable, searchType, searchQuery);
         }
 
         // 조회된 질문 목록을 포함한 응답 데이터를 생성함

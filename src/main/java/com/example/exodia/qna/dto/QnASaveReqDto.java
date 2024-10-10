@@ -27,8 +27,6 @@ public class QnASaveReqDto {
     @Builder.Default
     private DelYN delYN = DelYN.N;
     @Builder.Default
-    private Boolean secretBoard = false;
-    @Builder.Default
     private Boolean anonymous = false;
     private List<MultipartFile> files;
 
@@ -38,7 +36,6 @@ public class QnASaveReqDto {
                 .questioner(user)
                 .title(this.title)
                 .questionText(this.questionText)
-                .secretBoard(this.secretBoard)
                 .anonymous(this.anonymous)
                 .delYN(this.delYN)
                 .department(department)

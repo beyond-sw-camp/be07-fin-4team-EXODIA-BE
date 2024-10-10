@@ -130,23 +130,27 @@ public class BoardService {
         if (searchQuery != null && !searchQuery.isEmpty()) {
             switch (searchType) {
                 case "title":
-                    boards = boardRepository.findByTitleContainingIgnoreCaseAndCategory(searchQuery, category, DelYN.N, pageable);
+                    boards = boardRepository.findByTitleContainingIgnoreCaseAndCategoryAndDelYn(
+                            searchQuery, category, DelYN.N, pageable);
                     break;
                 case "content":
-                    boards = boardRepository.findByContentContainingIgnoreCaseAndCategory(searchQuery, category, DelYN.N, pageable);
+                    boards = boardRepository.findByContentContainingIgnoreCaseAndCategoryAndDelYn(
+                            searchQuery, category, DelYN.N, pageable);
                     break;
                 case "title+content":
-                    boards = boardRepository.findByTitleContainingIgnoreCaseOrContentContainingIgnoreCaseAndCategory(
+                    boards = boardRepository.findByTitleContainingIgnoreCaseOrContentContainingIgnoreCaseAndCategoryAndDelYn(
                             searchQuery, searchQuery, category, DelYN.N, pageable);
                     break;
                 case "user_num":
                     if (searchQuery.length() != 12) {
                         throw new IllegalArgumentException("사번은 12자리 문자열이어야 합니다.");
                     }
-                    boards = boardRepository.findByUser_UserNumAndCategoryAndDelYn(searchQuery, category, DelYN.N, pageable);
+                    boards = boardRepository.findByUser_UserNumAndCategoryAndDelYn(
+                            searchQuery, category, DelYN.N, pageable);
                     break;
                 case "name":
-                    boards = boardRepository.findByUser_NameContainingIgnoreCaseAndCategory(searchQuery, category, DelYN.N, pageable);
+                    boards = boardRepository.findByUser_NameContainingIgnoreCaseAndCategoryAndDelYn(
+                            searchQuery, category, DelYN.N, pageable);
                     break;
                 default:
                     boards = boardRepository.findByCategoryAndDelYn(category, DelYN.N, pageable);
@@ -160,6 +164,8 @@ public class BoardService {
 
         return boards.map(Board::listFromEntity);
     }
+
+
 
 
 

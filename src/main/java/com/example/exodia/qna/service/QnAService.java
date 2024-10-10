@@ -101,10 +101,15 @@ public class QnAService {
     }
 
     public Page<QnAListResDto> qnaListWithSearch(Pageable pageable, String searchType, String searchQuery) {
+        // 로그 추가: 입력값 확인
+        System.out.println("qnaListWithSearch() - Received searchType: " + searchType + ", searchQuery: " + searchQuery);
+
         Page<QnA> qnAS;
 
-        // 검색 조건이 없는 경우: 최신 작성일 순으로 정렬된 Pageable 사용
+        // 1. searchQuery 및 searchType 확인
         if (searchQuery == null || searchQuery.isEmpty()) {
+            System.out.println("qnaListWithSearch() - searchQuery is null or empty, returning sorted by date.");
+
             Pageable sortedByDate = PageRequest.of(
                     pageable.getPageNumber(),
                     pageable.getPageSize(),
@@ -112,30 +117,51 @@ public class QnAService {
             );
             qnAS = qnARepository.findByDelYN(DelYN.N, sortedByDate);
         } else {
-            switch (searchType) {
-                case "title":
-                    qnAS = qnARepository.findByTitleContainingIgnoreCaseAndDelYN(searchQuery, DelYN.N, pageable);
-                    break;
-                case "content":
-                    qnAS = qnARepository.findByQuestionTextContainingIgnoreCaseAndDelYN(searchQuery, DelYN.N, pageable);
-                    break;
-                case "title+content":
-                    qnAS = qnARepository.findByTitleContainingIgnoreCaseOrQuestionTextContainingIgnoreCaseAndDelYN(
-                            searchQuery, searchQuery, DelYN.N, pageable);
-                    break;
-                default:
-                    qnAS = qnARepository.findByDelYN(DelYN.N, pageable);
-            }
+            System.out.println("qnaListWithSearch() - searchQuery is not empty. Performing search based on searchType.");
+
+            // 2. searchType에 따른 검색 로직 분기 및 메서드 반환값 확인
+            qnAS = switch (searchType) {
+                case "title" -> {
+                    System.out.println("qnaListWithSearch() - Searching by title.");
+                    Page<QnA> titleResult = qnARepository.findByTitleContainingIgnoreCaseAndDelYN(searchQuery, DelYN.N, pageable);
+                    System.out.println("qnaListWithSearch() - Result count: " + titleResult.getTotalElements());
+                    yield titleResult;
+                }
+                case "content" -> {
+                    System.out.println("qnaListWithSearch() - Searching by content.");
+                    Page<QnA> contentResult = qnARepository.findByQuestionTextContainingIgnoreCaseAndDelYN(searchQuery, DelYN.N, pageable);
+                    System.out.println("qnaListWithSearch() - Result count: " + contentResult.getTotalElements());
+                    yield contentResult;
+                }
+                default -> {
+                    System.out.println("qnaListWithSearch() - Invalid searchType, returning all results.");
+                    Page<QnA> defaultResult = qnARepository.findByDelYN(DelYN.N, pageable);
+                    System.out.println("qnaListWithSearch() - Result count: " + defaultResult.getTotalElements());
+                    yield defaultResult;
+                }
+            };
         }
 
-        // QnA 객체를 QnAListResDto로 변환하여 반환
+        // 3. 검색 결과를 DTO로 변환하고, 변환된 값이 null이 아닌지 확인
+        if (qnAS == null) {
+            System.out.println("qnaListWithSearch() - qnAS is null after search.");
+            throw new NullPointerException("검색 결과가 null입니다.");
+        }
+
         Page<QnAListResDto> qnaListResDtoPage = qnAS.map(QnA::listFromEntity);
 
-        // 로그 출력으로 각 DTO 확인
-        qnaListResDtoPage.forEach(dto -> System.out.println("QnAListResDto 반환 - ID: " + dto.getId() + ", departmentName: " + dto.getDepartmentName()));
+        // 4. DTO로 변환된 결과가 null인 경우 확인
+        qnaListResDtoPage.forEach(dto -> {
+            if (dto == null) {
+                System.out.println("qnaListWithSearch() - Null DTO found in result.");
+            } else {
+                System.out.println("qnaListWithSearch() - QnAListResDto 반환 - ID: " + dto.getId() + ", departmentName: " + dto.getDepartmentName());
+            }
+        });
 
         return qnaListResDtoPage;
     }
+
 
 
 

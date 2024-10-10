@@ -59,8 +59,6 @@ public class QnA extends BaseTimeEntity {
     @OneToMany(mappedBy = "qna", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments;
 
-    @Column(name = "secret_board", nullable = false)
-    private Boolean secretBoard = false;
 
     @Column(name = "anonymous", nullable = false)
     private Boolean anonymous = false;
@@ -87,7 +85,6 @@ public class QnA extends BaseTimeEntity {
                 .createdAt(this.getCreatedAt())
                 .updatedAt(this.getUpdatedAt())
                 .answeredAt(this.answeredAt)
-                .secretBoard(this.secretBoard)
                 .anonymous(this.anonymous)
                 .departmentName(this.department.getName())
                 .build();
@@ -103,8 +100,7 @@ public class QnA extends BaseTimeEntity {
         this.title = dto.getTitle();
         this.questionText = dto.getQuestionText();
 
-        // 비밀 여부 및 익명 여부 업데이트
-        this.secretBoard = dto.getSecretBoard();
+        // 익명 여부 업데이트
         this.anonymous = dto.getAnonymous();
 
         // 업데이트 시간을 현재 시간으로 설정

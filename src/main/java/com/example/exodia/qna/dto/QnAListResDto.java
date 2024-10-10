@@ -21,6 +21,5 @@ public class QnAListResDto {
     private LocalDateTime updatedAt;
     private LocalDateTime answeredAt;
     private String departmentName;
-    private Boolean secretBoard;
     private Boolean anonymous;
 }
