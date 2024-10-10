@@ -149,19 +149,17 @@ public class UserService {
         return UserDetailDto.fromEntity(user);
     }
 
+
     @Transactional
-    public void deleteUser(UserDeleteDto deleteDto, String departmentId) {
-        checkHrAuthority(departmentId);
+    public void deleteUser(UserDeleteDto deleteDto, String deletedBy) {
+        // 삭제 대상자 찾기
         User user = userRepository.findByUserNumAndDelYn(deleteDto.getUserNum(), DelYN.N)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
+
         user.softDelete();
         userRepository.save(user);
 
-        DeleteHistory deleteHistory = new DeleteHistory(
-                deleteDto.getDeletedBy(),
-                deleteDto.getReason(),
-                user
-        );
+        DeleteHistory deleteHistory = new DeleteHistory(deletedBy, deleteDto.getReason(), user);
         deleteHistoryRepository.save(deleteHistory);
     }
 

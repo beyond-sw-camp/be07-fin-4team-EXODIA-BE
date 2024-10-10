@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("user")
@@ -87,29 +88,13 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserDetail(userNum));
     }
 
-//    @PutMapping("/list/{userNum}")
-//    public ResponseEntity<?> updateUser(
-//            @PathVariable String userNum,
-//            @ModelAttribute UserUpdateDto updateDto,
-//            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
-//            @RequestHeader("Authorization") String token) {
-//        try {
-//            String departmentId = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
-//
-//            User updatedUser = userService.updateUser(userNum, updateDto, departmentId, profileImage);
-//            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 정보 수정 완료", updatedUser));
-//        } catch (RuntimeException e) {
-//            e.printStackTrace();
-//            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.UNAUTHORIZED, e.getMessage()), HttpStatus.UNAUTHORIZED);
-//        }
-//    }
-//
-
-   @DeleteMapping("/delete")
-    public ResponseEntity<?> deleteUser(@RequestBody UserDeleteDto userDeleteDto, @RequestHeader("Authorization") String token) {
+    @DeleteMapping("/delete")
+    public ResponseEntity<?> deleteUser(
+            @RequestBody UserDeleteDto userDeleteDto,
+            @RequestHeader("Authorization") String token) {
         try {
-            String departmentId = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
-            userService.deleteUser(userDeleteDto, departmentId);
+            String deletedBy = jwtTokenProvider.getUserNumFromToken(token.substring(7));
+            userService.deleteUser(userDeleteDto, deletedBy);
             return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 삭제 성공", null));
         } catch (RuntimeException e) {
             e.printStackTrace();
@@ -131,10 +116,14 @@ public class UserController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<User>> searchUsers(
-            @RequestParam(required = false) String search, @RequestParam(required = false) String searchType, Pageable pageable
-    ) {
+    public ResponseEntity<List<UserInfoDto>> searchUsers(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String searchType,
+            Pageable pageable) {
         List<User> users = userService.searchUsers(search, searchType, pageable);
-        return ResponseEntity.ok(users);
+        List<UserInfoDto> userDtos = users.stream()
+                .map(UserInfoDto::fromEntity)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(userDtos);
     }
 }
