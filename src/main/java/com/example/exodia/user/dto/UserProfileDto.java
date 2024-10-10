@@ -13,8 +13,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class UserProfileDto {
     private String userNum;
-    private Long departmentId;
-    private Long positionId;
+    private String departmentName;
+    private String positionName;
     private String phone;
     private LocalDate joinDate;
     private String name;
@@ -24,8 +24,8 @@ public class UserProfileDto {
     public static UserProfileDto fromProfileEntity(User user) {
         return new UserProfileDto(
                 user.getUserNum(),
-                user.getDepartment().getId(),
-                user.getPosition().getId(),
+                user.getDepartment().getName(),
+                user.getPosition().getName(),
                 user.getPhone(),
                 user.getCreatedAt().toLocalDate(),
                 user.getName(),
