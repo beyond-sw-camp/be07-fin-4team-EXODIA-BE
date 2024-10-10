@@ -145,4 +145,33 @@ public class UploadAwsFileService {
             return originalFileName; // 확장자가 없는 경우 원래 이름 반환
         }
     }
+
+    public String uploadFileAndReturnPath(MultipartFile file, String folder) {
+        try {
+            if (file.isEmpty()) {
+                throw new IllegalArgumentException("빈 파일입니다.");
+            }
+
+            String originalFileName = file.getOriginalFilename();
+            String fileName = getUniqueFileName(originalFileName);
+
+            byte[] fileData = file.getBytes();
+
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(folder + "/" + fileName)
+                    .contentType(file.getContentType())
+                    .build();
+
+            s3Client.putObject(putObjectRequest, RequestBody.fromBytes(fileData));
+
+            return s3Client.utilities()
+                    .getUrl(a -> a.bucket(bucket).key(folder + "/" + fileName))
+                    .toExternalForm();
+
+        } catch (IOException e) {
+            throw new RuntimeException("파일 업로드 중 오류 발생: " + file.getOriginalFilename(), e);
+        }
+    }
+
 }
