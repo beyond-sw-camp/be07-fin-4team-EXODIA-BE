@@ -117,8 +117,8 @@ public class FileUploadService {
     }
 
     // 파일 메타데이터 DB 저장 (프론트엔드로부터 Presigned URL -> S3 URL 저장 -> 다운로드)
-    @Transactional // 메세지 전송할 때 TYPE FILE일 경우 저장.
-    public List<ChatFileMetaDataResponse> saveChatFileMetaData(ChatMessage messasge, List<ChatFileSaveListDto> chatFileSaveListDtos){
+    @Transactional // 메세지 전송할 때 TYPE FILE일 경우 저장.    //// List<ChatFileMetaDataResponse>
+    public List<ChatFile> saveChatFileMetaData(ChatMessage messasge, List<ChatFileSaveListDto> chatFileSaveListDtos){
         // 파일을 포함하는 chatMesssage 전송되었을때, message db에 저장하고 -> message 넘겨서 파일도 db에 저장
 
         if(chatFileSaveListDtos == null){
@@ -130,9 +130,11 @@ public class FileUploadService {
                 .map(dto -> createChatFile(dto, messasge)).collect(Collectors.toList());
         List<ChatFile> savedChatFiles = chatFileRepository.saveAll(chatFiles);
 
-        return savedChatFiles.stream()
-                .map(ChatFileMetaDataResponse::fromEntity)
-                .collect(Collectors.toList());
+        return savedChatFiles;
+
+//        return savedChatFiles.stream()
+//                .map(ChatFileMetaDataResponse::fromEntity)
+//                .collect(Collectors.toList());
     }
 
     // ChatFileSaveListDto 에서 ChatFile 생성

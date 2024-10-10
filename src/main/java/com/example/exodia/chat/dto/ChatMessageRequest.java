@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -34,6 +35,7 @@ public class ChatMessageRequest { // 받아오는 값 - 만드는 값
                 .chatRoom(chatRoom)
                 .messageType(this.getMessageType())
                 .message(this.getMessage())
+                .chatFiles(new ArrayList<>())
                 .build();
     }
 
