@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -51,13 +52,24 @@ public class UserController {
         }
     }
 
+//    @PostMapping("/register")
+//    public ResponseEntity<?> registerUser(@RequestBody UserRegisterDto registerDto, @RequestHeader("Authorization") String token) {
+////        String departmentName = jwtTokenProvider.getDepartmentNameFromToken(token.substring(7));
+//        String departmentid = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
+//        User newUser = userService.registerUser(registerDto, departmentid);
+//        return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 등록 성공", newUser));
+//    }
+
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody UserRegisterDto registerDto, @RequestHeader("Authorization") String token) {
-//        String departmentName = jwtTokenProvider.getDepartmentNameFromToken(token.substring(7));
-        String departmentid = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
-        User newUser = userService.registerUser(registerDto, departmentid);
+    public ResponseEntity<?> registerUser(
+            @RequestPart("user") UserRegisterDto registerDto,
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
+            @RequestHeader("Authorization") String token) {
+        String departmentId = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
+        User newUser = userService.registerUser(registerDto, profileImage, departmentId);
         return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 등록 성공", newUser));
     }
+
 
     @GetMapping("/list")
     public ResponseEntity<List<UserInfoDto>> getAllUsers() {
@@ -76,13 +88,20 @@ public class UserController {
             @RequestHeader("Authorization") String token) {
         try {
             String departmentId = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
+
+            if (updateDto.getDepartmentId() == null || updateDto.getPositionId() == null) {
+                return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, "부서 또는 직급 ID가 누락되었습니다."), HttpStatus.BAD_REQUEST);
+            }
+
             User updatedUser = userService.updateUser(userNum, updateDto, departmentId);
             return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 정보 수정 완료", updatedUser));
+
         } catch (RuntimeException e) {
             e.printStackTrace();
             return new ResponseEntity<>(new CommonErrorDto(HttpStatus.UNAUTHORIZED, e.getMessage()), HttpStatus.UNAUTHORIZED);
         }
     }
+
 
    @DeleteMapping("/delete")
     public ResponseEntity<?> deleteUser(@RequestBody UserDeleteDto userDeleteDto, @RequestHeader("Authorization") String token) {

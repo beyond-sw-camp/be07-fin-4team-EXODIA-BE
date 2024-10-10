@@ -15,7 +15,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.*;
 
@@ -59,17 +64,39 @@ public class UserService {
                 user.getPosition().getId());
     }
 
-    public User registerUser(UserRegisterDto registerDto, String departmentName) {
-        checkHrAuthority(departmentName);
+    public User registerUser(UserRegisterDto registerDto, MultipartFile profileImage, String departmentId) {
+        String savedProfileImagePath = null;
+
+        if (profileImage != null && !profileImage.isEmpty()) {
+            try {
+                String fileName = profileImage.getOriginalFilename();
+                Path filePath = Paths.get("C:/Users/Playdata/Desktop/티니핑/test", fileName);
+
+                Files.write(filePath, profileImage.getBytes());
+
+                savedProfileImagePath = filePath.toString();
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new RuntimeException("프로필 이미지 저장 중 오류가 발생했습니다.", e);
+            }
+        }
+
         Department department = departmentRepository.findById(registerDto.getDepartmentId())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 부서입니다."));
         Position position = positionRepository.findById(registerDto.getPositionId())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 직급입니다."));
-        User user = User.fromRegisterDto(registerDto, department, position, registerDto.getPassword());
-        return userRepository.save(user);
+
+        User newUser = User.fromRegisterDto(registerDto, department, position, passwordEncoder.encode(registerDto.getPassword()));
+        newUser.setProfileImage(savedProfileImagePath);
+        return userRepository.save(newUser);
     }
 
+
+
     public User updateUser(String userNum, UserUpdateDto updateDto, String departmentId) {
+        System.out.println("Update DTO Department ID: " + updateDto.getDepartmentId());
+        System.out.println("Update DTO Position ID: " + updateDto.getPositionId());
+
         checkHrAuthority(departmentId);
         User user = userRepository.findByUserNumAndDelYn(userNum, DelYN.N)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
@@ -86,6 +113,7 @@ public class UserService {
 
 
     public void checkHrAuthority(String departmentId) {
+        System.out.println("Received departmentId: " + departmentId);
         Department hrDepartment = departmentRepository.findById(Long.parseLong(departmentId))
                 .orElseThrow(() -> new RuntimeException("해당 부서가 존재하지 않습니다."));
 

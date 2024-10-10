@@ -13,8 +13,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class UserDetailDto {
     private String userNum;
-    private String departmentName;
-    private String positionName;
+    private Long departmentId;
+    private Long positionId;
     private String birthDate;
     private String phone;
     private LocalDate joinDate;
@@ -27,8 +27,8 @@ public class UserDetailDto {
     public static UserDetailDto fromEntity(User user) {
         return new UserDetailDto(
                 user.getUserNum(),
-                user.getDepartment().getName(),
-                user.getPosition().getName(),
+                user.getDepartment().getId(),
+                user.getPosition().getId(),
                 UserDto.parseBirthDate(user.getSocialNum()),
                 user.getPhone(),
                 user.getCreatedAt().toLocalDate(),

@@ -16,13 +16,10 @@ public class PositionSalary {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "position_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "position_id")
     private Position position;
 
-    @Column(nullable = false)
     private int yearsOfExperience;
-
-    @Column(nullable = false)
     private Double baseSalary;
 }

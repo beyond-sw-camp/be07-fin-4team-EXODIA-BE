@@ -12,17 +12,17 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class UserInfoDto {
     private String userNum;
-    private String departmentName;
+    private Long departmentId;
+    private Long positionId;
     private String name;
-    private String positionName;
     private LocalDate joinDate;
 
     public static UserInfoDto fromEntity(User user) {
         return new UserInfoDto(
                 user.getUserNum(),
-                user.getDepartment().getName(),
+                user.getDepartment().getId(),
+                user.getPosition().getId(),
                 user.getName(),
-                user.getPosition().getName(),
                 user.getCreatedAt().toLocalDate()
         );
     }

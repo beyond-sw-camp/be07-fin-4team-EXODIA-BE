@@ -37,7 +37,6 @@ public class BoardController {
     public String getCreateBoardPage() {
         return "/board/create";
     }
-
     /**
      * 새로운 게시물 작성 기능
      * @param dto - 사용자가 작성한 게시물 정보가 담긴 객체
@@ -67,7 +66,7 @@ public class BoardController {
 
             // 3. 게시물 정보와 파일 정보 저장
             boardService.createBoard(dto, files);
-            CommonResDto response = new CommonResDto(HttpStatus.CREATED, "게시물이 성공적으로 등록되었습니다.", null);
+            CommonResDto response = new CommonResDto(HttpStatus.CREATED, "게시물이 성공적으로 등록되었습니다.", dto);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
 
         } catch (SecurityException e) {

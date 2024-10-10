@@ -12,22 +12,20 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserProfileDto {
-    private String userNum; //사번
-    private String departmentName; // 부서
-    private String positionName; // 직책
-//    private String birthDate; // 생일
-    private String phone; // 폰번
-    private LocalDate joinDate; // 입사일
-    private String name; // 이름
-    private String profileImage; // 프로필 이미지
-    private int annualLeave; // 휴가 정보
+    private String userNum;
+    private Long departmentId;
+    private Long positionId;
+    private String phone;
+    private LocalDate joinDate;
+    private String name;
+    private String profileImage;
+    private int annualLeave;
 
     public static UserProfileDto fromProfileEntity(User user) {
         return new UserProfileDto(
                 user.getUserNum(),
-                user.getDepartment().getName(),
-                user.getPosition().getName(),
-//                UserDto.parseBirthDate(user.getSocialNum()),
+                user.getDepartment().getId(),
+                user.getPosition().getId(),
                 user.getPhone(),
                 user.getCreatedAt().toLocalDate(),
                 user.getName(),

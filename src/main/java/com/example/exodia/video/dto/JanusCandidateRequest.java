@@ -1,4 +1,4 @@
-package com.example.exodia.common.dto;
+package com.example.exodia.video.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

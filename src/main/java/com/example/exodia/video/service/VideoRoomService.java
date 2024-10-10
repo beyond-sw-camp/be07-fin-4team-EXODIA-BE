@@ -29,6 +29,9 @@ public class VideoRoomService {
     }
 
     public VideoRoom createRoom(String roomName, String password, Long janusRoomId, User host) {
+        if (videoRoomRepository.existsByJanusRoomId(janusRoomId)) {
+            throw new IllegalArgumentException("해당 janusRoomId로 이미 생성된 방이 있습니다.");
+        }
         VideoRoom room = new VideoRoom(
                 janusRoomId,
                 roomName,
@@ -41,10 +44,19 @@ public class VideoRoomService {
         VideoRoom savedRoom = videoRoomRepository.save(room);
 
         VideoRoomRedisDto roomDto = savedRoom.toDto();
-        redisTemplate.opsForValue().set("room:" + savedRoom.getJanusRoomId(), roomDto);  // janusRoomId 사용
-        messagePublisher.publish("Room created by " + host.getName() + ": " + roomName);
+
+        try {
+            redisTemplate.opsForValue().set("room:" + savedRoom.getJanusRoomId(), roomDto);
+            messagePublisher.publish("Room created by " + host.getName() + ": " + roomName);
+        } catch (Exception e) {
+            System.out.println("Redis 연동 중 오류 발생: " + e.getMessage());
+            e.printStackTrace();
+            throw new IllegalStateException("Redis 연동 오류");
+        }
+
         return savedRoom;
     }
+
 
     public boolean joinRoom(Long janusRoomId, String password, User user) {
         Optional<VideoRoom> roomOpt = videoRoomRepository.findByJanusRoomIdAndIsActiveTrue(janusRoomId);
