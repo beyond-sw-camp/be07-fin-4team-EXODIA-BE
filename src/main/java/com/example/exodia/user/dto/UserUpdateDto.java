@@ -2,6 +2,7 @@ package com.example.exodia.user.dto;
 
 import com.example.exodia.user.domain.HireType;
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @NoArgsConstructor

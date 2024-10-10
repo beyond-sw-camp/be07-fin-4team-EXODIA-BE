@@ -7,6 +7,7 @@ import com.example.exodia.department.repository.DepartmentRepository;
 import com.example.exodia.position.repository.PositionRepository;
 import lombok.Data;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 public class UserRegisterDto {
@@ -24,6 +25,6 @@ public class UserRegisterDto {
     private Long departmentId;
     private Long positionId;
     private int annualLeave;
-    private String profileImage;
+    private MultipartFile profileImage;
 }
 

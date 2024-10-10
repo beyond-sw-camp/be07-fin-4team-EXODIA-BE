@@ -3,6 +3,7 @@ package com.example.exodia.user.controller;
 import com.example.exodia.common.auth.JwtTokenProvider;
 import com.example.exodia.common.dto.CommonErrorDto;
 import com.example.exodia.common.dto.CommonResDto;
+import com.example.exodia.common.service.UploadAwsFileService;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.dto.*;
 import com.example.exodia.user.repository.UserRepository;
@@ -24,10 +25,12 @@ public class UserController {
 
     private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final UploadAwsFileService uploadAwsFileService;
 
-    public UserController(UserService userService, JwtTokenProvider jwtTokenProvider) {
+    public UserController(UserService userService, JwtTokenProvider jwtTokenProvider, UploadAwsFileService uploadAwsFileService) {
         this.userService = userService;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.uploadAwsFileService = uploadAwsFileService;
     }
 
     @PostMapping("/login")
@@ -62,6 +65,17 @@ public class UserController {
         return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 등록 성공", newUser));
     }
 
+    @PutMapping("/list/{userNum}")
+    public ResponseEntity<?> updateUser(
+            @PathVariable String userNum,
+            @ModelAttribute UserUpdateDto updateDto,
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
+            @RequestHeader("Authorization") String token) {
+        String departmentId = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
+        User updatedUser = userService.updateUser(userNum, updateDto, departmentId, profileImage);
+        return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 정보 수정 완료", updatedUser));
+    }
+
 
     @GetMapping("/list")
     public ResponseEntity<List<UserInfoDto>> getAllUsers() {
@@ -73,33 +87,23 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserDetail(userNum));
     }
 
-    @PutMapping("/list/{userNum}")
-    public ResponseEntity<?> updateUser(
-            @PathVariable String userNum,
-            @ModelAttribute UserUpdateDto updateDto,
-            @RequestPart(value = "profileImage", required = false) String profileImageUrl,  // Profile Image URL 처리
-            @RequestHeader("Authorization") String token) {
-        try {
-            String departmentId = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
-
-            if (updateDto.getDepartmentId() == null || updateDto.getPositionId() == null) {
-                return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, "부서 또는 직급 ID가 누락되었습니다."), HttpStatus.BAD_REQUEST);
-            }
-
-            if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
-                updateDto.setProfileImage(profileImageUrl);
-            }
-
-            User updatedUser = userService.updateUser(userNum, updateDto, departmentId);
-            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 정보 수정 완료", updatedUser));
-
-        } catch (RuntimeException e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.UNAUTHORIZED, e.getMessage()), HttpStatus.UNAUTHORIZED);
-        }
-    }
-
-
+//    @PutMapping("/list/{userNum}")
+//    public ResponseEntity<?> updateUser(
+//            @PathVariable String userNum,
+//            @ModelAttribute UserUpdateDto updateDto,
+//            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
+//            @RequestHeader("Authorization") String token) {
+//        try {
+//            String departmentId = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
+//
+//            User updatedUser = userService.updateUser(userNum, updateDto, departmentId, profileImage);
+//            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 정보 수정 완료", updatedUser));
+//        } catch (RuntimeException e) {
+//            e.printStackTrace();
+//            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.UNAUTHORIZED, e.getMessage()), HttpStatus.UNAUTHORIZED);
+//        }
+//    }
+//
 
    @DeleteMapping("/delete")
     public ResponseEntity<?> deleteUser(@RequestBody UserDeleteDto userDeleteDto, @RequestHeader("Authorization") String token) {

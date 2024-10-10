@@ -67,54 +67,59 @@ public class UserService {
                 user.getPosition().getId());
     }
 
+
+    @Transactional
     public User registerUser(UserRegisterDto registerDto, MultipartFile profileImage, String departmentId) {
-        String savedProfileImagePath = null;
-
-        if (profileImage != null && !profileImage.isEmpty()) {
-            List<MultipartFile> files = new ArrayList<>();
-            files.add(profileImage);
-            List<String> uploadedUrls = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files, "profile");
-            savedProfileImagePath = uploadedUrls.get(0);
-        }
-
+        // 부서 및 직급 확인
         Department department = departmentRepository.findById(registerDto.getDepartmentId())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 부서입니다."));
         Position position = positionRepository.findById(registerDto.getPositionId())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 직급입니다."));
 
+        // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(registerDto.getPassword());
+
+        // User 엔티티 생성
         User newUser = User.fromRegisterDto(registerDto, department, position, encodedPassword);
-        newUser.setProfileImage(savedProfileImagePath);  // S3 URL을 프로필 이미지로 설정
+
+        // 프로필 이미지가 있는 경우 처리 (S3에 업로드 후 경로 저장)
+        if (profileImage != null && !profileImage.isEmpty()) {
+            String s3ImagePath = uploadAwsFileService.uploadFileAndReturnPath(profileImage, "profile");
+            newUser.setProfileImage(s3ImagePath); // S3 URL을 User 객체에 저장
+        }
+
         return userRepository.save(newUser);
     }
 
-    public User updateUser(String userNum, UserUpdateDto updateDto, String departmentId) {
-        checkHrAuthority(departmentId);
-
-        User user = userRepository.findByUserNumAndDelYn(userNum, DelYN.N)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
-
+    @Transactional
+    public User updateUser(String userNum, UserUpdateDto updateDto, String departmentId, MultipartFile profileImage) {
+        // 부서 및 직급 확인
         Department department = departmentRepository.findById(updateDto.getDepartmentId())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 부서입니다."));
-
         Position position = positionRepository.findById(updateDto.getPositionId())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 직급입니다."));
 
+        // 유저 찾기
+        User user = userRepository.findByUserNumAndDelYn(userNum, DelYN.N)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
+
+        // 비밀번호 업데이트
         if (updateDto.getPassword() != null && !updateDto.getPassword().isEmpty()) {
             String encodedPassword = passwordEncoder.encode(updateDto.getPassword());
             user.setPassword(encodedPassword);
         }
 
-        if (updateDto.getProfileImage() != null) {
-            user.setProfileImage(updateDto.getProfileImage());
+        // 프로필 이미지가 있는 경우 처리 (S3에 업로드 후 경로 저장)
+        if (profileImage != null && !profileImage.isEmpty()) {
+            String s3ImagePath = uploadAwsFileService.uploadFileAndReturnPath(profileImage, "profile");
+            user.setProfileImage(s3ImagePath); // S3 URL을 User 객체에 저장
         }
 
+        // DTO 데이터를 이용한 업데이트
         user.updateFromDto(updateDto, department, position);
 
         return userRepository.save(user);
     }
-
-
 
 
     public void checkHrAuthority(String departmentId) {
