@@ -60,7 +60,7 @@ public class DocumentService {
 	@Autowired
 	public DocumentService(DocumentRepository documentRepository, DocumentVersionRepository documentVersionRepository,
 		DocumentTypeRepository documentTypeRepository, UserRepository userRepository, RedisService redisService,
-		UploadAwsFileService uploadAwsFileService, DocumentSearchService documentSearchService, S3Client s3Client) {
+		UploadAwsFileService uploadAwsFileService, DocumentSearchService documentSearchService, S3Client s3Client, KafkaProducer kafkaProducer) {
 		this.documentRepository = documentRepository;
 		this.documentVersionRepository = documentVersionRepository;
 		this.documentTypeRepository = documentTypeRepository;
@@ -69,6 +69,7 @@ public class DocumentService {
 		this.uploadAwsFileService = uploadAwsFileService;
 		this.documentSearchService = documentSearchService;
 		this.s3Client = s3Client;
+		this.kafkaProducer = kafkaProducer;
 	}
 
 	public Document saveDoc(List<MultipartFile> files, DocReqDto docReqDto) throws IOException{

@@ -21,6 +21,7 @@
     import java.time.LocalDate;
     import java.time.LocalDateTime;
     import java.time.LocalTime;
+    import java.time.format.DateTimeFormatter;
     import java.util.ArrayList;
     import java.util.List;
     import java.util.stream.Collectors;
@@ -88,7 +89,12 @@
             reservationMeetRepository.flush();
 
             // 관리자를 대상으로 알림 전송
-            String message = String.format("%s님이 %s 회의실을 %s ~ %s 에 예약하였습니다. (예약 시간: %s)", user.getName(), meetingRoom.getName(), reservationMeet.getStartTime().toString(), reservationMeet.getEndTime().toString(), LocalDateTime.now());
+            String message = String.format("%s님이 %s 회의실을 %s ~ %s 에 예약하였습니다. (예약 시간: %s)",
+                    user.getName(),
+                    meetingRoom.getName(),
+                    reservationMeet.getStartTime().format( DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
+                    reservationMeet.getEndTime().format( DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
+                    LocalDateTime.now().format( DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
             notificationService.sendMeetReservationReqToAdmins(message);
 
             return ReservationMeetListDto.fromEntity(reservationMeet);

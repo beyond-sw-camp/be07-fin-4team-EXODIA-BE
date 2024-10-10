@@ -38,8 +38,8 @@ public class EvalutionService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 소분류: " + evalutionDto.getSubEvalutionId()));
 
         // 평가 대상자 조회
-        User target = userRepository.findById(evalutionDto.getTargetUserId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 대상자 ID: " + evalutionDto.getTargetUserId()));
+        User target = userRepository.findByUserNum(evalutionDto.getTargetUserNum())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 대상자 ID: " + evalutionDto.getTargetUserNum()));
 
         // 평가 권한 확인
         if (!canEvaluate(evaluator, target)) {
@@ -81,5 +81,48 @@ public class EvalutionService {
     public List<EvalutionDto> getAllEvalutions() {
         List<Evalution> evalutions = evalutionRepository.findAll();
         return evalutions.stream().map(Evalution::fromEntity).collect(Collectors.toList());
+    }
+
+
+    @Transactional
+    public List<Evalution> batchCreateEvalutions(List<EvalutionDto> evalutionDtos) {
+        // 현재 인증된 사용자 가져오기 (평가자)
+        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+        User evaluator = userRepository.findByUserNum(userNum)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
+
+        // 평가를 생성하는 로직
+        List<Evalution> createdEvalutions = evalutionDtos.stream().map(dto -> {
+            // 평가할 소분류 조회
+            SubEvalution subEvalution = subEvalutionRepository.findById(dto.getSubEvalutionId())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 소분류: " + dto.getSubEvalutionId()));
+
+            // targetUserNum이 유효한지 확인
+            if (dto.getTargetUserNum() == null || dto.getTargetUserNum().isEmpty()) {
+                throw new IllegalArgumentException("Target UserNum must not be null or empty");
+            }
+
+            // 평가 대상자 조회
+            User target = userRepository.findByUserNum(dto.getTargetUserNum())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 대상자 ID: " + dto.getTargetUserNum()));
+
+            // 중복성 검증
+            boolean isDuplicate = evalutionRepository.existsByEvaluatorAndTargetAndSubEvalution(
+                    evaluator, target, subEvalution
+            );
+            if (isDuplicate) {
+                throw new RuntimeException("중복된 평가: 이미 해당 소분류에 대한 평가가 존재합니다.");
+            }
+
+            // 평가 권한 확인 (자신 또는 같은 부서 팀원인 경우만)
+            if (!canEvaluate(evaluator, target)) {
+                throw new RuntimeException("평가할 권한이 없습니다.");
+            }
+
+            // DTO를 통해 엔티티 생성
+            return dto.toEntity(subEvalution, evaluator, target);
+        }).collect(Collectors.toList());
+
+        return evalutionRepository.saveAll(createdEvalutions);
     }
 }

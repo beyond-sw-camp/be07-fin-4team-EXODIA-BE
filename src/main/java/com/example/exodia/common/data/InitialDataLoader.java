@@ -93,9 +93,11 @@ public class InitialDataLoader implements CommandLineRunner {
         Position teamLeader = new Position(null, "팀장");
         Position director = new Position(null, "부장");
         Position assistantManager = new Position(null, "대리");
+        Position basicPerson = new Position(null, "사원");
         positionRepository.save(teamLeader);
         positionRepository.save(director);
         positionRepository.save(assistantManager);
+        positionRepository.save(basicPerson);
 
         // 사용자 추가
         String password1 = passwordEncoder.encode("testtest");
