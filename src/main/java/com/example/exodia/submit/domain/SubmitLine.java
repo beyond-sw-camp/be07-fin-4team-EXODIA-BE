@@ -1,5 +1,7 @@
 package com.example.exodia.submit.domain;
 
+import java.time.LocalDateTime;
+
 import org.hibernate.annotations.Where;
 
 import com.example.exodia.common.domain.BaseTimeEntity;
@@ -57,5 +59,6 @@ public class SubmitLine extends BaseTimeEntity {
 
 	public void updateStatus(SubmitStatus status) {
 		this.submitStatus = status;
+		this.setUpdatedAt(LocalDateTime.now());
 	}
 }

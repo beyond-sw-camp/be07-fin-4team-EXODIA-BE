@@ -10,6 +10,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.exodia.department.domain.Department;
+import com.example.exodia.department.repository.DepartmentRepository;
 import com.example.exodia.position.domain.Position;
 import com.example.exodia.position.repository.PositionRepository;
 import com.example.exodia.submit.domain.Submit;
@@ -37,16 +39,19 @@ public class SubmitService {
 	private final SubmitLineRepository submitLineRepository;
 	private final KafkaProducer kafkaProducer;
 	private final SubmitTypeRepository submitTypeRepository;
+	private final DepartmentRepository departmentRepository;
 
 	public SubmitService(SubmitRepository submitRepository, UserRepository userRepository,
 		PositionRepository positionRepository, SubmitLineRepository submitLineRepository,
-		SubmitTypeRepository submitTypeRepository, KafkaProducer kafkaProducer) {
+		SubmitTypeRepository submitTypeRepository, KafkaProducer kafkaProducer,
+		DepartmentRepository departmentRepository) {
 		this.submitRepository = submitRepository;
 		this.userRepository = userRepository;
 		this.positionRepository = positionRepository;
 		this.submitLineRepository = submitLineRepository;
 		this.kafkaProducer = kafkaProducer;
 		this.submitTypeRepository = submitTypeRepository;
+		this.departmentRepository = departmentRepository;
 	}
 
 	// 	결재라인 등록
@@ -188,7 +193,11 @@ public class SubmitService {
 	public SubmitDetResDto getSubmitDetail(Long id) {
 		Submit submit = submitRepository.findById(id)
 			.orElseThrow(() -> new EntityNotFoundException("결재 정보가 존재하지 않습니다."));
-		return submit.fromEntity();
+
+		Department department = departmentRepository.findById(submit.getDepartment_id())
+			.orElseThrow(() -> new EntityNotFoundException("부서 정보가 존재하지 않습니다."));
+
+		return submit.fromEntity(department.getName());
 	}
 
 }
