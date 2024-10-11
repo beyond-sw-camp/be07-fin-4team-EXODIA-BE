@@ -21,7 +21,7 @@ public class SalaryDto {
     private double employmentInsurance;
     private double totalTax;
     private double finalSalary;
-    private int yearsOfService;   
+    private int yearsOfService;
 
     public static SalaryDto fromEntity(Salary salary, int yearsOfService) {
         return new SalaryDto(
