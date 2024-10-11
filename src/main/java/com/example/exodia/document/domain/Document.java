@@ -1,5 +1,6 @@
 package com.example.exodia.document.domain;
 
+import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.Where;
 
 import com.example.exodia.common.domain.BaseTimeEntity;
@@ -13,6 +14,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -66,7 +68,7 @@ public class Document extends BaseTimeEntity {
 	@JoinColumn(name = "document_type", nullable = false)
 	private DocumentType documentType;
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_num", nullable = false)
 	private User user;
 

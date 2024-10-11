@@ -115,10 +115,12 @@ public class DocumentService {
 
 		// S3에서 파일 다운로드
 		String filePath = doc.getFilePath();
+
 		filePath = filePath.substring(filePath.indexOf(".com/") + 5);
+		String fileKey = filePath.substring(filePath.indexOf("document/"));
 		GetObjectRequest getObjectRequest = GetObjectRequest.builder()
 			.bucket("exodia-file")
-			.key("document/" + filePath)
+			.key(fileKey)
 			.build();
 
 		ResponseInputStream<GetObjectResponse> s3Object = s3Client.getObject(getObjectRequest);
