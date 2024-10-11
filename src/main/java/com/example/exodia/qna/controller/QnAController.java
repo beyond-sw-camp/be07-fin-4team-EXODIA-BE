@@ -37,36 +37,7 @@ public class QnAController {
 
 
 
-    @PostMapping(value = "/create", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-    public ResponseEntity<?> createQuestion(
-            @RequestPart(value = "files", required = false) List<MultipartFile> files,
-            @RequestPart(value = "dto") String dtoJson) {  // JSON 형태의 dto 데이터를 String으로 받기
 
-        // JSON을 DTO로 매핑
-        ObjectMapper objectMapper = new ObjectMapper();
-        QnASaveReqDto dto = null;
-        try {
-            dto = objectMapper.readValue(dtoJson, QnASaveReqDto.class);  // JSON 문자열을 QnASaveReqDto로 변환
-        } catch (JsonProcessingException e) {
-            throw new IllegalArgumentException("JSON 파싱 오류: " + e.getMessage());
-        }
-
-        // DTO의 유효성 검사
-        if (dto.getDepartmentId() == null) {
-            throw new IllegalArgumentException("부서 ID가 유효하지 않습니다. DTO에서 부서 ID가 null입니다.");
-        }
-
-        try {
-            // departmentId를 사용하여 새로운 질문을 저장
-            QnA qna = qnAService.createQuestion(dto, files);
-            CommonResDto commonResDto = new CommonResDto(HttpStatus.CREATED, "질문이 성공적으로 등록되었습니다.", qna.getId());
-            return new ResponseEntity<>(commonResDto, HttpStatus.CREATED);
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage());
-            return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
-        }
-    }
 
 
 
@@ -120,10 +91,11 @@ public class QnAController {
      */
     @PostMapping("/answer/{id}")
     public ResponseEntity<?> answerQuestion(@PathVariable Long id, QnAAnswerReqDto dto,
-                                            @RequestPart(value = "files", required = false) List<MultipartFile> files) {
+                                            @RequestPart(value = "files", required = false) List<MultipartFile> files,
+                                            @RequestParam String userNum) {
         try {
             // 서비스 객체를 이용하여 질문에 대한 답변을 저장함
-            qnAService.answerQuestion(id, dto, files);
+            qnAService.answerQuestion(id, dto, files,userNum);
             // 답변이 성공적으로 등록되었다는 응답 데이터를 생성하여 반환함
             CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "질문에 대한 답변이 성공적으로 등록되었습니다.", id);
             return new ResponseEntity<>(commonResDto, HttpStatus.OK);
@@ -143,10 +115,11 @@ public class QnAController {
      */
     @PostMapping("/update/question/{id}")
     public ResponseEntity<?> qnaQUpdate(@PathVariable Long id, QnAQtoUpdateDto dto,
-                                        @RequestPart(value = "files", required = false) List<MultipartFile> files) {
+                                        @RequestPart(value = "files", required = false) List<MultipartFile> files,
+                                        @RequestParam String userNum) {
         try {
             // 서비스 객체를 이용하여 질문을 수정함
-            qnAService.QnAQUpdate(id, dto, files);
+            qnAService.QnAQUpdate(id, dto, files,userNum);
             // 질문이 성공적으로 수정되었다는 응답 데이터를 생성하여 반환함
             CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "질문이 성공적으로 업데이트되었습니다.", id);
             return new ResponseEntity<>(commonResDto, HttpStatus.OK);
@@ -167,10 +140,11 @@ public class QnAController {
      */
     @PostMapping("/update/answer/{id}")
     public ResponseEntity<?> qnaAUpdate(@PathVariable Long id, QnAAtoUpdateDto dto,
-                                        @RequestPart(value = "files", required = false) List<MultipartFile> files) {
+                                        @RequestPart(value = "files", required = false) List<MultipartFile> files,
+                                        @RequestParam String userNum) {
         try {
             // 서비스 객체를 이용하여 답변을 수정함
-            qnAService.QnAAUpdate(id, dto, files);
+            qnAService.QnAAUpdate(id, dto, files,userNum);
             // 답변이 성공적으로 수정되었다는 응답 데이터를 생성하여 반환함
             CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "답변이 성공적으로 업데이트되었습니다.", id);
             return new ResponseEntity<>(commonResDto, HttpStatus.OK);
@@ -223,9 +197,9 @@ public class QnAController {
      * @return 조회된 질문 목록 반환
      */
     @GetMapping("/my")
-    public ResponseEntity<?> getMyQuestions() {
+    public ResponseEntity<?> getMyQuestions(@RequestParam String userNum) {
         // 서비스 객체를 이용하여 현재 사용자가 작성한 질문 목록을 조회함
-        List<QnAListResDto> qnaList = qnAService.getUserQnAs();
+        List<QnAListResDto> qnaList = qnAService.getUserQnAs(userNum);
         CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "사용자 작성 질문 목록을 조회합니다.", qnaList);
         return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
