@@ -4,8 +4,8 @@ import com.example.exodia.common.auth.JwtTokenProvider;
 import com.example.exodia.common.dto.CommonErrorDto;
 import com.example.exodia.common.dto.CommonResDto;
 import com.example.exodia.common.service.UploadAwsFileService;
-import com.example.exodia.user.domain.User;
 import com.example.exodia.user.dto.*;
+import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 import com.example.exodia.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,16 +66,27 @@ public class UserController {
         return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 등록 성공", newUser));
     }
 
+
     @PutMapping("/list/{userNum}")
     public ResponseEntity<?> updateUser(
             @PathVariable String userNum,
             @ModelAttribute UserUpdateDto updateDto,
             @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
             @RequestHeader("Authorization") String token) {
+
         String departmentId = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
-        User updatedUser = userService.updateUser(userNum, updateDto, departmentId, profileImage);
+
+        String uploadedFilePath = null;
+        if (profileImage != null && !profileImage.isEmpty()) {
+            uploadedFilePath = uploadAwsFileService.uploadFileAndReturnPath(profileImage, "profile");
+        }
+
+        User updatedUser = userService.updateUser(userNum, updateDto, departmentId, uploadedFilePath);
         return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 정보 수정 완료", updatedUser));
     }
+
+
+
 
 
     @GetMapping("/list")
