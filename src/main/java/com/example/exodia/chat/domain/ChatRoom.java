@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Where;
 
 import jakarta.persistence.*;
+
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,8 +31,18 @@ public class ChatRoom extends BaseTimeEntity {
     private String roomName;
 
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL)
-    private List<ChatUser> chatUsers = new ArrayList<>();
+//    private List<ChatUser> chatUsers = new ArrayList<>();
+    private List<ChatUser> chatUsers;
 
+//    private LocalDateTime recentChat;
+//
+//    public void updateRecentChat(){
+//
+//    }
+
+    public void setChatUsers(ChatUser chatUsers){
+        this.chatUsers.add(chatUsers);
+    }
 
     public ChatRoomResponse fromEntity (){ // 단일 조회 , 목록 조회
         List<String> userNums = this.getChatUsers().stream().map(p->p.getUser().getUserNum()).collect(Collectors.toList());
