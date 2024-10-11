@@ -12,3 +12,5 @@ public interface SalaryRepository extends JpaRepository<Salary, Long> {
     Optional<Salary> findByUser_UserNum(String userNum);
     List<Salary> findByUser_Position_Id(Long positionId);
 }
+
+
