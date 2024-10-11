@@ -37,7 +37,37 @@ public class QnAController {
 
 
 
+    @PostMapping(value = "/create", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    public ResponseEntity<?> createQuestion(
+            @RequestPart(value = "files", required = false) List<MultipartFile> files,
+            @RequestPart(value = "dto") String dtoJson,
+            @RequestParam String userNum) {
 
+        // JSON을 DTO로 매핑
+        ObjectMapper objectMapper = new ObjectMapper();
+        QnASaveReqDto dto = null;
+        try {
+            dto = objectMapper.readValue(dtoJson, QnASaveReqDto.class);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("JSON 파싱 오류: " + e.getMessage());
+        }
+
+        // DTO의 유효성 검사
+        if (dto.getDepartmentId() == null) {
+            throw new IllegalArgumentException("부서 ID가 유효하지 않습니다. DTO에서 부서 ID가 null입니다.");
+        }
+
+        try {
+            // departmentId를 사용하여 새로운 질문을 저장
+            QnA qna = qnAService.createQuestion(dto, files,userNum);
+            CommonResDto commonResDto = new CommonResDto(HttpStatus.CREATED, "질문이 성공적으로 등록되었습니다.", qna.getId());
+            return new ResponseEntity<>(commonResDto, HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            CommonErrorDto commonErrorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage());
+            return new ResponseEntity<>(commonErrorDto, HttpStatus.BAD_REQUEST);
+        }
+    }
 
 
 
