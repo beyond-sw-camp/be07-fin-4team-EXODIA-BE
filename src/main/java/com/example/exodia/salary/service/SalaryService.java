@@ -23,25 +23,34 @@ public class SalaryService {
     private final double LONG_TERM_CARE_INSURANCE_RATE = 0.004591;
     private final double EMPLOYMENT_INSURANCE_RATE = 0.009;
 
-    // 사원의 연봉 명세서 조회 (사원 개인용)
     @Transactional(readOnly = true)
     public Salary getSalarySlip(User user) {
         Optional<Salary> salaryOpt = salaryRepository.findByUser(user);
 
         if (salaryOpt.isPresent()) {
             Salary salary = salaryOpt.get();
-            calculateFinalSalary(salary);
+            calculateTaxes(salary); // 세금 계산 호출
             return salary;
         } else {
             throw new IllegalArgumentException("해당 사용자의 연봉 정보를 찾을 수 없습니다.");
         }
     }
 
-    // 세금 차감 후 최종 연봉 계산 로직
-    private void calculateFinalSalary(Salary salary) {
-        double taxAmount = salary.getBaseSalary() * (NATIONAL_PENSION_RATE + HEALTH_INSURANCE_RATE + LONG_TERM_CARE_INSURANCE_RATE + EMPLOYMENT_INSURANCE_RATE);
-        salary.setTaxAmount(taxAmount);
-        salary.setFinalSalary(salary.getBaseSalary() - taxAmount);
+    // 세금 항목 계산 및 Salary 객체에 적용
+    private void calculateTaxes(Salary salary) {
+        double nationalPension = salary.getBaseSalary() * NATIONAL_PENSION_RATE;
+        double healthInsurance = salary.getBaseSalary() * HEALTH_INSURANCE_RATE;
+        double longTermCare = salary.getBaseSalary() * LONG_TERM_CARE_INSURANCE_RATE;
+        double employmentInsurance = salary.getBaseSalary() * EMPLOYMENT_INSURANCE_RATE;
+        double totalTax = nationalPension + healthInsurance + longTermCare + employmentInsurance;
+
+        salary.getTaxAmount().setNationalPension(nationalPension);
+        salary.getTaxAmount().setHealthInsurance(healthInsurance);
+        salary.getTaxAmount().setLongTermCare(longTermCare);
+        salary.getTaxAmount().setEmploymentInsurance(employmentInsurance);
+        salary.getTaxAmount().setTotalTax(totalTax);
+
+        salary.setFinalSalary(salary.getBaseSalary() - totalTax);
     }
 
     @Transactional(readOnly = true)
@@ -49,15 +58,9 @@ public class SalaryService {
         return salaryRepository.findAll();
     }
 
-
-    @Transactional
-    public Salary saveSalary(Salary salary) {
-        return salaryRepository.save(salary);
-    }
-
-    @Transactional
-    public void deleteSalary(Long salaryId) {
-        salaryRepository.deleteById(salaryId);
+    @Transactional(readOnly = true)
+    public Optional<Salary> getSalaryByUserNum(String userNum) {
+        return salaryRepository.findByUser_UserNum(userNum);
     }
 
     @Transactional(readOnly = true)
@@ -65,11 +68,10 @@ public class SalaryService {
         return salaryRepository.findByUser_Position_Id(positionId);
     }
 
-    // 입사일을 기준으로 몇 년차인지 계산
+    // 입사일 기준으로 몇 년차인지 계산
     public int calculateYearsOfService(User user) {
-        LocalDate joinDate = user.getCreatedAt().toLocalDate();  // 입사일
+        LocalDate joinDate = user.getCreatedAt().toLocalDate();
         LocalDate currentDate = LocalDate.now();
-        return Period.between(joinDate, currentDate).getYears();  // 몇 년차인지 계산
+        return Period.between(joinDate, currentDate).getYears();
     }
-
 }

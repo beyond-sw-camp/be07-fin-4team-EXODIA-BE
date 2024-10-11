@@ -70,56 +70,45 @@ public class UserService {
 
     @Transactional
     public User registerUser(UserRegisterDto registerDto, MultipartFile profileImage, String departmentId) {
-        // 부서 및 직급 확인
         Department department = departmentRepository.findById(registerDto.getDepartmentId())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 부서입니다."));
         Position position = positionRepository.findById(registerDto.getPositionId())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 직급입니다."));
 
-        // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(registerDto.getPassword());
-
-        // User 엔티티 생성
-        User newUser = User.fromRegisterDto(registerDto, department, position, encodedPassword);
-
-        // 프로필 이미지가 있는 경우 처리 (S3에 업로드 후 경로 저장)
+        User newUser = new User();
+        newUser.setName(registerDto.getName());
+        newUser.setDepartment(department);
+        newUser.setPosition(position);
+        newUser.setPassword(encodedPassword);
         if (profileImage != null && !profileImage.isEmpty()) {
             String s3ImagePath = uploadAwsFileService.uploadFileAndReturnPath(profileImage, "profile");
-            newUser.setProfileImage(s3ImagePath); // S3 URL을 User 객체에 저장
+            newUser.setProfileImage(s3ImagePath);
         }
 
         return userRepository.save(newUser);
     }
 
     @Transactional
-    public User updateUser(String userNum, UserUpdateDto updateDto, String departmentId, MultipartFile profileImage) {
-        // 부서 및 직급 확인
+    public User updateUser(String userNum, UserUpdateDto updateDto, String departmentId, String uploadedFilePath) {
         Department department = departmentRepository.findById(updateDto.getDepartmentId())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 부서입니다."));
         Position position = positionRepository.findById(updateDto.getPositionId())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 직급입니다."));
 
-        // 유저 찾기
         User user = userRepository.findByUserNumAndDelYn(userNum, DelYN.N)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
 
-        // 비밀번호 업데이트
         if (updateDto.getPassword() != null && !updateDto.getPassword().isEmpty()) {
-            String encodedPassword = passwordEncoder.encode(updateDto.getPassword());
-            user.setPassword(encodedPassword);
+            user.setPassword(passwordEncoder.encode(updateDto.getPassword()));
         }
-
-        // 프로필 이미지가 있는 경우 처리 (S3에 업로드 후 경로 저장)
-        if (profileImage != null && !profileImage.isEmpty()) {
-            String s3ImagePath = uploadAwsFileService.uploadFileAndReturnPath(profileImage, "profile");
-            user.setProfileImage(s3ImagePath); // S3 URL을 User 객체에 저장
+        if (uploadedFilePath != null) {
+            user.setProfileImage(uploadedFilePath);
         }
-
-        // DTO 데이터를 이용한 업데이트
         user.updateFromDto(updateDto, department, position);
-
         return userRepository.save(user);
     }
+
 
 
     public void checkHrAuthority(String departmentId) {
@@ -149,19 +138,17 @@ public class UserService {
         return UserDetailDto.fromEntity(user);
     }
 
+
     @Transactional
-    public void deleteUser(UserDeleteDto deleteDto, String departmentId) {
-        checkHrAuthority(departmentId);
+    public void deleteUser(UserDeleteDto deleteDto, String deletedBy) {
+        // 삭제 대상자 찾기
         User user = userRepository.findByUserNumAndDelYn(deleteDto.getUserNum(), DelYN.N)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
+
         user.softDelete();
         userRepository.save(user);
 
-        DeleteHistory deleteHistory = new DeleteHistory(
-                deleteDto.getDeletedBy(),
-                deleteDto.getReason(),
-                user
-        );
+        DeleteHistory deleteHistory = new DeleteHistory(deletedBy, deleteDto.getReason(), user);
         deleteHistoryRepository.save(deleteHistory);
     }
 
