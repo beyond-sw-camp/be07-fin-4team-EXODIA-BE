@@ -137,4 +137,13 @@ public class UserController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(userDtos);
     }
+
+    @GetMapping("/userName")
+    public ResponseEntity<?> getUserName() {
+        return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "이름 조회 성공", userService.getUserName()));
+    }
+
+
+
+
 }
