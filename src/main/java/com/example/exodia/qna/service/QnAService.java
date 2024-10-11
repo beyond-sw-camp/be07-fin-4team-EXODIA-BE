@@ -54,9 +54,7 @@ public class QnAService {
     }
 
     @Transactional
-    public QnA createQuestion(QnASaveReqDto dto, List<MultipartFile> files) {
-        // 유저 정보 가져오기
-        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+    public QnA createQuestion(QnASaveReqDto dto, List<MultipartFile> files,String userNum) {
         User user = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사번을 가진 유저가 없습니다."));
 
@@ -167,8 +165,7 @@ public class QnAService {
 
 
 
-    public List<QnAListResDto> getUserQnAs() {
-        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+    public List<QnAListResDto> getUserQnAs(String userNum) {
         User user = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사번을 가진 유저가 없습니다."));
         List<QnA> qnAs = qnARepository.findByQuestioner(user);
@@ -184,10 +181,11 @@ public class QnAService {
     }
 
     @Transactional
-    public QnA answerQuestion(Long id, QnAAnswerReqDto dto, List<MultipartFile> files) {
-        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+    public QnA answerQuestion(Long id, QnAAnswerReqDto dto, List<MultipartFile> files,String userNum) {
         QnA qna = qnARepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 게시글입니다."));
+
+        System.out.println(qna.getQuestioner().getDepartment());
 
         Department questionerDepartment = qna.getQuestioner().getDepartment();
         User answerer = userRepository.findByUserNum(userNum)
@@ -223,8 +221,7 @@ public class QnAService {
     }
 
     @Transactional
-    public void QnAQUpdate(Long id, QnAQtoUpdateDto dto, List<MultipartFile> files) {
-        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+    public void QnAQUpdate(Long id, QnAQtoUpdateDto dto, List<MultipartFile> files,String userNum) {
         QnA qna = qnARepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 게시글입니다."));
 
@@ -257,8 +254,7 @@ public class QnAService {
     }
 
     @Transactional
-    public void QnAAUpdate(Long id, QnAAtoUpdateDto dto, List<MultipartFile> files) {
-        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+    public void QnAAUpdate(Long id, QnAAtoUpdateDto dto, List<MultipartFile> files,String userNum) {
         QnA qna = qnARepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 게시글입니다."));
 

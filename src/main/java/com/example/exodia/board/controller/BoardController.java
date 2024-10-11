@@ -147,9 +147,9 @@ public class BoardController {
      * @return 수정된 게시물 정보를 포함한 ResponseEntity 반환
      */
     @PostMapping("/update/{id}")
-    public ResponseEntity<?> updateBoard(@PathVariable Long id, @ModelAttribute BoardUpdateDto dto) {
+    public ResponseEntity<?> updateBoard(@PathVariable Long id, @ModelAttribute BoardUpdateDto dto,@RequestParam String userNum) {
         try {
-            boardService.updateBoard(id, dto, dto.getFiles());
+            boardService.updateBoard(id, dto, dto.getFiles(),userNum);
             CommonResDto response = new CommonResDto(HttpStatus.OK, "게시물이 성공적으로 수정되었습니다.", id);
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (EntityNotFoundException e) {

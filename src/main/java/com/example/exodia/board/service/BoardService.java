@@ -16,17 +16,15 @@ import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.common.service.UploadAwsFileService;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
-import io.lettuce.core.ScriptOutputType;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -216,28 +214,22 @@ public class BoardService {
      * @param files - 새롭게 추가할 파일 리스트
      */
     @Transactional
-    public void updateBoard(Long id, BoardUpdateDto dto, List<MultipartFile> files) {
-
+    public void updateBoard(Long id, BoardUpdateDto dto, List<MultipartFile> files,String userNum) {
         // 게시물 조회 (존재하지 않을 경우 예외 발생)
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다."));
-        String userNum = board.getUser().getUserNum();
         System.out.println(userNum);
-
-        System.out.println(board);
 
         // 작성자와 현재 사용자가 동일한지 확인
         if (!board.getUser().getUserNum().equals(userNum)) {
             throw new IllegalArgumentException("작성자 본인만 수정할 수 있습니다.");
         }
 
-        User user = userRepository.findByUserNum(board.getUser().getUserNum())
-                .orElseThrow(() -> new IllegalArgumentException("해당 사번을 가진 유저가 없습니다."));
-        Category category = dto.getCategory();
-
-        // 게시물 정보 업데이트
-        board = dto.updateFromEntity(category, user);
-        board = boardRepository.save(board);
+        // 게시물 정보 업데이트 (새 객체가 아닌 기존 객체를 사용)
+        board.setTitle(dto.getTitle());   // 제목 수정
+        board.setContent(dto.getContent()); // 내용 수정
+        board.setCategory(dto.getCategory()); // 카테고리 수정
+        board.setUpdatedAt(LocalDateTime.now()); // 업데이트 날짜 수정
 
         // 기존 파일 삭제 및 새로운 파일 정보 저장
         boardFileRepository.deleteByBoardId(board.getId());
@@ -250,7 +242,7 @@ public class BoardService {
                 String s3FilePath = s3FilePaths.get(i);
 
                 BoardFile boardFile = BoardFile.builder()
-                        .board(board)
+                        .board(board) // 기존 board 객체에 연결
                         .filePath(s3FilePath)
                         .fileType(file.getContentType())
                         .fileName(file.getOriginalFilename())
@@ -260,7 +252,10 @@ public class BoardService {
                 boardFileRepository.save(boardFile);
             }
         }
+        // 변경된 기존 게시물 정보를 저장 (새로운 객체가 아닌 기존 객체로 저장)
+        boardRepository.save(board);
     }
+
 
     /**
      * 게시물을 상단에 고정하거나 해제하는 메서드
