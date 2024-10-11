@@ -15,9 +15,13 @@ public class SalaryDto {
     private String departmentName;
     private String positionName;
     private double baseSalary;
-    private double taxAmount;
+    private double nationalPension;
+    private double healthInsurance;
+    private double longTermCare;
+    private double employmentInsurance;
+    private double totalTax;
     private double finalSalary;
-    private int yearsOfService;
+    private int yearsOfService;   
 
     public static SalaryDto fromEntity(Salary salary, int yearsOfService) {
         return new SalaryDto(
@@ -26,6 +30,10 @@ public class SalaryDto {
                 salary.getUser().getDepartment().getName(),
                 salary.getUser().getPosition().getName(),
                 salary.getBaseSalary(),
+                salary.getTaxAmount().getNationalPension(),
+                salary.getTaxAmount().getHealthInsurance(),
+                salary.getTaxAmount().getLongTermCare(),
+                salary.getTaxAmount().getEmploymentInsurance(),
                 salary.getTaxAmount().getTotalTax(),
                 salary.getFinalSalary(),
                 yearsOfService

@@ -32,11 +32,29 @@ public class SalaryService {
 
         if (salaryOpt.isPresent()) {
             Salary salary = salaryOpt.get();
-            calculateFinalSalary(salary);
-            return salary;
+            return calculateSalaryWithTaxes(salary);
         } else {
             throw new IllegalArgumentException("해당 사용자의 연봉 정보를 찾을 수 없습니다.");
         }
+    }
+
+    private Salary calculateSalaryWithTaxes(Salary salary) {
+        double nationalPension = salary.getBaseSalary() * NATIONAL_PENSION_RATE;
+        double healthInsurance = salary.getBaseSalary() * HEALTH_INSURANCE_RATE;
+        double longTermCare = salary.getBaseSalary() * LONG_TERM_CARE_INSURANCE_RATE;
+        double employmentInsurance = salary.getBaseSalary() * EMPLOYMENT_INSURANCE_RATE;
+
+        double totalTax = nationalPension + healthInsurance + longTermCare + employmentInsurance;
+
+        salary.getTaxAmount().setNationalPension(nationalPension);
+        salary.getTaxAmount().setHealthInsurance(healthInsurance);
+        salary.getTaxAmount().setLongTermCare(longTermCare);
+        salary.getTaxAmount().setEmploymentInsurance(employmentInsurance);
+        salary.getTaxAmount().setTotalTax(totalTax);
+
+        salary.setFinalSalary(salary.getBaseSalary() - totalTax);
+
+        return salary;
     }
 
     // 사번을 기반으로 급여 상세 정보 조회
@@ -49,12 +67,23 @@ public class SalaryService {
         return Optional.empty();
     }
 
-    // 세금 차감 후 최종 연봉 계산 로직
+
     private void calculateFinalSalary(Salary salary) {
-        double taxAmount = salary.getBaseSalary() * (NATIONAL_PENSION_RATE + HEALTH_INSURANCE_RATE + LONG_TERM_CARE_INSURANCE_RATE + EMPLOYMENT_INSURANCE_RATE);
-        salary.getTaxAmount().setTotalTax(taxAmount);
-        salary.setFinalSalary(salary.getBaseSalary() - taxAmount);
+        double nationalPension = salary.getBaseSalary() * NATIONAL_PENSION_RATE;
+        double healthInsurance = salary.getBaseSalary() * HEALTH_INSURANCE_RATE;
+        double longTermCare = salary.getBaseSalary() * LONG_TERM_CARE_INSURANCE_RATE;
+        double employmentInsurance = salary.getBaseSalary() * EMPLOYMENT_INSURANCE_RATE;
+
+        double totalTax = nationalPension + healthInsurance + longTermCare + employmentInsurance;
+        salary.getTaxAmount().setNationalPension(nationalPension);
+        salary.getTaxAmount().setHealthInsurance(healthInsurance);
+        salary.getTaxAmount().setLongTermCare(longTermCare);
+        salary.getTaxAmount().setEmploymentInsurance(employmentInsurance);
+        salary.getTaxAmount().setTotalTax(totalTax);
+
+        salary.setFinalSalary(salary.getBaseSalary() - totalTax);
     }
+
 
     @Transactional(readOnly = true)
     public List<Salary> getAllSalaries() {
