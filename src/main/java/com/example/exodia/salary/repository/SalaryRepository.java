@@ -9,6 +9,6 @@ import java.util.Optional;
 
 public interface SalaryRepository extends JpaRepository<Salary, Long> {
     Optional<Salary> findByUser(User user);
-
+    Optional<Salary> findByUser_UserNum(String userNum);
     List<Salary> findByUser_Position_Id(Long positionId);
 }
