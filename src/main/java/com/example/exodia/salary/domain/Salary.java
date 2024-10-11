@@ -4,11 +4,11 @@ import com.example.exodia.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
 
+@Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
 @Builder
 public class Salary {
 
@@ -20,13 +20,24 @@ public class Salary {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false)
-    private Double baseSalary;
+    private double baseSalary;
 
-    @Transient
-    private Double taxAmount;
+    @Embedded
+    private TaxAmount taxAmount = new TaxAmount();
 
-    @Transient
-    private Double finalSalary;
+    private double finalSalary;
 
+    @Embeddable
+    @Getter
+    @Setter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TaxAmount {
+        private double nationalPension;
+        private double healthInsurance;
+        private double longTermCare;
+        private double employmentInsurance;
+        private double totalTax;
+    }
 }

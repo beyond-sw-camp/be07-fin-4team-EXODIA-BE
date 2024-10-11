@@ -49,7 +49,13 @@ public class InitialDataLoader implements CommandLineRunner {
     private final SubmitTypeRepository submitTypeRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatUserRepository chatUserRepository;
-    private final SalaryRepository salaryRepository;  // 급여 리포지토리 추가
+    private final SalaryRepository salaryRepository;
+
+    private final double NATIONAL_PENSION_RATE = 0.045;
+    private final double HEALTH_INSURANCE_RATE = 0.03545;
+    private final double LONG_TERM_CARE_INSURANCE_RATE = 0.004591;
+    private final double EMPLOYMENT_INSURANCE_RATE = 0.009;
+
 
     public InitialDataLoader(DepartmentRepository departmentRepository,
                              PositionRepository positionRepository,
@@ -181,17 +187,36 @@ public class InitialDataLoader implements CommandLineRunner {
         Salary salary1 = Salary.builder()
                 .user(user1)
                 .baseSalary(5000000.0)
-                .taxAmount(500000.0)
+                .taxAmount(
+                        Salary.TaxAmount.builder()
+                                .nationalPension(5000000.0 * NATIONAL_PENSION_RATE)
+                                .healthInsurance(5000000.0 * HEALTH_INSURANCE_RATE)
+                                .longTermCare(5000000.0 * LONG_TERM_CARE_INSURANCE_RATE)
+                                .employmentInsurance(5000000.0 * EMPLOYMENT_INSURANCE_RATE)
+                                .totalTax(500000.0)  // 세금 총액
+                                .build()
+                )
                 .finalSalary(4500000.0)
                 .build();
 
         Salary salary2 = Salary.builder()
                 .user(user2)
                 .baseSalary(7000000.0)
-                .taxAmount(700000.0)
+                .taxAmount(
+                        Salary.TaxAmount.builder()
+                                .nationalPension(7000000.0 * NATIONAL_PENSION_RATE)
+                                .healthInsurance(7000000.0 * HEALTH_INSURANCE_RATE)
+                                .longTermCare(7000000.0 * LONG_TERM_CARE_INSURANCE_RATE)
+                                .employmentInsurance(7000000.0 * EMPLOYMENT_INSURANCE_RATE)
+                                .totalTax(700000.0)  // 세금 총액
+                                .build()
+                )
                 .finalSalary(6300000.0)
                 .build();
 
+
+
+        // 더미 데이터를 저장
         salaryRepository.save(salary1);
         salaryRepository.save(salary2);
 

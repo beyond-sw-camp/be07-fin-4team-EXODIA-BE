@@ -3,6 +3,7 @@ package com.example.exodia.salary.service;
 import com.example.exodia.salary.domain.Salary;
 import com.example.exodia.salary.repository.SalaryRepository;
 import com.example.exodia.user.domain.User;
+import com.example.exodia.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +18,7 @@ import java.util.Optional;
 public class SalaryService {
 
     private final SalaryRepository salaryRepository;
+    private final UserRepository userRepository;  // 사용자 정보 조회를 위해 추가
 
     private final double NATIONAL_PENSION_RATE = 0.045;
     private final double HEALTH_INSURANCE_RATE = 0.03545;
@@ -37,27 +39,26 @@ public class SalaryService {
         }
     }
 
+    // 사번을 기반으로 급여 상세 정보 조회
+    @Transactional(readOnly = true)
+    public Optional<Salary> getSalaryByUserNum(String userNum) {
+        Optional<User> user = userRepository.findByUserNum(userNum);
+        if (user.isPresent()) {
+            return salaryRepository.findByUser(user.get());
+        }
+        return Optional.empty();
+    }
+
     // 세금 차감 후 최종 연봉 계산 로직
     private void calculateFinalSalary(Salary salary) {
         double taxAmount = salary.getBaseSalary() * (NATIONAL_PENSION_RATE + HEALTH_INSURANCE_RATE + LONG_TERM_CARE_INSURANCE_RATE + EMPLOYMENT_INSURANCE_RATE);
-        salary.setTaxAmount(taxAmount);
+        salary.getTaxAmount().setTotalTax(taxAmount);
         salary.setFinalSalary(salary.getBaseSalary() - taxAmount);
     }
 
     @Transactional(readOnly = true)
     public List<Salary> getAllSalaries() {
         return salaryRepository.findAll();
-    }
-
-
-    @Transactional
-    public Salary saveSalary(Salary salary) {
-        return salaryRepository.save(salary);
-    }
-
-    @Transactional
-    public void deleteSalary(Long salaryId) {
-        salaryRepository.deleteById(salaryId);
     }
 
     @Transactional(readOnly = true)
