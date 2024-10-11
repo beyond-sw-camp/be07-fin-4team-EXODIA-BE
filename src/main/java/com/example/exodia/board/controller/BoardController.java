@@ -129,6 +129,7 @@ public class BoardController {
     @GetMapping("/detail/{id}")
     public ResponseEntity<?> getBoardDetail(@PathVariable Long id,@RequestParam String userNum) {
         try {
+            System.out.println(userNum);
             BoardDetailDto boardDetail = boardService.BoardDetail(id,userNum);
             CommonResDto response = new CommonResDto(HttpStatus.OK, "게시물 상세 정보를 반환합니다.", boardDetail);
             return new ResponseEntity<>(response, HttpStatus.OK);
