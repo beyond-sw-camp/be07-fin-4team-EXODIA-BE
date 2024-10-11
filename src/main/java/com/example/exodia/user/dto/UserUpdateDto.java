@@ -14,7 +14,7 @@ public class UserUpdateDto {
     private String email;
     private String address;
     private String phone;
-    private String profileImage;
+    private MultipartFile profileImage;
     private HireType hireType;
     private Long departmentId;
     private Long positionId;

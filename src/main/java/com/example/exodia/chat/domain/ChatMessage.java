@@ -48,7 +48,8 @@ public class ChatMessage extends BaseTimeEntity {
     private String message;
 
     @OneToMany(mappedBy = "chatMessage", cascade = CascadeType.ALL)
-    private List<ChatFile> chatFiles = new ArrayList<>();
+    private List<ChatFile> chatFiles;
+//    private List<ChatFile> chatFiles = new ArrayList<>();
 
 
     public ChatMessageResponse fromEntity(){
@@ -62,6 +63,10 @@ public class ChatMessage extends BaseTimeEntity {
                 .message(this.getMessage())
                 .createAt(this.getCreatedAt().toString())
                 .build();
+    }
+
+    public void setChatFiles(List<ChatFile> chatFiles) {
+        this.chatFiles = chatFiles;
     }
 
     public ChatMessageResponse fromEntityWithFile(){

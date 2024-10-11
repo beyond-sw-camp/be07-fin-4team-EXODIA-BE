@@ -1,5 +1,6 @@
 package com.example.exodia.chat.controller;
 
+import com.example.exodia.chat.dto.ChatRoomExistResponse;
 import com.example.exodia.chat.dto.ChatRoomRequest;
 import com.example.exodia.chat.service.ChatRoomService;
 import com.example.exodia.common.dto.CommonResDto;
@@ -21,15 +22,22 @@ public class ChatRoomController {
 
     @PostMapping("/create")
     public ResponseEntity<?> chatRoomCreate(@RequestBody ChatRoomRequest dto){
-        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "채팅방이 생성되었습니다.", chatRoomService.createChatRoom(dto));
+        ChatRoomExistResponse chatRoomExistResponse = chatRoomService.createChatRoom(dto);
+
+        CommonResDto commonResDto = new CommonResDto();
+        if(chatRoomExistResponse.isExistCheck()){
+            commonResDto = new CommonResDto(HttpStatus.OK, "채팅방이 이미 존재합니다.", chatRoomExistResponse);
+        }else{
+            commonResDto = new CommonResDto(HttpStatus.OK, "채팅방이 생성되었습니다.", chatRoomExistResponse);
+        }
         return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
-//    @GetMapping("/list/{userNum}")
-//    public ResponseEntity<?> chatRoomList(@PathVariable("userNum") String userNum){
-//        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "채팅방목록이 조회되었습니다.", chatRoomService.viewChatRoomList(userNum));
-//        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
-//    }
+    @GetMapping("/list/{userNum}")
+    public ResponseEntity<?> chatRoomList(@PathVariable("userNum") String userNum){
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "채팅방목록이 조회되었습니다.", chatRoomService.viewChatRoomList(userNum));
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+    }
 
     @GetMapping("/{roomId}")
     public ResponseEntity<?> chatRoomView(@PathVariable("roomId") Long roomId){

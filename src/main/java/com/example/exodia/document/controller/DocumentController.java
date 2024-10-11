@@ -54,7 +54,7 @@ public class DocumentController {
 		@RequestPart(value = "file", required = true) List<MultipartFile> files,
 		@RequestPart(value = "data") DocReqDto docReqDto) {
 		try {
-			return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "파일 저장 성공", documentService.saveDoc(files, docReqDto)));
+			return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "파일 저장 성공", documentService.saveDoc(files, docReqDto).getId()));
 		} catch (IOException e) {
 			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage()), HttpStatus.NOT_FOUND);
 		}
@@ -102,7 +102,7 @@ public class DocumentController {
 		@RequestPart(value = "data") DocUpdateReqDto docUpdateReqDto) {
 		try {
 			Document updatedDoc = documentService.updateDoc(files, docUpdateReqDto);
-			return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "파일 업데이트 성공", updatedDoc));
+			return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "파일 업데이트 성공", updatedDoc.getId()));
 		} catch (IOException e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()), HttpStatus.BAD_REQUEST);

@@ -59,7 +59,7 @@ public class ChatMessageService {
         // 전송할 messageRes 조정
         ChatMessageResponse chatMessageResponse = new ChatMessageResponse();
         if(chatMessageRequest.getMessageType() == MessageType.FILE){
-            fileUploadService.saveChatFileMetaData(savedChatMessage, chatMessageRequest.getFiles());
+            savedChatMessage.setChatFiles(fileUploadService.saveChatFileMetaData(savedChatMessage, chatMessageRequest.getFiles()));
             chatMessageResponse = savedChatMessage.fromEntityWithFile();
         }else{
             chatMessageResponse = savedChatMessage.fromEntity();

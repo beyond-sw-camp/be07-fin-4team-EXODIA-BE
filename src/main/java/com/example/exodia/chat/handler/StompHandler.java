@@ -12,7 +12,6 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.util.Objects;
 
@@ -29,7 +28,7 @@ public class StompHandler implements ChannelInterceptor {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
-    // stomphandler 는 공백을 인지하지 못하여 오로지 token만 다룰것 . Bearer 떼야한다.
+    // stomphandler 는 공백을 인지하지 못하여 오로지 token만 다룰것(?)  Bearer 떼야한다.
     // WebSocket을 통해 들어온 요청이 처리 되기 전에 실행
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -37,13 +36,15 @@ public class StompHandler implements ChannelInterceptor {
         String jwtToken = "";
 
         if(StompCommand.CONNECT == accessor.getCommand()){ // 웹소켓 연결 요청
+            // chatRoomManage
             jwtToken = Objects.requireNonNull(accessor.getFirstNativeHeader("Authorization")).substring(7);
             jwtTokenProvider.validateToken(jwtToken);
         }else if(StompCommand.SUBSCRIBE == accessor.getCommand()){ // 채팅룸 구독요청
+            // chatRoomManage
             System.out.println("구독");
         }else if (StompCommand.DISCONNECT == accessor.getCommand()) {
             // chatRoomManage
-            System.out.println("채팅룸 관리 안하고 있음");
+            // System.out.println("채팅룸 관리 안하고 있음");
         }
 
         return message;

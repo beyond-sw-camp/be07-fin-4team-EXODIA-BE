@@ -12,5 +12,4 @@ import lombok.NoArgsConstructor;
 public class ChatFileRequest { // presigned url 만들 때 받는 값
     private String chatFileName;
     private long fileSize; // 최대 용량 100MB
-
 }

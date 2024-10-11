@@ -9,6 +9,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserDeleteDto {
     private String userNum;
-    private String deletedBy;
     private String reason;
 }

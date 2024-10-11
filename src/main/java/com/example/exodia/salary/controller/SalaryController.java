@@ -1,3 +1,5 @@
+// SalaryController.java
+
 package com.example.exodia.salary.controller;
 
 import com.example.exodia.salary.domain.Salary;
@@ -9,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -20,29 +23,30 @@ public class SalaryController {
 
     // 사원의 월급 명세서 조회
     @GetMapping("/my")
-    public ResponseEntity<Salary> getMySalary(User user) {
+    public ResponseEntity<SalaryDto> getMySalary(User user) {
         Salary salary = salaryService.getSalarySlip(user);
-        return ResponseEntity.ok(salary);
+        int yearsOfService = salaryService.calculateYearsOfService(user);  // 입사년차 계산
+        return ResponseEntity.ok(SalaryDto.fromEntity(salary, yearsOfService));
     }
 
-    // 관리자용 급여 관리 저장
-    @PostMapping("/manage")
-    public ResponseEntity<Salary> saveSalary(@RequestBody Salary salary) {
-        Salary savedSalary = salaryService.saveSalary(salary);
-        return ResponseEntity.ok(savedSalary);
-    }
-
-    @DeleteMapping("/manage/{salaryId}")
-    public ResponseEntity<Void> deleteSalary(@PathVariable Long salaryId) {
-        salaryService.deleteSalary(salaryId);
-        return ResponseEntity.ok().build();
+    // 상세 페이지를 위한 사원별 월급 명세서 조회
+    @GetMapping("/detail/{userNum}")
+    public ResponseEntity<SalaryDto> getSalaryDetail(@PathVariable String userNum) {
+        Optional<Salary> salary = salaryService.getSalaryByUserNum(userNum);
+        if (salary.isPresent()) {
+            User user = salary.get().getUser();
+            int yearsOfService = salaryService.calculateYearsOfService(user);  // 입사년차 계산
+            return ResponseEntity.ok(SalaryDto.fromEntity(salary.get(), yearsOfService));
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping
     public ResponseEntity<List<SalaryDto>> getAllSalaries() {
         List<Salary> salaries = salaryService.getAllSalaries();
         List<SalaryDto> salaryDtos = salaries.stream()
-                .map(salary -> SalaryDto.fromEntity(salary))
+                .map(salary -> SalaryDto.fromEntity(salary, salaryService.calculateYearsOfService(salary.getUser())))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(salaryDtos);
     }
@@ -51,10 +55,9 @@ public class SalaryController {
     public ResponseEntity<List<SalaryDto>> getSalariesByPosition(@PathVariable Long positionId) {
         List<Salary> salaries = salaryService.getSalariesByPosition(positionId);
         List<SalaryDto> salaryDtos = salaries.stream()
-                .map(SalaryDto::fromEntity)
+                .map(salary -> SalaryDto.fromEntity(salary, salaryService.calculateYearsOfService(salary.getUser())))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(salaryDtos);
     }
-
 
 }

@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -20,6 +21,7 @@ public class ChatRoomRequest { // 받아오는 값
     public ChatRoom toEntity(){
         return ChatRoom.builder()
                 .roomName(this.getRoomName())
+                .chatUsers(new ArrayList<>())
                 .build();
     }
 }

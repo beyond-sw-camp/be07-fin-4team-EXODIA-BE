@@ -1,28 +1,21 @@
 package com.example.exodia.user.domain;
 
 import com.example.exodia.common.domain.BaseTimeEntity;
-import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.department.domain.Department;
 import com.example.exodia.position.domain.Position;
 import com.example.exodia.user.dto.UserRegisterDto;
 import com.example.exodia.user.dto.UserUpdateDto;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.NoArgsConstructor;
-import io.netty.channel.ChannelHandlerContext;
-
-
+import lombok.Setter;
 
 @Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-//@Where(clause = "del_yn = 'N'")
 public class User extends BaseTimeEntity {
 
     @Id
@@ -57,10 +50,6 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false, length = 11)
     private String phone;
 
-//    @Enumerated(EnumType.STRING)
-//    @Column(name = "del_yn", nullable = false)
-//    private DelYN delYn = DelYN.N;
-
     @Column(nullable = false, length = 20)
     private String socialNum;
 
@@ -85,8 +74,6 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false)
     private int loginFailCount = 0;
 
-
-
     public void incrementLoginFailCount() {
         this.loginFailCount += 1;
     }
@@ -95,37 +82,6 @@ public class User extends BaseTimeEntity {
         this.loginFailCount = 0;
     }
 
-    public HireType getHireType() {
-        return this.hireType;
-    }
-
-    public int getAnnualLeave() {
-        return this.annualLeave;
-    }
-
-    public static User fromRegisterDto(UserRegisterDto dto, Department department, Position position, String encodedPassword) {
-        return new User(
-                null,
-                dto.getUserNum(),
-                null,
-                dto.getName(),
-                Gender.valueOf(dto.getGender()),
-                Status.valueOf(dto.getStatus()),
-                encodedPassword,
-                dto.getEmail(),
-                dto.getAddress(),
-                dto.getPhone(),
-                dto.getSocialNum(),
-                dto.getHireType(),
-                dto.getNowStatus(),
-                dto.getAnnualLeave(),
-                department,
-                position,
-                0
-        );
-    }
-
-
     public void updateFromDto(UserUpdateDto dto, Department department, Position position) {
         this.name = dto.getName();
         this.email = dto.getEmail();
@@ -133,24 +89,31 @@ public class User extends BaseTimeEntity {
         this.address = dto.getAddress();
         this.hireType = dto.getHireType();
         this.annualLeave = dto.getAnnualLeave();
-        this.profileImage = dto.getProfileImage();
         this.department = department;
         this.position = position;
     }
 
+    public static User fromRegisterDto(UserRegisterDto dto, Department department, Position position, String encodedPassword) {
+        User user = new User();
+        user.setUserNum(dto.getUserNum());
+        user.setName(dto.getName());
+        user.setPassword(encodedPassword);
+        user.setEmail(dto.getEmail());
+        user.setAddress(dto.getAddress());
+        user.setPhone(dto.getPhone());
+        user.setSocialNum(dto.getSocialNum());
+        user.setHireType(dto.getHireType());
+        user.setDepartment(department);
+        user.setPosition(position);
+        user.setAnnualLeave(dto.getAnnualLeave());
+        return user;
+    }
 
     public void softDelete() {
         super.softDelete();
     }
 
-
-
-
-//    test코드
-    public void setUserNum(String userNum) {
-        this.userNum = userNum;
-    }
-
+    // 테스트용 생성자
     public User(String userNum) {
         this.userNum = userNum;
     }

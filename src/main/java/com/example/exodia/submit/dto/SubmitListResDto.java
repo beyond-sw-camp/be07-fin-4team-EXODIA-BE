@@ -25,6 +25,7 @@ public class SubmitListResDto {
 	private String submitType;
 	private String rejectReason;
 	private LocalDateTime submitTime;
+	private LocalDateTime updatedTime;
 
 
 	public SubmitListResDto fromLineEntity(User user,  SubmitLine submitLine){
@@ -36,6 +37,7 @@ public class SubmitListResDto {
 			.submitType(submitLine.getSubmit().getSubmitType())
 			.rejectReason(submitLine.getSubmit().getReason())
 			.submitTime(submitLine.getCreatedAt())
+			.updatedTime(submitLine.getUpdatedAt())
 			.build();
 	}
 
@@ -48,6 +50,7 @@ public class SubmitListResDto {
 			.submitType(submit.getSubmitType())
 			.rejectReason(submit.getReason())
 			.submitTime(submit.getCreatedAt())
+			.updatedTime(submit.getUpdatedAt())
 			.build();
 	}
 }
