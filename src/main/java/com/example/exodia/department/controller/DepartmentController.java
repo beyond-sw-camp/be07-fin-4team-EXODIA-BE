@@ -1,5 +1,6 @@
 package com.example.exodia.department.controller;
 
+import com.example.exodia.common.dto.CommonResDto;
 import com.example.exodia.department.domain.Department;
 import com.example.exodia.department.dto.DepartmentDto;
 import com.example.exodia.department.service.DepartmentService;
@@ -71,5 +72,10 @@ public class DepartmentController {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(departments);
+    }
+
+    @GetMapping("/name/{id}")
+    public ResponseEntity<?> getDepartmentName(@PathVariable Long id) {
+        return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "부서 이름 조회 성공", departmentService.getDepartmentName(id)));
     }
 }
