@@ -13,7 +13,6 @@ import com.example.exodia.comment.domain.Comment;
 import com.example.exodia.comment.dto.CommentResDto;
 import com.example.exodia.comment.repository.CommentRepository;
 import com.example.exodia.common.domain.DelYN;
-import com.example.exodia.common.service.KafkaProducer;
 import com.example.exodia.common.service.UploadAwsFileService;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
@@ -28,12 +27,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Service
+@Service // 해당 클래스가 서비스 레이어의 역할을 수행하며, 스프링 빈으로 등록됨을 나타냄
 public class BoardService {
 
     private final BoardRepository boardRepository;
@@ -42,19 +40,20 @@ public class BoardService {
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
     private final BoardHitsService boardHitsService;
-    private final KafkaProducer kafkaProducer;
+
 
     @Autowired
-    public BoardService(BoardRepository boardRepository, BoardFileRepository boardFileRepository, UploadAwsFileService uploadAwsFileService, UserRepository userRepository, CommentRepository commentRepository, BoardHitsService boardHitsService, KafkaProducer kafkaProducer) {
+    public BoardService(BoardRepository boardRepository, UploadAwsFileService uploadAwsFileService,
+                        BoardFileRepository boardFileRepository, UserRepository userRepository,
+                        CommentRepository commentRepository, BoardHitsService boardHitsService) {
         this.boardRepository = boardRepository;
-        this.boardFileRepository = boardFileRepository;
         this.uploadAwsFileService = uploadAwsFileService;
+        this.boardFileRepository = boardFileRepository;
         this.userRepository = userRepository;
         this.commentRepository = commentRepository;
-        this.boardHitsService = boardHitsService;
-        this.kafkaProducer = kafkaProducer;
-    }
 
+        this.boardHitsService = boardHitsService;
+    }
 
     /**
      * 새로운 게시물을 생성하는 메서드
@@ -79,15 +78,6 @@ public class BoardService {
         // 게시물 정보 저장
         Board board = dto.toEntity(user, category);
         board = boardRepository.save(board);
-
-
-        // 공지사항 또는 경조사 게시물일 경우 모든 사용자에게 알림 전송
-        String message = user.getDepartment().getName() + " 에서 " + dto.getTitle() + "를 작성했습니다";
-        if (category == Category.NOTICE) {
-            kafkaProducer.sendBoardEvent("notice-events", message); // 공지사항 토픽
-        } else if (category == Category.FAMILY_EVENT) {
-            kafkaProducer.sendBoardEvent("family-event-notices", message); // 경조사 토픽
-        }
 
         // 업로드할 파일 리스트가 null이거나 비어 있는지 확인하고, 실제 업로드할 파일 리스트만 필터링
         List<MultipartFile> validFiles = files != null ?
@@ -121,7 +111,7 @@ public class BoardService {
             }
         }
 
-
+        boardHitsService.resetBoardHits(board.getId());
         return board;
     }
 

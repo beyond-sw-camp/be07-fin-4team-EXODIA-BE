@@ -5,6 +5,7 @@ import com.example.exodia.board.domain.Category;
 import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.department.domain.Department;
 import com.example.exodia.user.domain.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,6 +27,7 @@ public class BoardSaveReqDto {
     private Department department;
 
     @Builder.Default
+    @JsonIgnore
     private List<MultipartFile> files = Collections.emptyList();
 
     @Builder.Default
