@@ -1,5 +1,6 @@
 package com.example.exodia.submit.domain;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -70,12 +71,13 @@ public class Submit extends BaseTimeEntity {
 	public void updateStatus(SubmitStatus status, String reason) {
 		this.submitStatus = status;
 		this.reason = reason;
+		this.setUpdatedAt(LocalDateTime.now());
 	}
 
-	public SubmitDetResDto fromEntity(){
+	public SubmitDetResDto fromEntity(String departmentName){
 		return SubmitDetResDto.builder()
 			.userName(this.getUser().getName())
-			.department(this.getDepartment_id().toString())
+			.department(departmentName)
 			.contents(this.contents)
 			.submitStatus(this.submitStatus.toString())
 			.submitType(this.submitType)
