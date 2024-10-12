@@ -77,8 +77,8 @@ public class DocumentController {
 
 	// 	최근 조회 문서 조회
 	@GetMapping("/list/viewed")
-	public ResponseEntity<?> docListByViewedAt() {
-		List<DocListResDto> docListResDtos = documentService.getDocListByViewedAt();
+	public ResponseEntity<?> docListByViewedAt(@PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+		Page<DocListResDto> docListResDtos = documentService.getDocListByViewedAt(pageable);
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "최근 조회 문서 조회 성공", docListResDtos));
 	}
 
