@@ -72,7 +72,7 @@ public class Document extends BaseTimeEntity {
 	@JoinColumn(name = "user_num", nullable = false)
 	private User user;
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "document_version")
 	private DocumentVersion documentVersion;
 

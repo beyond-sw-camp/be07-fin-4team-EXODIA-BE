@@ -5,7 +5,6 @@ import java.nio.file.NoSuchFileException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.example.exodia.common.service.KafkaProducer;
@@ -32,7 +31,7 @@ import com.example.exodia.document.domain.EsDocument;
 import com.example.exodia.document.dto.DocDetailResDto;
 import com.example.exodia.document.dto.DocHistoryResDto;
 import com.example.exodia.document.dto.DocListResDto;
-import com.example.exodia.document.dto.DocReqDto;
+import com.example.exodia.document.dto.DocSaveReqDto;
 import com.example.exodia.document.dto.DocTypeReqDto;
 import com.example.exodia.document.dto.DocUpdateReqDto;
 import com.example.exodia.document.repository.DocumentRepository;
@@ -76,7 +75,7 @@ public class DocumentService {
 		this.kafkaProducer = kafkaProducer;
 	}
 
-	public Document saveDoc(List<MultipartFile> files, DocReqDto docReqDto) throws IOException{
+	public Document saveDoc(List<MultipartFile> files, DocSaveReqDto docSaveReqDto) throws IOException{
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 		User user = userRepository.findByUserNum(userNum)
 			.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
@@ -85,15 +84,15 @@ public class DocumentService {
 		String fileName = files.get(0).getOriginalFilename();
 		List<String> fileDownloadUrl = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files, "document");
 
-		DocumentType documentType = documentTypeRepository.findByTypeName(docReqDto.getTypeName())
+		DocumentType documentType = documentTypeRepository.findByTypeName(docSaveReqDto.getTypeName())
 			.orElseGet(() -> {
 				return documentTypeRepository.save(
 					DocumentType.builder()
-						.typeName(docReqDto.getTypeName()).delYn(DelYN.N).build());
+						.typeName(docSaveReqDto.getTypeName()).delYn(DelYN.N).build());
 			});
 
 		// doc 저장
-		Document document = docReqDto.toEntity(docReqDto, user, fileName, fileDownloadUrl.get(0), documentType);
+		Document document = docSaveReqDto.toEntity(docSaveReqDto, user, fileName, fileDownloadUrl.get(0), documentType);
 		documentRepository.save(document);
 
 		// docVersion 생성

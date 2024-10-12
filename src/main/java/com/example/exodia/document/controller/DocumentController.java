@@ -24,12 +24,10 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.exodia.common.dto.CommonErrorDto;
 import com.example.exodia.common.dto.CommonResDto;
 import com.example.exodia.document.domain.Document;
-import com.example.exodia.document.domain.EsDocument;
 import com.example.exodia.document.dto.DocDetailResDto;
 import com.example.exodia.document.dto.DocHistoryResDto;
 import com.example.exodia.document.dto.DocListResDto;
-import com.example.exodia.document.dto.DocReqDto;
-import com.example.exodia.document.dto.DocTypeListReqDto;
+import com.example.exodia.document.dto.DocSaveReqDto;
 import com.example.exodia.document.dto.DocTypeReqDto;
 import com.example.exodia.document.dto.DocUpdateReqDto;
 import com.example.exodia.document.service.DocumentSearchService;
@@ -52,9 +50,10 @@ public class DocumentController {
 	@PostMapping("/uploadFile")
 	public ResponseEntity<?> uploadDocument(
 		@RequestPart(value = "file", required = true) List<MultipartFile> files,
-		@RequestPart(value = "data") DocReqDto docReqDto) {
+		@RequestPart(value = "data") DocSaveReqDto docSaveReqDto) {
 		try {
-			return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "파일 저장 성공", documentService.saveDoc(files, docReqDto).getId()));
+			return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "파일 저장 성공", documentService.saveDoc(files,
+				docSaveReqDto).getId()));
 		} catch (IOException e) {
 			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage()), HttpStatus.NOT_FOUND);
 		}
