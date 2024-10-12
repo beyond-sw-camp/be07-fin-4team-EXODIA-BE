@@ -15,5 +15,6 @@ public class DocHistoryResDto {
 	private Long id;
 	private String fileName;
 	private String userName;
+	private String description;
 	private LocalDateTime updatedAt;
 }
