@@ -176,17 +176,26 @@ public class DocumentService {
 	}
 
 	// 최근 수정 문서 조회
-	public List<DocListResDto> getDocListByUpdatedAt() {
+	public Page<DocListResDto> getDocListByUpdatedAt(Pageable pageable) {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
-
 		List<Object> docIds = redisService.getUpdatedListValue(userNum);
 
-		return docIds.stream()
+		// docIds 리스트에서 문서를 조회하고, 필터링한 결과를 리스트로 수집
+		List<Document> documents = docIds.stream()
 			.map(docId -> documentRepository.findById(((Integer) docId).longValue())
 				.orElseThrow(() -> new EntityNotFoundException("문서를 찾을 수 없습니다.")))
 			.filter(document -> "now".equals(document.getStatus()))
+			.collect(Collectors.toList());
+
+		// 리스트를 페이지네이션하여 Page 형태로 변환
+		List<DocListResDto> docListResDtos = documents.stream()
 			.map(Document::fromEntityList)
 			.collect(Collectors.toList());
+
+		// Pageable 객체를 활용하여 Page로 변환
+		int start = Math.min((int) pageable.getOffset(), docListResDtos.size());
+		int end = Math.min((start + pageable.getPageSize()), docListResDtos.size());
+		return new PageImpl<>(docListResDtos.subList(start, end), pageable, docListResDtos.size());
 	}
 
 	// 	문서 상세조회

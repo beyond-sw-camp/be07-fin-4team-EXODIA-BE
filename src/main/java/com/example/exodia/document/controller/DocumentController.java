@@ -84,8 +84,8 @@ public class DocumentController {
 
 	// 	최근 업데이트 문서 조회
 	@GetMapping("/list/updated")
-	public ResponseEntity<?> docListByUpdatedAt() {
-		List<DocListResDto> docListResDtos = documentService.getDocListByUpdatedAt();
+	public ResponseEntity<?> docListByUpdatedAt(@PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+		Page<DocListResDto> docListResDtos = documentService.getDocListByUpdatedAt(pageable);
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "최근 업데이트 문서 조회 성공", docListResDtos));
 	}
 
