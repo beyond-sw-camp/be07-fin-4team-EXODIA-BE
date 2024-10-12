@@ -47,8 +47,9 @@ public class CommentDoc extends BaseTimeEntity {
 	public CommentDocListResDto fromEntity(){
 			return CommentDocListResDto.builder()
 				.id(this.id)
-				.contents(this.user.getUserNum())
+				.userName(this.user.getName())
 				.contents(this.contents)
+				.createdAt(this.getCreatedAt())
 				.build();
 	}
 }

@@ -180,7 +180,7 @@ public class CommentController {
     public ResponseEntity<?> getDocCommentList(@PathVariable Long id) {
         try {
             List<CommentDocListResDto> commentDocListResDtos = commentService.getDocCommentList(id);
-            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "문서 댓글 조회 성공", commentDocListResDtos.size()));
+            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "문서 댓글 조회 성공", commentDocListResDtos));
         } catch (EntityNotFoundException e) {
             e.printStackTrace();
             return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()), HttpStatus.BAD_REQUEST);
