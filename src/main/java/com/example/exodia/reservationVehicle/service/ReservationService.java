@@ -58,26 +58,28 @@ public class ReservationService {
                 User user = userRepository.findByUserNum(userNum)
                         .orElseThrow(() -> new IllegalArgumentException("사용자가 존재하지 않습니다."));
 
-                List<Reservation> existingReservations = reservationRepository.findByCarIdAndDate(
-                        car.getId(), dto.getStartDate().atStartOfDay(), dto.getStartDate().atTime(LocalTime.MAX));
+                // 예약 기간 내에 다른 예약이 있는지 확인
+                List<Reservation> existingReservations = reservationRepository.findByCarIdAndDateRange(
+                        car.getId(),
+                        dto.getStartDate().atStartOfDay(),
+                        dto.getEndDate().atTime(LocalTime.MAX));
 
-                // 예약 가능여부 췍
                 boolean canReserve = existingReservations.stream().allMatch(Reservation::canReserve);
                 if (!canReserve) {
-                    throw new IllegalArgumentException("해당 날짜에 차량이 이미 예약되어 있거나 예약 가능한 상태가 아닙니다.");
+                    throw new IllegalArgumentException("해당 기간에 차량이 이미 예약되어 있습니다.");
                 }
 
                 Reservation reservation = dto.toEntity(car, user);
                 reservation.setStatus(Status.WAITING);
                 Reservation savedReservation = reservationRepository.save(reservation);
 
-                // 관리자에게 알림 전송 (차량 예약 요청)
-                String message = String.format("%s님이 %s 날짜에 차량 %s를 예약 요청하였습니다. (예약 시간: %s)", user.getName(), dto.getStartDate().toString(), car.getCarNum(), LocalDateTime.now());
+                String message = String.format("%s님이 %s부터 %s까지 차량 %s를 예약 요청하였습니다.",
+                        user.getName(), dto.getStartDate(), dto.getEndDate(), car.getCarNum());
                 notificationService.sendReservationReqToAdmins(message);
 
                 return ReservationDto.fromEntity(savedReservation);
             } else {
-                throw new IllegalArgumentException("현재 다른 사용자가 예약을 진행 중입니다. 잠시 후 다시 시도해주세요.");
+                throw new IllegalArgumentException("다른 사용자가 예약을 진행 중입니다. 잠시 후 다시 시도해주세요.");
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -191,6 +193,8 @@ public class ReservationService {
 
         return carReservationStatusList;
     }
+
+
 }
 
 

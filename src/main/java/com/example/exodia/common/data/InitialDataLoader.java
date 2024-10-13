@@ -264,13 +264,13 @@ public class InitialDataLoader implements CommandLineRunner {
 
 
         List<Car> cars = new ArrayList<>();
-        cars.add(new Car(null, "121가123", "스타랙스"));
-        cars.add(new Car(null, "135나894", "밴츠"));
-        cars.add(new Car(null, "753호159", "SUV"));
-        cars.add(new Car(null, "143라3451", "람보르기니"));
-        cars.add(new Car(null, "429호7318", "G70"));
-        cars.add(new Car(null, "14라 8222", "소나타"));
-        cars.add(new Car(null, "18유3752", "황금마티즈"));
+        cars.add(new Car(null, "121가123", "스타랙스", 11, 2.5, "starrex.jpg"));
+        cars.add(new Car(null, "135나894", "밴츠", 5, 3.0, "benz.jpg"));
+        cars.add(new Car(null, "753호159", "SUV", 7, 2.0, "suv.jpg"));
+        cars.add(new Car(null, "143라3451", "람보르기니", 2, 5.2, "lamborghini.jpg"));
+        cars.add(new Car(null, "429호7318", "G70", 5, 3.3, "g70.jpg"));
+        cars.add(new Car(null, "14라 8222", "소나타", 5, 2.0, "sonata.jpg"));
+        cars.add(new Car(null, "18유3752", "황금마티즈", 4, 0.8, "matiz.jpg"));
         carRepository.saveAll(cars);
       
         submitTypeRepository.save(new SubmitType(1L, "법인 카드 신청"));

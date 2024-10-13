@@ -13,13 +13,20 @@ import java.util.List;
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
     // 특정 날짜에 해당 차량이 예약되어 있는지 확인
-    @Query("SELECT r FROM Reservation r WHERE r.car.id = :carId AND r.startTime < :endOfDay AND r.endTime > :startOfDay")
+    @Query("SELECT r FROM Reservation r WHERE r.car.id = :carId "
+            + "AND r.startTime < :endOfDay AND r.endTime > :startOfDay")
     List<Reservation> findByCarIdAndDate(@Param("carId") Long carId,
                                          @Param("startOfDay") LocalDateTime startOfDay,
                                          @Param("endOfDay") LocalDateTime endOfDay);
 
     // 특정 날짜에 예약된 항목을 찾기 위한 메서드
     List<Reservation> findByStartTimeBetween(LocalDateTime startTime, LocalDateTime endTime);
+
+    @Query("SELECT r FROM Reservation r WHERE r.car.id = :carId " +
+            "AND (r.startTime <= :endDate AND r.endTime >= :startDate)")
+    List<Reservation> findByCarIdAndDateRange(@Param("carId") Long carId,
+                                              @Param("startDate") LocalDateTime startDate,
+                                              @Param("endDate") LocalDateTime endDate);
 }
 
 
