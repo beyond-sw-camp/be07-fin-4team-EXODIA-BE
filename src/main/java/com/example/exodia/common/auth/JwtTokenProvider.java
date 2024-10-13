@@ -1,17 +1,12 @@
 package com.example.exodia.common.auth;
 
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.security.Keys;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.crypto.SecretKey;
 
 @Component
 public class JwtTokenProvider {
@@ -47,8 +42,6 @@ public class JwtTokenProvider {
 		}
 	}
 
-
-
 	public Boolean isTokenExpired(String token) {
 		return getClaimsFromToken(token).getExpiration().before(new Date());
 	}
@@ -61,9 +54,9 @@ public class JwtTokenProvider {
 		return getClaimsFromToken(token).get("department_id", String.class);
 	}
 
-	//    public String getDepartmentNameFromToken(String token) {
-	//        return getClaimsFromToken(token).get("department_name", String.class);
-	//    }
+	public String getPositionIdFromToken(String token) {
+		return getClaimsFromToken(token).get("position_id", String.class);
+	}
 
 	public boolean validateToken(String token) {
 		try {

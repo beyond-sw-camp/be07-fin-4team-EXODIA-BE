@@ -191,4 +191,16 @@ public class UserService {
         }
 
     }
+
+    public Long findPositionIdByUserNum(String userNum) {
+        User user = userRepository.findByUserNum(userNum)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        return user.getPosition().getId();
+    }
+
+    public Long findDepartmentIdByUserNum(String userNum) {
+        User user = userRepository.findByUserNum(userNum)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        return user.getDepartment().getId(); // 부서 ID 반환
+    }
 }

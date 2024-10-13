@@ -137,4 +137,17 @@ public class UserController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(userDtos);
     }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<?> refreshToken(@RequestBody UserLoginDto loginDto) {
+        try {
+            Long positionId = userService.findPositionIdByUserNum(loginDto.getUserNum());
+            Long departmentId = userService.findDepartmentIdByUserNum(loginDto.getUserNum()); 
+            String newToken = jwtTokenProvider.createToken(loginDto.getUserNum(), departmentId, positionId);
+            return new ResponseEntity<>(new CommonResDto(HttpStatus.OK, "토큰 재발급 성공", newToken), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.UNAUTHORIZED, "토큰 재발급 실패"), HttpStatus.UNAUTHORIZED);
+        }
+    }
+
 }
