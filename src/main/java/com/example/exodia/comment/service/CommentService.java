@@ -189,7 +189,7 @@ public class CommentService {
 		Document document = documentRepository.findById(id)
 			.orElseThrow(() -> new EntityNotFoundException("문서 정보가 존재하지 않습니다."));
 
-		List<CommentDoc> commentDocs =  commentDocRepository.findByDocument(document);
+		List<CommentDoc> commentDocs =  commentDocRepository.findByDocumentOrderByCreatedAtDesc(document);
 		return commentDocs.stream()
 			.map(CommentDoc::fromEntity)
 			.collect(Collectors.toList());

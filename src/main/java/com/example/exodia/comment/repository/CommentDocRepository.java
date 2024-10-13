@@ -10,6 +10,6 @@ import com.example.exodia.document.domain.Document;
 
 @Repository
 public interface CommentDocRepository extends JpaRepository<CommentDoc, Long> {
-	List<CommentDoc> findByDocument(Document document);
+	List<CommentDoc> findByDocumentOrderByCreatedAtDesc(Document document);
 
 }
