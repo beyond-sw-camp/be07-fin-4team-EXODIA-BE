@@ -7,15 +7,20 @@ import com.example.exodia.course.dto.CourseListDto;
 import com.example.exodia.course.dto.CourseUpdateDto;
 import com.example.exodia.course.repository.CourseRepository;
 import com.example.exodia.meetingRoom.domain.MeetingRoom;
+import com.example.exodia.registration.dto.RegistrationDto;
+import com.example.exodia.registration.repository.RegistrationRepository;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 import com.example.exodia.user.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 
@@ -25,11 +30,15 @@ public class CourseService {
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
     private final UserService userService;
+    private final RegistrationRepository registrationRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
 
-    public CourseService(CourseRepository courseRepository, UserRepository userRepository, UserService userService) {
+    public CourseService(CourseRepository courseRepository, UserRepository userRepository, UserService userService, RegistrationRepository registrationRepository, @Qualifier("12") RedisTemplate<String, Object> redisTemplate) {
         this.courseRepository = courseRepository;
         this.userRepository = userRepository;
         this.userService = userService;
+        this.registrationRepository = registrationRepository;
+        this.redisTemplate = redisTemplate;
     }
 
     /* 강좌 생성 */
@@ -44,29 +53,40 @@ public class CourseService {
 //            throw new IllegalArgumentException("이미 존재하는 강의명입니다.");
 //        }
         Course course = dto.toEntity(user);
-        return courseRepository.save(course);
+        Course savedCourse = courseRepository.save(course);
+
+        String redisKey = "course:" + savedCourse.getId() + ":participants";
+        // TTL 설정, 강좌는 14일 정도 후 자동 삭제
+        redisTemplate.opsForValue().set(redisKey, 0, 14, TimeUnit.DAYS);
+
+        return savedCourse;
     }
 
     /* 강좌 업데이트 */
-    @Transactional
     public CourseListDto updateCourse(CourseUpdateDto dto, Long courseId) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 회원입니다."));
+
         Course existingCourse = courseRepository.findById(courseId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 강좌입니다."));
 
         userService.checkHrAuthority(user.getDepartment().getId().toString());
 
+
         Course updatedCourse = dto.toEntity(existingCourse, user);
-        return CourseListDto.fromEntity(courseRepository.save(updatedCourse));
+        // 현재 참가자 수 계산
+        int currentParticipants = registrationRepository.countByCourse(updatedCourse);
+
+        return CourseListDto.fromEntity(courseRepository.save(updatedCourse), currentParticipants);
     }
 
     /* 강좌 리스트*/
     public List<CourseListDto> listCourses() {
-        // 강좌 리스트는 모든 유저가 다 볼 수 있어야함
-        return courseRepository.findByDelYn(DelYN.N).stream()
-                .map(CourseListDto::fromEntity)
+        return courseRepository.findByDelYn(DelYN.N).stream().map(course -> {
+                    int currentParticipants = registrationRepository.countByCourse(course);
+                    return CourseListDto.fromEntity(course, currentParticipants);
+                })
                 .collect(Collectors.toList());
     }
 

@@ -1,9 +1,13 @@
     package com.example.exodia.course.controller;
 
+    import com.example.exodia.course.domain.Course;
     import com.example.exodia.course.dto.CourseCreateDto;
     import com.example.exodia.course.dto.CourseListDto;
     import com.example.exodia.course.dto.CourseUpdateDto;
     import com.example.exodia.course.service.CourseService;
+    import com.example.exodia.registration.dto.RegistrationDto;
+    import com.example.exodia.registration.repository.RegistrationRepository;
+    import com.example.exodia.registration.service.RegistrationService;
     import org.springframework.http.ResponseEntity;
     import org.springframework.web.bind.annotation.*;
 
@@ -14,22 +18,27 @@
 public class CourseController {
 
     private final CourseService courseService;
+    private final RegistrationService registrationService;
+    private final RegistrationRepository registrationRepository;
 
-    public CourseController(CourseService courseService) {
+    public CourseController(CourseService courseService, RegistrationService registrationService, RegistrationRepository registrationRepository) {
         this.courseService = courseService;
+        this.registrationService = registrationService;
+        this.registrationRepository = registrationRepository;
     }
 
     /* 강좌 생성 */
     @PostMapping("/create")
     public ResponseEntity<CourseListDto> createCourse(@RequestBody CourseCreateDto courseCreateDto) {
-        CourseListDto createdCourse = CourseListDto.fromEntity(courseService.createCourse(courseCreateDto));
-        return ResponseEntity.ok(createdCourse);
+        Course createdCourse = courseService.createCourse(courseCreateDto);
+        int currentParticipants = 0;
+        CourseListDto createdCourseDto = CourseListDto.fromEntity(createdCourse, currentParticipants);
+        return ResponseEntity.ok(createdCourseDto);
     }
 
     /* 강좌 업데이트  */
     @PutMapping("/update/{courseId}")
-    public ResponseEntity<CourseListDto> updateCourse(@RequestBody CourseUpdateDto courseUpdateDto,
-                                                      @PathVariable Long courseId) {
+    public ResponseEntity<CourseListDto> updateCourse(@RequestBody CourseUpdateDto courseUpdateDto, @PathVariable Long courseId) {
         CourseListDto updatedCourse = courseService.updateCourse(courseUpdateDto, courseId);
         return ResponseEntity.ok(updatedCourse);
     }
@@ -47,4 +56,19 @@ public class CourseController {
         courseService.softDeleteCourse(courseId);
         return ResponseEntity.ok().build();
     }
+
+    /* 강좌 신청 */
+    @PostMapping("/register/{courseId}")
+    public ResponseEntity<String> registerParticipant(@PathVariable Long courseId) {
+        String result = registrationService.registerParticipant(courseId);
+        return ResponseEntity.ok(result);
+    }
+
+    /* 강좌 확정 인원 조회*/
+    @GetMapping("/{courseId}/confirmed")
+    public ResponseEntity<List<RegistrationDto>> getConfirmedParticipants(@PathVariable Long courseId) {
+        List<RegistrationDto> confirmedParticipants = registrationService.getConfirmedParticipants(courseId);
+        return ResponseEntity.ok(confirmedParticipants);
+    }
+
 }
