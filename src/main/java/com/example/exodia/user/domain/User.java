@@ -6,16 +6,14 @@ import com.example.exodia.position.domain.Position;
 import com.example.exodia.user.dto.UserRegisterDto;
 import com.example.exodia.user.dto.UserUpdateDto;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Builder
 public class User extends BaseTimeEntity {
 
     @Id
@@ -94,20 +92,22 @@ public class User extends BaseTimeEntity {
     }
 
     public static User fromRegisterDto(UserRegisterDto dto, Department department, Position position, String encodedPassword) {
-        User user = new User();
-        user.setUserNum(dto.getUserNum());
-        user.setName(dto.getName());
-        user.setPassword(encodedPassword);
-        user.setEmail(dto.getEmail());
-        user.setAddress(dto.getAddress());
-        user.setPhone(dto.getPhone());
-        user.setSocialNum(dto.getSocialNum());
-        user.setHireType(dto.getHireType());
-        user.setDepartment(department);
-        user.setPosition(position);
-        user.setAnnualLeave(dto.getAnnualLeave());
-        return user;
+        return User.builder()
+                .userNum(dto.getUserNum())
+                .name(dto.getName())
+                .gender(Gender.valueOf(dto.getGender()))
+                .password(encodedPassword)
+                .email(dto.getEmail())
+                .address(dto.getAddress())
+                .phone(dto.getPhone())
+                .socialNum(dto.getSocialNum())
+                .hireType(dto.getHireType())
+                .annualLeave(dto.getAnnualLeave())
+                .department(department)
+                .position(position)
+                .build();
     }
+
 
     public void softDelete() {
         super.softDelete();

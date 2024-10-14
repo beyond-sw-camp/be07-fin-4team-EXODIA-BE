@@ -76,18 +76,14 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 직급입니다."));
 
         String encodedPassword = passwordEncoder.encode(registerDto.getPassword());
-        User newUser = new User();
-        newUser.setName(registerDto.getName());
-        newUser.setDepartment(department);
-        newUser.setPosition(position);
-        newUser.setPassword(encodedPassword);
+        User newUser = User.fromRegisterDto(registerDto, department, position, encodedPassword);
         if (profileImage != null && !profileImage.isEmpty()) {
             String s3ImagePath = uploadAwsFileService.uploadFileAndReturnPath(profileImage, "profile");
             newUser.setProfileImage(s3ImagePath);
         }
-
         return userRepository.save(newUser);
     }
+
 
     @Transactional
     public User updateUser(String userNum, UserUpdateDto updateDto, String departmentId, String uploadedFilePath) {

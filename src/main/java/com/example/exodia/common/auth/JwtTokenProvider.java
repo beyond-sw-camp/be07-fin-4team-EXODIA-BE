@@ -19,8 +19,10 @@ public class JwtTokenProvider {
 
 	public String createToken(String userNum, Long departmentId, Long positionId) {
 		Map<String, Object> claims = new HashMap<>();
-		claims.put("department_id", departmentId.toString());
-		claims.put("position_id", positionId.toString());
+		claims.put("department_id", departmentId != null ? departmentId.toString() : "알 수 없음");
+		claims.put("position_id", positionId != null ? positionId.toString() : "알 수 없음");
+
+		System.out.println("Token claims: " + claims);
 
 		return Jwts.builder()
 				.setClaims(claims)
@@ -30,6 +32,7 @@ public class JwtTokenProvider {
 				.signWith(SignatureAlgorithm.HS512, secret)
 				.compact();
 	}
+
 
 	public Claims getClaimsFromToken(String token) {
 		try {
