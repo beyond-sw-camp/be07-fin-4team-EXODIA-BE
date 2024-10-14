@@ -102,10 +102,12 @@ public class User extends BaseTimeEntity {
         user.setAddress(dto.getAddress());
         user.setPhone(dto.getPhone());
         user.setSocialNum(dto.getSocialNum());
-        user.setHireType(dto.getHireType());
+        user.setGender(dto.getGender()); // Gender enum 설정
+        user.setHireType(dto.getHireType()); // HireType enum 설정
+        user.setStatus(dto.getStatus()); // Status enum 설정
+        user.setAnnualLeave(dto.getAnnualLeave());
         user.setDepartment(department);
         user.setPosition(position);
-        user.setAnnualLeave(dto.getAnnualLeave());
         return user;
     }
 

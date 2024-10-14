@@ -13,8 +13,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserRegisterDto {
     private String userNum;
     private String name;
-    private String gender;
-    private String status;
+    private Gender gender;
+    private Status status;
     private String password;
     private String email;
     private String address;

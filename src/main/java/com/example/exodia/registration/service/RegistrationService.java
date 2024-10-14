@@ -99,7 +99,7 @@ public class RegistrationService {
         System.out.println("User " + userNum + "가 강좌 " + courseId + "에 성공적으로 등록되었습니다.");//
     }
 
-
+    @Transactional
     public List<RegistrationDto> getConfirmedParticipants(Long courseId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new EntityNotFoundException("강좌를 찾을 수 없습니다."));
