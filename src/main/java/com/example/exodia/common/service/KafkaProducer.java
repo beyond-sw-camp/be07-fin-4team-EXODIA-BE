@@ -41,5 +41,11 @@ public class KafkaProducer {
         System.out.println("Kafka 문서 업데이트 이벤트: " + message);
     }
 
+
+    // 강좌
+    public void sendCourseRegistrationEvent(String courseId, String message) {
+        kafkaTemplate.send("course-registration", courseId, message);
+        System.out.println("Kafka 강좌 등록 이벤트 전송: " + message + " / 코스 ID: " + courseId);
+    }
 }
 
