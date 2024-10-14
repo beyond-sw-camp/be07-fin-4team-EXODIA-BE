@@ -4,6 +4,10 @@ import com.example.exodia.user.domain.HireType;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.exodia.user.domain.HireType;
+import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,4 +25,7 @@ public class UserUpdateDto {
     private int annualLeave;
     private String password;
     private String socialNum;
+    private String gender;
+    private String status;
 }
+

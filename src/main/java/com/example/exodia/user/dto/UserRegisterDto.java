@@ -27,4 +27,3 @@ public class UserRegisterDto {
     private int annualLeave;
     private MultipartFile profileImage;
 }
-

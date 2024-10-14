@@ -6,16 +6,14 @@ import com.example.exodia.position.domain.Position;
 import com.example.exodia.user.dto.UserRegisterDto;
 import com.example.exodia.user.dto.UserUpdateDto;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Builder
 public class User extends BaseTimeEntity {
 
     @Id
@@ -91,7 +89,10 @@ public class User extends BaseTimeEntity {
         this.annualLeave = dto.getAnnualLeave();
         this.department = department;
         this.position = position;
+        this.gender = Gender.valueOf(dto.getGender());
+        this.status = Status.valueOf(dto.getStatus());
     }
+
 
     public static User fromRegisterDto(UserRegisterDto dto, Department department, Position position, String encodedPassword) {
         User user = new User();
@@ -108,8 +109,12 @@ public class User extends BaseTimeEntity {
         user.setAnnualLeave(dto.getAnnualLeave());
         user.setDepartment(department);
         user.setPosition(position);
+        user.setAnnualLeave(dto.getAnnualLeave());
+        user.setStatus(Status.valueOf(dto.getStatus()));
+        user.setGender(Gender.valueOf(dto.getGender()));
         return user;
     }
+
 
     public void softDelete() {
         super.softDelete();
