@@ -89,7 +89,10 @@ public class User extends BaseTimeEntity {
         this.annualLeave = dto.getAnnualLeave();
         this.department = department;
         this.position = position;
+        this.gender = Gender.valueOf(dto.getGender());
+        this.status = Status.valueOf(dto.getStatus());
     }
+
 
     public static User fromRegisterDto(UserRegisterDto dto, Department department, Position position, String encodedPassword) {
         User user = new User();
