@@ -1,5 +1,6 @@
 package com.example.exodia.user.dto;
 
+import com.example.exodia.user.domain.Gender;
 import com.example.exodia.user.domain.HireType;
 import com.example.exodia.user.domain.User;
 import lombok.AllArgsConstructor;
@@ -26,6 +27,7 @@ public class UserDetailDto {
     private String address;
     private String password;
     private String socialNum;
+    private Gender gender;
 
     public static UserDetailDto fromEntity(User user) {
         return new UserDetailDto(
@@ -42,7 +44,8 @@ public class UserDetailDto {
                 user.getProfileImage(),
                 user.getAddress(),
                 user.getPassword(),
-                user.getSocialNum()
+                user.getSocialNum(),
+                user.getGender() // gender 추가
         );
     }
 }
