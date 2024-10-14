@@ -20,7 +20,7 @@ public class CoolSmsService {
     private String fromPhoneNumber;
 
     public String sendSms(String to) throws CoolsmsException {
-        String textMessage = "푸푸핑!";
+        String textMessage = "황요한 푸푸핑... ";
 
         Message coolsms = new Message(apiKey, apiSecret);
 
