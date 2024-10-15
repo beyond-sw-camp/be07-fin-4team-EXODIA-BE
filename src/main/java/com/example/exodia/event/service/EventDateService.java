@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -23,4 +24,9 @@ public class EventDateService {
     public EventDate getEventDate(String eventType) {
         return eventDateRepository.findByEventType(eventType).orElseThrow(() -> new RuntimeException("Event date not found."));
     }
+
+    public List<EventDate> getAllEventDates() {
+        return eventDateRepository.findAll();
+    }
+
 }
