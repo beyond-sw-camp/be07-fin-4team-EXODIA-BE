@@ -1,4 +1,4 @@
-package com.example.exodia.document.dto;
+package com.example.exodia.comment.dto.document;
 
 import java.time.LocalDateTime;
 
@@ -11,10 +11,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DocHistoryResDto {
+public class CommentDocListResDto {
 	private Long id;
-	private String fileName;
+	private String contents;
 	private String userName;
-	private String description;
-	private LocalDateTime updatedAt;
+	private LocalDateTime createdAt;
 }

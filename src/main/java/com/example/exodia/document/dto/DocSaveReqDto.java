@@ -1,6 +1,5 @@
 package com.example.exodia.document.dto;
 
-import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.document.domain.Document;
 import com.example.exodia.document.domain.DocumentType;
 import com.example.exodia.user.domain.User;
@@ -14,18 +13,18 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DocReqDto {
+public class DocSaveReqDto {
 
 	private String typeName;
 	private String description;
 
 
-	public Document toEntity(DocReqDto docReqDto, User user, String fileName, String fileDownloadUrl, DocumentType documentType) {
+	public Document toEntity(DocSaveReqDto docSaveReqDto, User user, String fileName, String fileDownloadUrl, DocumentType documentType) {
 		return Document.builder()
 			.fileName(fileName)
 			.filePath(fileDownloadUrl)
 			.documentType(documentType)
-			.description(docReqDto.description)
+			.description(docSaveReqDto.description)
 			.user(user)
 			.status("now")
 			.documentVersion(null)

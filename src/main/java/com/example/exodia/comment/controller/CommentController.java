@@ -1,16 +1,23 @@
 package com.example.exodia.comment.controller;
 
 import com.example.exodia.comment.domain.Comment;
+import com.example.exodia.comment.domain.CommentDoc;
 import com.example.exodia.comment.dto.CommentDetailDto;
 import com.example.exodia.comment.dto.CommentSaveReqDto;
 import com.example.exodia.comment.dto.CommentUpdateDto;
+import com.example.exodia.comment.dto.document.CommentDocListResDto;
+import com.example.exodia.comment.dto.document.CommentDocSaveReqDto;
 import com.example.exodia.comment.service.CommentService;
 import com.example.exodia.common.dto.CommonErrorDto;
 import com.example.exodia.common.dto.CommonResDto;
+import com.example.exodia.submit.domain.Submit;
+import com.example.exodia.submit.dto.SubmitSaveReqDto;
+
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -143,4 +150,40 @@ public class CommentController {
         }
     }
 
+
+    // 	문서 댓글 작성
+    @PostMapping("/document/create")
+    public ResponseEntity<?> createDocComment(@RequestBody CommentDocSaveReqDto commentDocSaveReqDto) {
+        try {
+            CommentDoc commentDoc = commentService.createDocComment(commentDocSaveReqDto);
+            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "문서 댓글 작성 성공", commentDoc.getId()));
+        } catch (EntityNotFoundException e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // 	문서 댓글 삭제
+    @DeleteMapping("/document/delete/{id}")
+    public ResponseEntity<?> deleteDocComment(@PathVariable Long id) {
+        try {
+            commentService.deleteDocComment(id);
+            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "문서 댓글 삭제 성공", ""));
+        } catch (EntityNotFoundException e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // 	문서 댓글 조회
+    @GetMapping("/document/list/{id}")
+    public ResponseEntity<?> getDocCommentList(@PathVariable Long id) {
+        try {
+            List<CommentDocListResDto> commentDocListResDtos = commentService.getDocCommentList(id);
+            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "문서 댓글 조회 성공", commentDocListResDtos));
+        } catch (EntityNotFoundException e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()), HttpStatus.BAD_REQUEST);
+        }
+    }
 }
