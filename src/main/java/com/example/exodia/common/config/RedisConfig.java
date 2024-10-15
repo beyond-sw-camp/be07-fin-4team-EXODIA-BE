@@ -251,5 +251,23 @@ public class RedisConfig {
     }
 
 
+    /* 강의 인원수만큼 제어*/
+    @Bean
+    @Qualifier("12")
+    LettuceConnectionFactory courseParticipantConnectionFactory() {
+        return redisConnectionFactory(11);
+    }
+
+    @Bean
+    @Qualifier("12")
+    public RedisTemplate<String, Object> courseParticipantRedisTemplate(@Qualifier("12") LettuceConnectionFactory courseParticipantConnectionFactory) {
+        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(courseParticipantConnectionFactory);
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        return redisTemplate;
+    }
+
+
 
 }

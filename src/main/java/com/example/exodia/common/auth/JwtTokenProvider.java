@@ -1,17 +1,12 @@
 package com.example.exodia.common.auth;
 
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.security.Keys;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.crypto.SecretKey;
 
 @Component
 public class JwtTokenProvider {
@@ -24,8 +19,10 @@ public class JwtTokenProvider {
 
 	public String createToken(String userNum, Long departmentId, Long positionId) {
 		Map<String, Object> claims = new HashMap<>();
-		claims.put("department_id", departmentId.toString());
-		claims.put("position_id", positionId.toString());
+		claims.put("department_id", departmentId != null ? departmentId.toString() : "알 수 없음");
+		claims.put("position_id", positionId != null ? positionId.toString() : "알 수 없음");
+
+		System.out.println("Token claims: " + claims);
 
 		return Jwts.builder()
 				.setClaims(claims)
@@ -35,6 +32,7 @@ public class JwtTokenProvider {
 				.signWith(SignatureAlgorithm.HS512, secret)
 				.compact();
 	}
+
 
 	public Claims getClaimsFromToken(String token) {
 		try {
@@ -46,8 +44,6 @@ public class JwtTokenProvider {
 			throw new IllegalArgumentException("Invalid JWT Token");
 		}
 	}
-
-
 
 	public Boolean isTokenExpired(String token) {
 		return getClaimsFromToken(token).getExpiration().before(new Date());
@@ -61,9 +57,9 @@ public class JwtTokenProvider {
 		return getClaimsFromToken(token).get("department_id", String.class);
 	}
 
-	//    public String getDepartmentNameFromToken(String token) {
-	//        return getClaimsFromToken(token).get("department_name", String.class);
-	//    }
+	public String getPositionIdFromToken(String token) {
+		return getClaimsFromToken(token).get("position_id", String.class);
+	}
 
 	public boolean validateToken(String token) {
 		try {

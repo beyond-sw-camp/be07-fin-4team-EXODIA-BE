@@ -15,12 +15,18 @@ import com.example.exodia.document.domain.DocumentVersion;
 
 @Repository
 public interface DocumentRepository extends JpaRepository<Document,Long> {
-	// Document findByDocumentP_Id(Long documentPId);
+	// 현재문서의 모든 버전 조회
 	List<Document> findAllByDocumentVersion(DocumentVersion documentVersion);
+
+	// 프로젝트별 문서 조회
 	List<Document> findAllByDocumentTypeAndStatus(DocumentType documentType, String status);
+
+	// 최신 버전의 문서들 조회
 	Page<Document> findAllByStatus(String status, Pageable pageable);
+
+	// 문서 롤백을 위한 이전 버전들 조회
 	List<Document> findByDocumentVersionAndIdGreaterThan(DocumentVersion documentVersion, Long id);
-	List<Document> findAllByIdAndStatus(Long id, String status);
+
 
 	// 검색
 	@Query("SELECT d FROM Document d WHERE d.fileName LIKE %:keyword% OR d.description LIKE %:keyword%")

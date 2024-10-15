@@ -5,6 +5,8 @@ import com.example.exodia.notification.domain.NotificationType;
 import com.example.exodia.notification.dto.NotificationDTO;
 import com.example.exodia.notification.repository.NotificationRepository;
 import com.example.exodia.notification.service.NotificationService;
+import com.example.exodia.registration.domain.Registration;
+import com.example.exodia.registration.service.RegistrationService;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -24,14 +26,16 @@ public class KafkaConsumer {
     private final NotificationService notificationService;
     private final UserRepository userRepository;
     private final SseEmitters sseEmitters;
+    private final RegistrationService registrationService;
 
     @Autowired
     public KafkaConsumer(NotificationRepository notificationRepository, NotificationService notificationService,
-                         UserRepository userRepository, SseEmitters sseEmitters) {
+                         UserRepository userRepository, SseEmitters sseEmitters, RegistrationService registrationService) {
         this.notificationRepository = notificationRepository;
         this.notificationService = notificationService;
         this.userRepository = userRepository;
         this.sseEmitters = sseEmitters;
+        this.registrationService = registrationService;
     }
 
     @Transactional
@@ -140,6 +144,18 @@ public class KafkaConsumer {
                 sseEmitters.sendToUser(userNum, dto);
             }
         }
+    }
+
+
+    @KafkaListener(topics = "course-registration", groupId = "course-registration-group")
+    public void listenCourseRegistration(@Header(KafkaHeaders.RECEIVED_TOPIC) String topic, String message) {
+        System.out.println("Kafka 참가자 등록 메시지 수신: " + message);
+
+        String[] messageParts = message.split(" has registered for course ");
+        String userNum = messageParts[0].split(" ")[1];
+        Long courseId = Long.parseLong(messageParts[1]); // course 1 에서 1 추출
+
+        registrationService.confirmRegistration(courseId, userNum);
     }
 }
 

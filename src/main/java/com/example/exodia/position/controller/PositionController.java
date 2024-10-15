@@ -5,7 +5,10 @@ import com.example.exodia.position.dto.PositionDto;
 import com.example.exodia.position.repository.PositionRepository;
 import com.example.exodia.position.service.PositionService;
 import com.example.exodia.salary.domain.PositionSalary;
+import com.example.exodia.salary.domain.Salary;
+import com.example.exodia.salary.dto.SalaryDto;
 import com.example.exodia.salary.repository.PositionSalaryRepository;
+import com.example.exodia.salary.service.SalaryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +24,7 @@ public class PositionController {
     private final PositionRepository positionRepository;
     private final PositionSalaryRepository positionSalaryRepository;
     private final PositionService positionService;
+    private final SalaryService salaryService;
 
     @PostMapping
     public ResponseEntity<Position> createPosition(@RequestBody Position position) {
@@ -56,6 +60,16 @@ public class PositionController {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(positions);
+    }
+
+    @GetMapping("/{positionId}/salaries")
+    public ResponseEntity<List<SalaryDto>> getSalariesByPosition(@PathVariable Long positionId) {
+        List<Salary> salaries = salaryService.getSalariesByPosition(positionId);
+        List<SalaryDto> salaryDtos = salaries.stream()
+                .map(salary -> SalaryDto.fromEntity(salary, salaryService.calculateYearsOfService(salary.getUser())))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(salaryDtos);
     }
 }
 

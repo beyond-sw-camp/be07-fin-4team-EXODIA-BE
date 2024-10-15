@@ -60,7 +60,6 @@ public class CalendarController {
     }
 
     /* 공휴일 정보 + 사용자 생성 리스트 */
-    @PreAuthorize("hasRole('USER')")
     @GetMapping("/allevents")
     public ResponseEntity<?> getUserAndHolidayCalendars() {
         try {

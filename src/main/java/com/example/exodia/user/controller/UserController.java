@@ -56,16 +56,25 @@ public class UserController {
         }
     }
 
+//    @PostMapping("/register")
+//    public ResponseEntity<?> registerUser(
+//            @ModelAttribute UserRegisterDto registerDto,
+//            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
+//            @RequestHeader("Authorization") String token) {
+//        String departmentId = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
+//        User newUser = userService.registerUser(registerDto, profileImage, departmentId);
+//        return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 등록 성공", newUser));
+//    }
+
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(
-            @ModelAttribute UserRegisterDto registerDto,
+            @ModelAttribute("user") UserRegisterDto registerDto,
             @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
             @RequestHeader("Authorization") String token) {
         String departmentId = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
         User newUser = userService.registerUser(registerDto, profileImage, departmentId);
         return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 등록 성공", newUser));
     }
-
 
     @PutMapping("/list/{userNum}")
     public ResponseEntity<?> updateUser(
@@ -137,13 +146,21 @@ public class UserController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(userDtos);
     }
+  
+    @PostMapping("/refresh-token")
+    public ResponseEntity<?> refreshToken(@RequestBody UserLoginDto loginDto) {
+        try {
+            Long positionId = userService.findPositionIdByUserNum(loginDto.getUserNum());
+            Long departmentId = userService.findDepartmentIdByUserNum(loginDto.getUserNum());
+            String newToken = jwtTokenProvider.createToken(loginDto.getUserNum(), departmentId, positionId);
+            return new ResponseEntity<>(new CommonResDto(HttpStatus.OK, "토큰 재발급 성공", newToken), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.UNAUTHORIZED, "토큰 재발급 실패"), HttpStatus.UNAUTHORIZED);
+        }
+    }
 
     @GetMapping("/userName")
     public ResponseEntity<?> getUserName() {
-        return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "이름 조회 성공", userService.getUserName()));
+          return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "이름 조회 성공", userService.getUserName()));
     }
-
-
-
-
 }

@@ -4,6 +4,8 @@ import com.example.exodia.common.dto.CommonResDto;
 import com.example.exodia.department.domain.Department;
 import com.example.exodia.department.dto.DepartmentDto;
 import com.example.exodia.department.service.DepartmentService;
+import com.example.exodia.user.dto.UserInfoDto;
+import com.example.exodia.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,7 @@ import java.util.stream.Collectors;
 public class DepartmentController {
 
     private final DepartmentService departmentService;
+    private final UserService userService;
 
     @GetMapping("/hierarchy")
     public ResponseEntity<List<Map<String, Object>>> getDepartmentHierarchy() {
@@ -78,4 +81,11 @@ public class DepartmentController {
     public ResponseEntity<?> getDepartmentName(@PathVariable Long id) {
         return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "부서 이름 조회 성공", departmentService.getDepartmentName(id)));
     }
+
+    @GetMapping("/{departmentId}/users")
+    public ResponseEntity<List<UserInfoDto>> getUsersByDepartment(@PathVariable Long departmentId) {
+        List<UserInfoDto> users = userService.getUsersByDepartment(departmentId);
+        return ResponseEntity.ok(users);
+    }
+
 }
