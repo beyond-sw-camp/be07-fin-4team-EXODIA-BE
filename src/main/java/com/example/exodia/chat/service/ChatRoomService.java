@@ -108,7 +108,7 @@ public class ChatRoomService {
     public List<ChatMessageResponse> viewChatMessageList(Long roomId){
         // ⭐⭐⭐ 채팅방 입장시 메세지 조회 // 어떤 순서를 기준으로 리스트업할것인가 // 수정필요 // 쿼리문
         return chatMessageRepository.findAllByChatRoomId(roomId)
-                .stream().map(ChatMessage::fromEntity).collect(Collectors.toList());
+                .stream().map(ChatMessage::fromEntityForChatList).collect(Collectors.toList());
     }
 
 //    public List<UserDto> viewChatUserList(Long roomId){
