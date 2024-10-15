@@ -11,6 +11,8 @@ import com.example.exodia.registration.repository.RegistrationRepository;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -19,11 +21,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
 public class RegistrationService {
-
+    private final RedissonClient redissonClient;
     private final RedisTemplate<String, Object> redisTemplate;
     private final KafkaProducer kafkaProducer;
     private final CourseRepository courseRepository;
@@ -31,8 +34,9 @@ public class RegistrationService {
     private final RegistrationRepository registrationRepository;
 
     @Autowired
-    public RegistrationService(@Qualifier("12") RedisTemplate<String, Object> redisTemplate,
+    public RegistrationService(RedissonClient redissonClient, @Qualifier("12") RedisTemplate<String, Object> redisTemplate,
                                KafkaProducer kafkaProducer, CourseRepository courseRepository, UserRepository userRepository, RegistrationRepository registrationRepository) {
+        this.redissonClient = redissonClient;
         this.redisTemplate = redisTemplate;
         this.kafkaProducer = kafkaProducer;
         this.courseRepository = courseRepository;
@@ -52,21 +56,37 @@ public class RegistrationService {
         if (registrationRepository.existsByCourseAndUser(course, user)) {
             return "이미 해당 강좌에 등록된 사용자입니다.";
         }
+
         String redisKey = "course:" + courseId + ":participants";
+        RLock lock = redissonClient.getLock("courseLock:" + courseId);  // Redisson 락 생성
 
-        Long currentParticipants = redisTemplate.opsForValue().increment(redisKey); // 증가
+        try {
+            // 락을 걸고 10초 안에 작업 완료, 락이 풀리지 않으면 30초 후 자동 해제
+            if (lock.tryLock(10, 30, TimeUnit.SECONDS)) {
+                try {
+                    Long currentParticipants = redisTemplate.opsForValue().increment(redisKey); // 참가자 수 증가
 
-        if (currentParticipants > getMaxParticipants(courseId)) {
-            // if 초과 -> Redis 증가 값 롤백
-            redisTemplate.opsForValue().decrement(redisKey);
-            return "참가자 수가 초과되었습니다.";
+                    if (currentParticipants > getMaxParticipants(courseId)) {
+                        // 초과 시 참가자 수 롤백
+                        redisTemplate.opsForValue().decrement(redisKey);
+                        return "참가자 수가 초과되었습니다.";
+                    }
+
+                    // Kafka producer를 통해 등록 이벤트 전송
+                    String message = "User " + userNum + " has registered for course " + courseId;
+                    kafkaProducer.sendCourseRegistrationEvent(courseId.toString(), message);
+
+                    return "등록 완료";
+                } finally {
+                    lock.unlock();  // 작업이 끝나면 락 해제
+                }
+            } else {
+                return "잠시 후 다시 시도해 주세요.";
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return "등록 처리 중 문제가 발생했습니다.";
         }
-
-        // Kafka producer ->  등록 이벤트 전송
-        String message = "User " + userNum + " has registered for course " + courseId;
-        kafkaProducer.sendCourseRegistrationEvent(courseId.toString(), message);
-
-        return "등록 완료";
     }
 
     // 데이터베이스에서 강좌의 최대 참가자 수 조회
@@ -107,5 +127,19 @@ public class RegistrationService {
         return registrationRepository.findAllByCourseAndRegistrationStatus(course, "confirmed").stream()
                 .map(registration -> new RegistrationDto(registration.getUser().getUserNum(), registration.getUser().getName()))
                 .collect(Collectors.toList());
+    }
+
+
+
+    // 현재 강좌의 참가자 수를 Redis에서 조회하는 메서드
+    public int getCurrentParticipantCount(Long courseId) {
+        String redisKey = "course:" + courseId + ":participants";
+        Integer currentParticipants = (Integer) redisTemplate.opsForValue().get(redisKey);
+
+        if (currentParticipants == null) {
+            return 0;
+        }
+
+        return currentParticipants;
     }
 }

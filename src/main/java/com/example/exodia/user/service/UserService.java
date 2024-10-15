@@ -199,4 +199,24 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         return user.getDepartment().getId(); // 부서 ID 반환
     }
+
+    /* 테스트 전용 */
+    @Transactional
+    public User createAndSaveTestUser(UserRegisterDto userRegisterDto, MultipartFile profileImage) {
+        Department department = departmentRepository.findById(userRegisterDto.getDepartmentId())
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 부서입니다."));
+        Position position = positionRepository.findById(userRegisterDto.getPositionId())
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 직급입니다."));
+
+        String encodedPassword = passwordEncoder.encode(userRegisterDto.getPassword());
+
+        User newUser = User.fromRegisterDto(userRegisterDto, department, position, encodedPassword);
+
+        if (profileImage != null && !profileImage.isEmpty()) {
+            String s3ImagePath = uploadAwsFileService.uploadFileAndReturnPath(profileImage, "profile");
+            newUser.setProfileImage(s3ImagePath);
+        }
+
+        return userRepository.save(newUser);
+    }
 }
