@@ -1,8 +1,12 @@
 package com.example.exodia.event.controller;
 
+import com.example.exodia.common.dto.CommonErrorDto;
+import com.example.exodia.common.dto.CommonResDto;
 import com.example.exodia.event.domain.EventDate;
+import com.example.exodia.event.dto.EventDateDto;
 import com.example.exodia.event.service.EventDateService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,14 +19,27 @@ import java.util.Map;
 public class EventDateController {
 
     private final EventDateService eventDateService;
-
     @PostMapping("/setDate")
-    public ResponseEntity<Void> setEventDate(@RequestBody Map<String, String> request) {
-        String eventType = request.get("eventType");
-        LocalDate eventDate = LocalDate.parse(request.get("eventDate"));
-        eventDateService.setEventDate(eventType, eventDate);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> setEventDate(@RequestBody EventDateDto eventDateDto) {
+        try {
+            LocalDate eventDate = LocalDate.parse(eventDateDto.getEventDate());
+            String eventType = eventDateDto.getEventType();
+
+            eventDateService.setEventDate(eventType, eventDate);
+
+            return new ResponseEntity<>(
+                    new CommonResDto(HttpStatus.OK, "Event date set successfully", null),
+                    HttpStatus.OK
+            );
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                    new CommonErrorDto(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to set event date: " + e.getMessage()),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
     }
+
 
     @GetMapping("/getDate/{eventType}")
     public ResponseEntity<EventDate> getEventDate(@PathVariable String eventType) {

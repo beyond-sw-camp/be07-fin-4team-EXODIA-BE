@@ -17,4 +17,6 @@ public class EventDate {
     private Long id;
     private String eventType;
     private LocalDate eventDate;
+
+
 }
