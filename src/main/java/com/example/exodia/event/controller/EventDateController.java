@@ -44,4 +44,5 @@ public class EventDateController {
         List<EventHistoryDto> eventHistories = eventDateService.getEventHistory(eventId);
         return ResponseEntity.ok(eventHistories);
     }
+
 }
