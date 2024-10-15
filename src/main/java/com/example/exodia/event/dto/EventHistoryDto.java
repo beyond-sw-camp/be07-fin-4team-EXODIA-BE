@@ -2,14 +2,17 @@ package com.example.exodia.event.dto;
 
 import lombok.*;
 
-@AllArgsConstructor
-@NoArgsConstructor
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class EventDateDto {
+public class EventHistoryDto {
     private Long id;
-    private String eventType;
+    private Long eventId;
     private String eventDate;
+    private String eventRange;
     private String userNum;
 }
