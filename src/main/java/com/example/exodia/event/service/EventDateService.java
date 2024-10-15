@@ -14,19 +14,13 @@ public class EventDateService {
     private final EventDateRepository eventDateRepository;
 
     public void setEventDate(String eventType, LocalDate eventDate) {
-        EventDate existingEventDate = eventDateRepository.findByEventType(eventType).orElse(null);
-        if (existingEventDate != null) {
-            existingEventDate.setEventDate(eventDate);
-            eventDateRepository.save(existingEventDate);
-        } else {
-            EventDate newEventDate = new EventDate();
-            newEventDate.setEventType(eventType);
-            newEventDate.setEventDate(eventDate);
-            eventDateRepository.save(newEventDate);
-        }
+        EventDate existingEventDate = eventDateRepository.findByEventType(eventType).orElse(new EventDate());
+        existingEventDate.setEventType(eventType);
+        existingEventDate.setEventDate(eventDate);
+        eventDateRepository.save(existingEventDate);
     }
 
     public EventDate getEventDate(String eventType) {
-        return eventDateRepository.findByEventType(eventType).orElse(null);
+        return eventDateRepository.findByEventType(eventType).orElseThrow(() -> new RuntimeException("Event date not found."));
     }
 }

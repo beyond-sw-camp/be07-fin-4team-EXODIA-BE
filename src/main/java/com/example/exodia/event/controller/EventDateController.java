@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.Map;
+import java.time.format.DateTimeFormatter;
 
 @RestController
 @RequestMapping("/eventDate")
@@ -19,10 +19,11 @@ import java.util.Map;
 public class EventDateController {
 
     private final EventDateService eventDateService;
+
     @PostMapping("/setDate")
     public ResponseEntity<?> setEventDate(@RequestBody EventDateDto eventDateDto) {
         try {
-            LocalDate eventDate = LocalDate.parse(eventDateDto.getEventDate());
+            LocalDate eventDate = LocalDate.parse(eventDateDto.getEventDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             String eventType = eventDateDto.getEventType();
 
             eventDateService.setEventDate(eventType, eventDate);
@@ -39,7 +40,6 @@ public class EventDateController {
             );
         }
     }
-
 
     @GetMapping("/getDate/{eventType}")
     public ResponseEntity<EventDate> getEventDate(@PathVariable String eventType) {
