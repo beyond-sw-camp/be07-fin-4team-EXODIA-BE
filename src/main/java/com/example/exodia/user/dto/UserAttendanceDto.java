@@ -12,19 +12,18 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class UserAttendanceDto {
     private String userNum;
-    private Long departmentId;
-    private Long positionId;
+    private String departmentName;
+    private String positionName;
     private String name;
     private String profileImage;
 
     public static UserAttendanceDto fromEntity(User user) {
         return new UserAttendanceDto(
                 user.getUserNum(),
-                user.getDepartment().getId(),
-                user.getPosition().getId(),
+                user.getDepartment().getName(),
+                user.getPosition().getName(),
                 user.getName(),
                 user.getProfileImage()
         );
     }
-
 }
