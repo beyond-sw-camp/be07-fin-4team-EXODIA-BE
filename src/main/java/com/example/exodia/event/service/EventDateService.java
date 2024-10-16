@@ -24,13 +24,18 @@ public class EventDateService {
                 .orElse(new EventDate());
 
         existingEventDate.setEventType(eventType);
-        existingEventDate.setEventDate(startDate); // 주된 날짜를 startDate로 설정
+        existingEventDate.setStartDate(startDate);
+        existingEventDate.setEndDate(endDate);
 
         eventDateRepository.save(existingEventDate);
 
         EventHistory history = new EventHistory(
-                existingEventDate.getId(), startDate, endDate, startDate.toString() + " ~ " + endDate.toString(), userNum
+                existingEventDate.getId(),
+                startDate, endDate,
+                LocalDate.now().toString(),
+                userNum
         );
+
         eventHistoryRepository.save(history);
     }
 
@@ -47,7 +52,6 @@ public class EventDateService {
     }
 
     public List<EventDate> getAllEvents() {
-            return eventDateRepository.findAll();
+        return eventDateRepository.findAll();
     }
 }
-

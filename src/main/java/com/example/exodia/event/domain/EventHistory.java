@@ -21,7 +21,7 @@ public class EventHistory {
     private Long eventId;
     private LocalDate startDate;
     private LocalDate endDate;
-    private String eventRange;
+    private String eventRange; // 실제 변경된 날짜
     private String userNum;
 
     public EventHistory(Long eventId, LocalDate startDate, LocalDate endDate, String eventRange, String userNum) {

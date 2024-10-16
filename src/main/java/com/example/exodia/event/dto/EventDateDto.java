@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 public class EventDateDto {
     private Long id;
     private String eventType;
-    private String eventDate;
     private String startDate;
     private String endDate;
     private String userNum;

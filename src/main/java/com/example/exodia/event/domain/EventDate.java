@@ -16,14 +16,18 @@ public class EventDate {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String eventType;
-    private LocalDate eventDate;
+
+    private LocalDate startDate; // 시작일 추가
+    private LocalDate endDate;   // 종료일 추가
 
     public static EventDate fromDto(EventDateDto dto) {
         return EventDate.builder()
                 .id(dto.getId())
                 .eventType(dto.getEventType())
-                .eventDate(LocalDate.parse(dto.getEventDate()))  // String -> LocalDate 변환
+                .startDate(LocalDate.parse(dto.getStartDate()))  // String -> LocalDate 변환
+                .endDate(LocalDate.parse(dto.getEndDate()))      // String -> LocalDate 변환
                 .build();
     }
 
@@ -31,7 +35,8 @@ public class EventDate {
         return EventDateDto.builder()
                 .id(this.id)
                 .eventType(this.eventType)
-                .eventDate(this.eventDate.toString())  // LocalDate -> String 변환
+                .startDate(this.startDate.toString())  // LocalDate -> String 변환
+                .endDate(this.endDate.toString())      // LocalDate -> String 변환
                 .build();
     }
 }
