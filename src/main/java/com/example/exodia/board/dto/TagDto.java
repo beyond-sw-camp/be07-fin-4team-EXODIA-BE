@@ -13,9 +13,6 @@ public class TagDto {
     private Long id;
     private String tag;
 
-    public TagDto(String tag) {
-        this.tag = tag;
-    }
 }
 
 

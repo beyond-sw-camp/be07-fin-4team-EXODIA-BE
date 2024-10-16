@@ -27,9 +27,7 @@ public class BoardSaveReqDto {
     private boolean isPinned;
     private Long hits = 0L;
     private Department department;
-
-
-    private List<String> tags;
+    private List<Long> tagIds;
 
     @Builder.Default
     @JsonIgnore
@@ -38,22 +36,16 @@ public class BoardSaveReqDto {
     @Builder.Default
     private DelYN delYn = DelYN.N;
 
-
-    public Board toEntity(User user, Category category) {
-        // List<String> 형태의 태그를 List<Tags>로 변환
-        List<Tags> tagList = this.tags.stream()
-                .map(tag -> Tags.builder().tag(tag.trim()).build())
-                .collect(Collectors.toList());
-
+    public Board toEntity(User user) {
         return Board.builder()
                 .title(this.title)
                 .content(this.content)
-                .category(category)
+                .category(this.category)
                 .delYn(this.delYn != null ? this.delYn : DelYN.N)
                 .isPinned(this.isPinned)
                 .user(user)
                 .hits(this.hits)
-                .tags(tagList)
                 .build();
     }
+
 }

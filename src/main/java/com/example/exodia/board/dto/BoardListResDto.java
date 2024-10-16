@@ -15,11 +15,10 @@ public class BoardListResDto {
     private Long id;
     private String title;
     private Category category;
-    private List<String> tags;
+    private List<Long> tagIds;
     private Long hits;
     private String user_num;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
     private boolean isPinned;
 }
