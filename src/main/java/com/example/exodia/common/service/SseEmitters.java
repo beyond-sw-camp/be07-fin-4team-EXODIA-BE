@@ -20,9 +20,9 @@ public class SseEmitters {
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
 
     public SseEmitter addEmitter(String userNum) {
-        SseEmitter emitter = new SseEmitter(180_000L);
+        SseEmitter emitter = new SseEmitter(360_000L);
         emitters.put(userNum, emitter);
-
+        System.out.println("SSE Emitter 추가: " + userNum);
 
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(() -> {
@@ -32,7 +32,7 @@ public class SseEmitters {
                 emitters.remove(userNum);
                 System.out.println("SSE 연결 오류 발생: " + userNum);
             }
-        }, 0, 2, TimeUnit.MINUTES);
+        }, 0, 30, TimeUnit.SECONDS);
 
         // SSE 종료/에러 -> 백업처리로직
         emitter.onCompletion(() -> emitters.remove(userNum));
