@@ -45,14 +45,12 @@ public class FileUploadService {
     private final S3Client s3Client; // 파일 삭제시 필요
     private final S3Presigner s3Presigner;
     private final ChatFileRepository chatFileRepository;
-    private final ChatMessageRepository chatMessageRepository;
 
     @Autowired
-    public FileUploadService(S3Client s3Client, S3Presigner s3Presigner, ChatFileRepository chatFileRepository, ChatMessageRepository chatMessageRepository) {
+    public FileUploadService(S3Client s3Client, S3Presigner s3Presigner, ChatFileRepository chatFileRepository) {
         this.s3Client = s3Client;
         this.s3Presigner = s3Presigner;
         this.chatFileRepository = chatFileRepository;
-        this.chatMessageRepository = chatMessageRepository;
     }
 
     // 다중 파일에 대한 Presigned URL 생성
@@ -67,7 +65,7 @@ public class FileUploadService {
     private String generatePresignedUrlAfterValidation(ChatFileRequest file) {
         validateFile(file.getFileSize(), file.getChatFileName());
         String uniqueFileName = generateUniqueFileName(file.getChatFileName()); // UUID가 포함된 고유한 파일 이름 생성
-        return generatePresignedUrl(uniqueFileName);
+        return generatePresignedUrl(uniqueFileName, "chatFile");
     }
 
     // 파일 검증
@@ -101,10 +99,11 @@ public class FileUploadService {
     }
 
     // 단일 파일 Presigned URL 생성
-    public String generatePresignedUrl(String fileName) {
+    public String generatePresignedUrl(String fileName, String folder) {
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucket)
                 .key(fileName)  // UUID가 포함된 고유한 파일 이름 사용
+                .key(folder + "/" + fileName)
                 .build();
 
         PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(presignPutObjectRequest ->
@@ -117,13 +116,15 @@ public class FileUploadService {
     }
 
     // 파일 메타데이터 DB 저장 (프론트엔드로부터 Presigned URL -> S3 URL 저장 -> 다운로드)
-    @Transactional // 메세지 전송할 때 TYPE FILE일 경우 저장.    //// List<ChatFileMetaDataResponse>
+    @Transactional // 메세지 전송할 때 TYPE FILE일 경우 저장.
     public List<ChatFile> saveChatFileMetaData(ChatMessage messasge, List<ChatFileSaveListDto> chatFileSaveListDtos){
         // 파일을 포함하는 chatMesssage 전송되었을때, message db에 저장하고 -> message 넘겨서 파일도 db에 저장
 
         if(chatFileSaveListDtos == null){
             throw new IllegalArgumentException("파일 메타데이터가 필요합니다.");
         }
+
+        // 채팅룸id를 받아 검증하는 거 있음 좋다. 검증할 수 있는 건 다 검증하면 좋지만...
 
         // file DB 저장.
         List<ChatFile> chatFiles = chatFileSaveListDtos.stream()
@@ -132,9 +133,6 @@ public class FileUploadService {
 
         return savedChatFiles;
 
-//        return savedChatFiles.stream()
-//                .map(ChatFileMetaDataResponse::fromEntity)
-//                .collect(Collectors.toList());
     }
 
     // ChatFileSaveListDto 에서 ChatFile 생성
@@ -148,35 +146,25 @@ public class FileUploadService {
 
     // file 다운로드
     @Transactional(readOnly = true)
-    public String getPresignedUrlToDownload(Long fileId) {
+    public String getPresignedUrlToDownload(Long fileId, String folder) {
         ChatFile chatFile = chatFileRepository.findById(fileId)
                 .orElseThrow(() -> new EntityNotFoundException("파일이 없습니다."));
 
-//        파일 다운로드 권한 검증 // 채팅방 마다 파일을 불러올건데 굳이..? 사실 보안을 위해서는 필요.. 파일 다운받으려는 유저와가 채팅방유저들 중 있으면 ok
-//        boolean hasPermission = chatFile.getFolder().getChannel().getChannelMembers()
-//                .stream().anyMatch(channelMember -> channelMember.getWorkspaceMember().getMember().equals(member));
-
+//        파일 다운로드 권한 검증 // 채팅방 마다 파일을 불러올테지만... 파일 다운받으려는 유저가 채팅방유저들 중 있으면 ok
+//        boolean hasPermission = true;
 //        if (!hasPermission) {
 //            throw new IllegalArgumentException("파일을 다운로드할 권한이 없습니다.");
 //        }
 
         PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(b -> b.getObjectRequest(GetObjectRequest.builder()
                         .bucket(bucket)
-                        .key(chatFile.getChatFileUrl().substring(chatFile.getChatFileUrl().lastIndexOf('/') + 1))
+//                        .key(chatFile.getChatFileUrl().substring(chatFile.getChatFileUrl().lastIndexOf('/') + 1))
+                        .key(folder + "/" + chatFile.getChatFileUrl().substring(chatFile.getChatFileUrl().lastIndexOf('/') + 1))
                         .build())
                 .signatureDuration(Duration.ofMinutes(1)));
 
         // Presigned URL 생성
         return presignedRequest.url().toString();
-//        // Presigned URL 생성
-//        try {
-//            URI presignedUrl = s3Presigner.presignGetObject(b -> b.getObjectRequest(getObjectRequest)
-//                            .signatureDuration(Duration.ofMinutes(1)))
-//                    .url().toURI();
-//            return presignedUrl.toString(); // 클라이언트에 반환
-//        }catch (Exception e){
-//            throw new IllegalArgumentException("Presigned URL 생성에 실패했습니다.");
-//        }
     }
 
 }

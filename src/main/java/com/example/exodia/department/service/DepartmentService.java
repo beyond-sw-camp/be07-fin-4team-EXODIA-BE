@@ -4,6 +4,8 @@ import com.example.exodia.department.domain.Department;
 import com.example.exodia.department.repository.DepartmentRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -88,5 +90,9 @@ public class DepartmentService {
     @Transactional
     public void deleteDepartment(Long id) {
         departmentRepository.deleteById(id);
+    }
+
+    public String getDepartmentName(Long id) {
+        return departmentRepository.findDepartmentById(id).getName();
     }
 }

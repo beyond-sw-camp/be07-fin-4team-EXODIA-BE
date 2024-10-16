@@ -13,6 +13,7 @@ import com.example.exodia.user.repository.UserRepository;
 import com.example.exodia.userDelete.domain.DeleteHistory;
 import com.example.exodia.userDelete.repository.DeleteHistoryRepository;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.*;
+
+import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class UserService {
@@ -190,6 +193,12 @@ public class UserService {
 
     }
 
+    //  userNum으로 회원 이름 찾아오기
+    public String getUserName() {
+        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByUserNum(userNum)
+            .orElseThrow(() -> new EntityNotFoundException("회원 정보가 존재하지 않습니다.")).getName();
+    }
     public Long findPositionIdByUserNum(String userNum) {
         User user = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
@@ -200,5 +209,25 @@ public class UserService {
         User user = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         return user.getDepartment().getId(); // 부서 ID 반환
+    }
+
+    /* 테스트 전용 */
+    @Transactional
+    public User createAndSaveTestUser(UserRegisterDto userRegisterDto, MultipartFile profileImage) {
+        Department department = departmentRepository.findById(userRegisterDto.getDepartmentId())
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 부서입니다."));
+        Position position = positionRepository.findById(userRegisterDto.getPositionId())
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 직급입니다."));
+
+        String encodedPassword = passwordEncoder.encode(userRegisterDto.getPassword());
+
+        User newUser = User.fromRegisterDto(userRegisterDto, department, position, encodedPassword);
+
+        if (profileImage != null && !profileImage.isEmpty()) {
+            String s3ImagePath = uploadAwsFileService.uploadFileAndReturnPath(profileImage, "profile");
+            newUser.setProfileImage(s3ImagePath);
+        }
+
+        return userRepository.save(newUser);
     }
 }

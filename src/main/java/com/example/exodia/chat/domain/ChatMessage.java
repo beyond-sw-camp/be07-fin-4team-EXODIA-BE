@@ -1,12 +1,9 @@
 package com.example.exodia.chat.domain;
 
 import com.example.exodia.chat.dto.ChatFileMetaDataResponse;
-import com.example.exodia.chat.dto.ChatFileSaveListDto;
-import com.example.exodia.chat.dto.ChatMessageRequest;
 import com.example.exodia.chat.dto.ChatMessageResponse;
 import com.example.exodia.common.domain.BaseTimeEntity;
 import com.example.exodia.user.domain.User;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,7 +11,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Where;
 
 import jakarta.persistence.*;// 얘 있음 안된다.
-import java.time.LocalDateTime;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,7 +49,7 @@ public class ChatMessage extends BaseTimeEntity {
 //    private List<ChatFile> chatFiles = new ArrayList<>();
 
 
-    public ChatMessageResponse fromEntity(){
+    public ChatMessageResponse fromEntity(){ // 저장하고, 바로 보낼 때
         return ChatMessageResponse.builder()
                 .senderNum(this.getChatUser().getUserNum())
                 .senderName(this.getChatUser().getName())
@@ -61,18 +58,16 @@ public class ChatMessage extends BaseTimeEntity {
                 .roomId(this.getChatRoom().getId())
                 .messageType(this.getMessageType())
                 .message(this.getMessage())
+                .files(new ArrayList<>())
                 .createAt(this.getCreatedAt().toString())
                 .build();
     }
 
-    public void setChatFiles(List<ChatFile> chatFiles) {
-        this.chatFiles = chatFiles;
-    }
+//    public void setChatFiles(List<ChatFile> chatFiles) {
+//        this.chatFiles = chatFiles;
+//    }
 
-    public ChatMessageResponse fromEntityWithFile(){
-
-        List<ChatFileMetaDataResponse> files = this.getChatFiles().stream().map(ChatFile::fromEntity).toList();
-
+    public ChatMessageResponse fromEntityWithFile(){ // 저장하고, 바로 보낼 때
         return ChatMessageResponse.builder()
                 .senderNum(this.getChatUser().getUserNum())
                 .senderName(this.getChatUser().getName())
@@ -81,7 +76,21 @@ public class ChatMessage extends BaseTimeEntity {
                 .roomId(this.getChatRoom().getId())
                 .messageType(this.getMessageType())
                 .message(this.getMessage())
-                .files(files)
+                .files(new ArrayList<>())
+                .createAt(this.getCreatedAt().toString())
+                .build();
+    }
+
+    public ChatMessageResponse fromEntityForChatList(){ // list 만들때.
+        return ChatMessageResponse.builder()
+                .senderNum(this.getChatUser().getUserNum())
+                .senderName(this.getChatUser().getName())
+                .senderDepName(this.getChatUser().getDepartment().getName())
+                .senderPosName(this.getChatUser().getPosition().getName())
+                .roomId(this.getChatRoom().getId())
+                .messageType(this.getMessageType())
+                .message(this.getMessage())
+                .files(new ArrayList<>(this.getChatFiles().stream().map(ChatFile::fromEntity).toList()))
                 .createAt(this.getCreatedAt().toString())
                 .build();
     }

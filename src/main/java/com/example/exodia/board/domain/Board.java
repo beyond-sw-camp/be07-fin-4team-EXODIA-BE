@@ -6,25 +6,13 @@ import com.example.exodia.comment.domain.Comment;
 import com.example.exodia.common.domain.BaseTimeEntity;
 import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.user.domain.User;
-
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Where;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -50,21 +38,18 @@ public class Board extends BaseTimeEntity {
     @Column(nullable = false)
     private Category category;
 
-
     private Long hits = 0L;
 
-    // 작성자 정보 (익명 게시글의 경우 null, 수정 필요)
     @ManyToOne
     @JoinColumn(name = "user_num", nullable = false)
     private User user;
-
 
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = false)
     private DelYN delYn = DelYN.N;
 
     @Builder.Default
-    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BoardFile> files = new ArrayList<>();
 
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL)
@@ -73,8 +58,20 @@ public class Board extends BaseTimeEntity {
     @Column(name = "is_pinned", nullable = false)
     private Boolean isPinned = false;
 
-    // 게시물 목록 DTO로 변환
+    @Builder.Default
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BoardTag> boardTags = new ArrayList<>();
+
+    /**
+     * 게시물 목록 DTO로 변환
+     * @return BoardListResDto
+     */
     public BoardListResDto listFromEntity() {
+        // BoardTag 엔티티에서 태그 ID 추출
+        List<Long> tagIds = this.boardTags.stream()
+                .map(boardTag -> boardTag.getTags().getId()) // 태그 ID 추출
+                .collect(Collectors.toList());
+
         return BoardListResDto.builder()
                 .id(this.id)
                 .title(this.title)
@@ -84,11 +81,20 @@ public class Board extends BaseTimeEntity {
                 .updatedAt(this.getUpdatedAt())
                 .isPinned(this.isPinned)
                 .user_num(user.getUserNum())
+                .tagIds(tagIds) // 태그 ID 리스트 추가
                 .build();
     }
 
-    // 게시물 상세 DTO로 변환
+    /**
+     * 게시물 상세 DTO로 변환
+     * @return BoardDetailDto
+     */
     public BoardDetailDto detailFromEntity(List<BoardFile> files) {
+        // BoardTag 엔티티에서 태그 ID 추출
+        List<Long> tagIds = this.boardTags.stream()
+                .map(boardTag -> boardTag.getTags().getId()) // 태그 ID 추출
+                .collect(Collectors.toList());
+
         return BoardDetailDto.builder()
                 .id(this.getId())
                 .title(this.getTitle())
@@ -96,15 +102,18 @@ public class Board extends BaseTimeEntity {
                 .category(category)
                 .createdAt(this.getCreatedAt())
                 .updatedAt(this.getUpdatedAt())
-                .files(files)
+                .files(files) // Board 객체에 포함된 파일 리스트 사용
                 .hits(this.hits)
                 .user_num(user.getUserNum())
+                .tagIds(tagIds) // 태그 ID 리스트 추가
                 .build();
     }
 
+    /**
+     * 조회수를 업데이트하는 메서드
+     * @param hits Redis에서 조회된 조회수
+     */
     public void updateBoardHitsFromRedis(Long hits) {
         this.hits = hits;
     }
-
-
 }

@@ -1,8 +1,10 @@
 package com.example.exodia.chat.service;
 
+import com.example.exodia.chat.domain.ChatFile;
 import com.example.exodia.chat.domain.ChatMessage;
 import com.example.exodia.chat.domain.ChatRoom;
 import com.example.exodia.chat.domain.MessageType;
+import com.example.exodia.chat.dto.ChatFileMetaDataResponse;
 import com.example.exodia.chat.dto.ChatMessageRequest;
 import com.example.exodia.chat.dto.ChatMessageResponse;
 import com.example.exodia.chat.repository.ChatMessageRepository;
@@ -19,6 +21,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -53,14 +58,23 @@ public class ChatMessageService {
         ChatRoom chatRoom = chatRoomRepository.findById(chatMessageRequest.getRoomId()).orElseThrow(()->new EntityNotFoundException("없는 채팅방입니다."));
 
         // 채팅 메세지 db 저장
-        ChatMessage savedChatMessage = chatMessageRepository.save(chatMessageRequest.toEntity(user, chatRoom));
+        ChatMessage savedChatMessage = chatMessageRepository.save(chatMessageRequest.toEntity(user, chatRoom)); // chatFile new array 만든다..!
 
         // 파일을 포함한 메세지일 경우, 파일메타데이터 db에 저장
         // 전송할 messageRes 조정
         ChatMessageResponse chatMessageResponse = new ChatMessageResponse();
         if(chatMessageRequest.getMessageType() == MessageType.FILE){
-            savedChatMessage.setChatFiles(fileUploadService.saveChatFileMetaData(savedChatMessage, chatMessageRequest.getFiles()));
+            List<ChatFile> chatFileList = fileUploadService.saveChatFileMetaData(savedChatMessage, chatMessageRequest.getFiles());
+            for(ChatFile cf : chatFileList){
+                savedChatMessage.getChatFiles().add(cf);
+            }
+//            savedChatMessage.setChatFiles(fileUploadService.saveChatFileMetaData(savedChatMessage, chatMessageRequest.getFiles())); // 전송 온 파일들 chatFile 저장
+
             chatMessageResponse = savedChatMessage.fromEntityWithFile();
+            List<ChatFileMetaDataResponse> files = savedChatMessage.getChatFiles().stream().map(ChatFile::fromEntity).toList();
+            for(ChatFileMetaDataResponse cfmd : files){
+                chatMessageResponse.getFiles().add(cfmd);
+            }
         }else{
             chatMessageResponse = savedChatMessage.fromEntity();
         }
