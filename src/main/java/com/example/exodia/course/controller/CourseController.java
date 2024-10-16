@@ -1,17 +1,17 @@
-    package com.example.exodia.course.controller;
+package com.example.exodia.course.controller;
 
-    import com.example.exodia.course.domain.Course;
-    import com.example.exodia.course.dto.CourseCreateDto;
-    import com.example.exodia.course.dto.CourseListDto;
-    import com.example.exodia.course.dto.CourseUpdateDto;
-    import com.example.exodia.course.service.CourseService;
-    import com.example.exodia.registration.dto.RegistrationDto;
-    import com.example.exodia.registration.repository.RegistrationRepository;
-    import com.example.exodia.registration.service.RegistrationService;
-    import org.springframework.http.ResponseEntity;
-    import org.springframework.web.bind.annotation.*;
+import com.example.exodia.course.domain.Course;
+import com.example.exodia.course.dto.CourseCreateDto;
+import com.example.exodia.course.dto.CourseListDto;
+import com.example.exodia.course.dto.CourseUpdateDto;
+import com.example.exodia.course.service.CourseService;
+import com.example.exodia.registration.dto.RegistrationDto;
+import com.example.exodia.registration.repository.RegistrationRepository;
+import com.example.exodia.registration.service.RegistrationService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-    import java.util.List;
+import java.util.List;
 
 @RestController
 @RequestMapping("/course")
