@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.persistence.EntityNotFoundException;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/tags")
 public class TagController {
@@ -23,17 +25,15 @@ public class TagController {
         this.tagService = tagService;
     }
 
-    /**
-     * 태그 추가 기능
-     * @param tagDto - 추가할 태그 정보
-     * @return 추가된 태그 정보를 포함한 ResponseEntity
-     */
     @PostMapping("/create")
     public ResponseEntity<?> createTag(@RequestBody TagDto tagDto) {
         try {
             Tags newTag = tagService.createTag(tagDto);
             CommonResDto response = new CommonResDto(HttpStatus.CREATED, "태그가 성공적으로 추가되었습니다.", newTag);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (EntityNotFoundException e) {
+            CommonErrorDto errorResponse = new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         } catch (IllegalArgumentException e) {
             CommonErrorDto errorResponse = new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage());
             return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
@@ -44,11 +44,20 @@ public class TagController {
         }
     }
 
-    /**
-     * 태그 삭제 기능
-     * @param id - 삭제할 태그의 ID
-     * @return 삭제 결과를 포함한 ResponseEntity
-     */
+    @GetMapping("/list")
+    public ResponseEntity<?> getTagList() {
+        try {
+            List<TagDto> tags = tagService.getAllTags();
+            CommonResDto response = new CommonResDto(HttpStatus.OK, "태그 목록을 반환합니다.", tags);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            CommonErrorDto errorResponse = new CommonErrorDto(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다.");
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteTag(@PathVariable Long id) {
         try {

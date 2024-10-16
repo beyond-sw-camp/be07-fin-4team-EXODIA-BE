@@ -1,6 +1,5 @@
 package com.example.exodia.board.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -10,14 +9,18 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "tags")
-public class Tags {
+@Table(name = "board_tag")
+public class BoardTag {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String tag;
+    @ManyToOne
+    @JoinColumn(name = "board_id", nullable = false)
+    private Board board;
 
+    @ManyToOne
+    @JoinColumn(name = "tag_id", nullable = false)
+    private Tags tags;
 }
