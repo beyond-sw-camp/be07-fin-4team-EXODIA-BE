@@ -196,6 +196,7 @@ public class UserService {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByUserNum(userNum)
             .orElseThrow(() -> new EntityNotFoundException("회원 정보가 존재하지 않습니다.")).getName();
+    }
     public Long findPositionIdByUserNum(String userNum) {
         User user = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
