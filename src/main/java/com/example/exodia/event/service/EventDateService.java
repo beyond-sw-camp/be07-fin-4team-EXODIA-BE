@@ -45,5 +45,9 @@ public class EventDateService {
         return eventDateRepository.findByEventType(eventType)
                 .orElseThrow(() -> new RuntimeException("Event date not found for eventType: " + eventType));
     }
+
+    public List<EventDate> getAllEvents() {
+            return eventDateRepository.findAll();
+    }
 }
 

@@ -53,4 +53,11 @@ public class EventDateController {
         List<EventHistoryDto> histories = eventDateService.getEventHistory(eventId);
         return ResponseEntity.ok(histories);
     }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<EventDate>> getAllEvents() {
+        List<EventDate> events = eventDateService.getAllEvents();
+        return ResponseEntity.ok(events);
+    }
+
 }
