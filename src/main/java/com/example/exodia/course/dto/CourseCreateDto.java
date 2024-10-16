@@ -18,12 +18,14 @@ import java.time.LocalDateTime;
 public class CourseCreateDto {
 
     private String courseName;
+    private String content;
     private String courseUrl;
     private int maxParticipants;
 
     public Course toEntity(User user) {
         return Course.builder()
                 .courseName(this.courseName)
+                .content(this.content)
                 .courseUrl(this.courseUrl)
                 .maxParticipants(this.maxParticipants)
                 .user(user)

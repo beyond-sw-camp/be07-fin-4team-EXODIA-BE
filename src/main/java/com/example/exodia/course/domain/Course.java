@@ -22,6 +22,8 @@ public class Course extends BaseTimeEntity {
 
     private String courseName;
 
+    private String content;
+
     private String courseUrl;
 
     private int maxParticipants;
