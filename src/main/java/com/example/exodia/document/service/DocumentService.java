@@ -25,18 +25,21 @@ import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.common.service.RedisService;
 import com.example.exodia.common.service.UploadAwsFileService;
 import com.example.exodia.document.domain.Document;
-import com.example.exodia.document.domain.DocumentType;
+import com.example.exodia.document.domain.DocumentTag;
 import com.example.exodia.document.domain.DocumentVersion;
 import com.example.exodia.document.domain.EsDocument;
+import com.example.exodia.document.domain.Tag;
 import com.example.exodia.document.dto.DocDetailResDto;
 import com.example.exodia.document.dto.DocHistoryResDto;
 import com.example.exodia.document.dto.DocListResDto;
 import com.example.exodia.document.dto.DocSaveReqDto;
+import com.example.exodia.document.dto.DocTagListReqDto;
 import com.example.exodia.document.dto.DocTagReqDto;
 import com.example.exodia.document.dto.DocUpdateReqDto;
 import com.example.exodia.document.repository.DocumentRepository;
-import com.example.exodia.document.repository.DocumentTypeRepository;
+import com.example.exodia.document.repository.DocumentTagRepository;
 import com.example.exodia.document.repository.DocumentVersionRepository;
+import com.example.exodia.document.repository.TagRepository;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 
@@ -52,29 +55,33 @@ public class DocumentService {
 
 	private final DocumentRepository documentRepository;
 	private final DocumentVersionRepository documentVersionRepository;
-	private final DocumentTypeRepository documentTypeRepository;
 	private final UserRepository userRepository;
 	private final RedisService redisService;
 	private final UploadAwsFileService uploadAwsFileService;
 	private final DocumentSearchService documentSearchService;
+	private final DocumentTagRepository documentTagRepository;
+	private final TagRepository tagRepository;
 	private S3Client s3Client;
 	private KafkaProducer kafkaProducer;
 
 	@Autowired
 	public DocumentService(DocumentRepository documentRepository, DocumentVersionRepository documentVersionRepository,
-		DocumentTypeRepository documentTypeRepository, UserRepository userRepository, RedisService redisService,
-		UploadAwsFileService uploadAwsFileService, DocumentSearchService documentSearchService, S3Client s3Client, KafkaProducer kafkaProducer) {
+		UserRepository userRepository, RedisService redisService,
+		UploadAwsFileService uploadAwsFileService, DocumentSearchService documentSearchService, S3Client s3Client, KafkaProducer kafkaProducer,
+		DocumentTagRepository documentTagRepository, TagRepository tagRepository) {
 		this.documentRepository = documentRepository;
 		this.documentVersionRepository = documentVersionRepository;
-		this.documentTypeRepository = documentTypeRepository;
 		this.userRepository = userRepository;
 		this.redisService = redisService;
 		this.uploadAwsFileService = uploadAwsFileService;
 		this.documentSearchService = documentSearchService;
 		this.s3Client = s3Client;
 		this.kafkaProducer = kafkaProducer;
+		this.documentTagRepository = documentTagRepository;
+		this.tagRepository = tagRepository;
 	}
 
+	@Transactional
 	public Document saveDoc(List<MultipartFile> files, DocSaveReqDto docSaveReqDto) throws IOException{
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 		User user = userRepository.findByUserNum(userNum)
@@ -84,16 +91,17 @@ public class DocumentService {
 		String fileName = files.get(0).getOriginalFilename();
 		List<String> fileDownloadUrl = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files, "document");
 
-		DocumentType documentType = documentTypeRepository.findByTypeName(docSaveReqDto.getTypeName())
-			.orElseGet(() -> {
-				return documentTypeRepository.save(
-					DocumentType.builder()
-						.typeName(docSaveReqDto.getTypeName()).delYn(DelYN.N).build());
-			});
-
 		// doc 저장
-		Document document = docSaveReqDto.toEntity(docSaveReqDto, user, fileName, fileDownloadUrl.get(0), documentType);
+		Document document = docSaveReqDto.toEntity(docSaveReqDto, user, fileName, fileDownloadUrl.get(0));
 		documentRepository.save(document);
+
+		// 태그는 이미 존재하고 있으니 -> DocTag에 추가
+		for (String tagName : docSaveReqDto.getTags()) {
+			DocumentTag documentTag = DocumentTag.builder().document(document).tagName(tagName).delYn(DelYN.N).build();
+			documentTagRepository.save(documentTag);
+			document.getTags().add(documentTag);
+
+		}
 
 		// docVersion 생성
 		DocumentVersion documentVersion = DocumentVersion.toEntity(document);
@@ -104,8 +112,8 @@ public class DocumentService {
 		documentRepository.save(document);
 
 		// opens search 저장
-		EsDocument esDocument = EsDocument.toEsDocument(document);
-		documentSearchService.indexDocuments(esDocument);
+		// EsDocument esDocument = EsDocument.toEsDocument(document);
+		// documentSearchService.indexDocuments(esDocument);
 		return document;
 	}
 
@@ -301,29 +309,33 @@ public class DocumentService {
 
 	// 모든 타입 조회
 	public List<String> getAllTypeNames() {
-		List<DocumentType> documentTypes = documentTypeRepository.findAll();
-		return documentTypes.stream()
-			.map(DocumentType::getTypeName)
-			.collect(Collectors.toList());
+		return null;
 	}
 
 	// 타입 추가
-	public Long addType(DocTagReqDto docTagReqDto) {
-		documentTypeRepository.save(
-			DocumentType.builder().typeName(docTagReqDto.getTagName()).delYn(DelYN.N).build());
-		return documentTypeRepository.count();
+	public Long addTag(DocTagReqDto docTagReqDto) {
+		tagRepository.save(
+			Tag.builder().tagName(docTagReqDto.getTagName()).delYn(DelYN.N).build());
+		return tagRepository.count();
 	}
 
-	// 타입별 리스트 조회
-	public List<DocListResDto> getDocByType(Long id) {
-		// DocumentType documentType = documentTypeRepository.findByTypeName(docTypeListReqDto.getTypeName())
-		// 	.orElseThrow(() -> new RuntimeException("존재하지 않는 타입입니다."));
-		DocumentType documentType = documentTypeRepository.findById(id)
-			.orElseThrow(() -> new RuntimeException("존재하지 않는 타입입니다."));
-		List<Document> documents = documentRepository.findAllByDocumentTypeAndStatus(documentType, "now");
+	// 타입별 리스트 조회 -> 부서별
+	// public List<DocListResDto> getDocByType(Long id) {
+	// 	// DocumentType documentType = documentTypeRepository.findByTypeName(docTypeListReqDto.getTypeName())
+	// 	// 	.orElseThrow(() -> new RuntimeException("존재하지 않는 타입입니다."));
+	// 	DocumentTag documentTag = documentTagRepository.findById(id)
+	// 		.orElseThrow(() -> new RuntimeException("존재하지 않는 타입입니다."));
+	// 	List<Document> documents = documentRepository.findAllByDocumentTypeAndStatus(documentType, "now");
+	//
+	// 	return documents.stream()
+	// 		.map(Document::fromEntityList)
+	// 		.collect(Collectors.toList());
+	// }
 
-		return documents.stream()
-			.map(Document::fromEntityList)
+	public List<String> getAllTags() {
+		List<Tag> tags = tagRepository.findAll();
+		return tags.stream()
+			.map(Tag::getTagName)
 			.collect(Collectors.toList());
 	}
 }
