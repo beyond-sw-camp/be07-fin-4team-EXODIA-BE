@@ -1,6 +1,6 @@
 package com.example.exodia.board.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.*;
 
