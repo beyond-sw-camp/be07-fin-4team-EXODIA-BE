@@ -28,8 +28,9 @@ import com.example.exodia.document.dto.DocDetailResDto;
 import com.example.exodia.document.dto.DocHistoryResDto;
 import com.example.exodia.document.dto.DocListResDto;
 import com.example.exodia.document.dto.DocSaveReqDto;
-import com.example.exodia.document.dto.DocTypeReqDto;
+import com.example.exodia.document.dto.DocTagReqDto;
 import com.example.exodia.document.dto.DocUpdateReqDto;
+// import com.example.exodia.document.service.DocumentSearchService;
 import com.example.exodia.document.service.DocumentSearchService;
 import com.example.exodia.document.service.DocumentService;
 
@@ -143,9 +144,9 @@ public class DocumentController {
 	}
 
 	// 타입 생성
-	@PostMapping("/type/create")
-	public ResponseEntity<?> addDocumentType(@RequestBody DocTypeReqDto docTypeReqDto){
-		Long cnt = documentService.addType(docTypeReqDto);
+	@PostMapping("/tag/create")
+	public ResponseEntity<?> addDocumentType(@RequestBody DocTagReqDto docTagReqDto){
+		Long cnt = documentService.addType(docTagReqDto);
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "타입 추가 성공", cnt));
 	}
 

@@ -32,7 +32,7 @@ import com.example.exodia.document.dto.DocDetailResDto;
 import com.example.exodia.document.dto.DocHistoryResDto;
 import com.example.exodia.document.dto.DocListResDto;
 import com.example.exodia.document.dto.DocSaveReqDto;
-import com.example.exodia.document.dto.DocTypeReqDto;
+import com.example.exodia.document.dto.DocTagReqDto;
 import com.example.exodia.document.dto.DocUpdateReqDto;
 import com.example.exodia.document.repository.DocumentRepository;
 import com.example.exodia.document.repository.DocumentTypeRepository;
@@ -308,9 +308,9 @@ public class DocumentService {
 	}
 
 	// 타입 추가
-	public Long addType(DocTypeReqDto docTypeReqDto) {
+	public Long addType(DocTagReqDto docTagReqDto) {
 		documentTypeRepository.save(
-			DocumentType.builder().typeName(docTypeReqDto.getTypeName()).delYn(DelYN.N).build());
+			DocumentType.builder().typeName(docTagReqDto.getTagName()).delYn(DelYN.N).build());
 		return documentTypeRepository.count();
 	}
 
