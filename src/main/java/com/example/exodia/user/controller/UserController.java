@@ -146,7 +146,7 @@ public class UserController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(userDtos);
     }
-
+  
     @PostMapping("/refresh-token")
     public ResponseEntity<?> refreshToken(@RequestBody UserLoginDto loginDto) {
         try {
@@ -159,4 +159,8 @@ public class UserController {
         }
     }
 
+    @GetMapping("/userName")
+    public ResponseEntity<?> getUserName() {
+          return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "이름 조회 성공", userService.getUserName()));
+    }
 }

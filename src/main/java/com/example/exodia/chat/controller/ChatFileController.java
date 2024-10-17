@@ -40,7 +40,7 @@ public class ChatFileController {
     //    presigned url to download
     @GetMapping("/{fileId}/download")
     public ResponseEntity<?> getPresignedUrlToDownload (@PathVariable Long fileId) {
-        String presignedUrl = fileUploadService.getPresignedUrlToDownload(fileId);
+        String presignedUrl = fileUploadService.getPresignedUrlToDownload(fileId, "chatFile");
         CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "다운로드 Presigned URL 조회 성공", presignedUrl);
         return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }

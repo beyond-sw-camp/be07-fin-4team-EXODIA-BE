@@ -53,6 +53,7 @@ public class User extends BaseTimeEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    //test 시에 false
     private HireType hireType;
 
     @Column(length = 100)
