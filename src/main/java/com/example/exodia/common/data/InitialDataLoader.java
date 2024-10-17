@@ -104,15 +104,20 @@ public class InitialDataLoader implements CommandLineRunner {
         Department managementTeam1 = new Department("경영1팀", managementDepartment);
         departmentRepository.save(managementTeam1);
 
-        // 직위 추가
-        Position teamLeader = new Position(null, "팀장");
-        Position director = new Position(null, "부장");
-        Position assistantManager = new Position(null, "대리");
-        Position basicPerson = new Position(null, "사원");
+        // 직위 추가 - 각 직급에 기본 연봉(baseSalary) 추가
+        Position teamLeader = new Position(null, "팀장", 80000000.0);
+        Position director = new Position(null, "부장", 70000000.0);
+        Position assistantManager = new Position(null, "대리", 48000000.0);
+        Position test = new Position(null, "주임", 42000000.0);
+        Position test1 = new Position(null, "과장", 58000000.0);
+        Position basicPerson = new Position(null, "사원", 36000000.0); //
         positionRepository.save(teamLeader);
         positionRepository.save(director);
         positionRepository.save(assistantManager);
         positionRepository.save(basicPerson);
+        positionRepository.save(test);
+        positionRepository.save(test1);
+
 
         // 사용자 추가
         String password1 = passwordEncoder.encode("testtest");
@@ -159,7 +164,6 @@ public class InitialDataLoader implements CommandLineRunner {
                 0
         );
 
-        // 경영1팀 소속 user 추가
         User user3 = new User(
                 null,
                 "20240901003",
@@ -184,44 +188,43 @@ public class InitialDataLoader implements CommandLineRunner {
         userRepository.save(user2);
         userRepository.save(user3);
 
+        // Salary 데이터 생성을 위한 더미 사용자
         Salary salary1 = Salary.builder()
                 .user(user1)
-                .baseSalary(5000000.0)
+                .baseSalary(user1.getPosition().getBaseSalary())  // 직급에 맞는 기본 연봉 설정
                 .taxAmount(
                         Salary.TaxAmount.builder()
-                                .nationalPension(5000000.0 * NATIONAL_PENSION_RATE)
-                                .healthInsurance(5000000.0 * HEALTH_INSURANCE_RATE)
-                                .longTermCare(5000000.0 * LONG_TERM_CARE_INSURANCE_RATE)
-                                .employmentInsurance(5000000.0 * EMPLOYMENT_INSURANCE_RATE)
-                                .totalTax(500000.0)  // 세금 총액
+                                .nationalPension(user1.getPosition().getBaseSalary() * NATIONAL_PENSION_RATE)
+                                .healthInsurance(user1.getPosition().getBaseSalary() * HEALTH_INSURANCE_RATE)
+                                .longTermCare(user1.getPosition().getBaseSalary() * LONG_TERM_CARE_INSURANCE_RATE)
+                                .employmentInsurance(user1.getPosition().getBaseSalary() * EMPLOYMENT_INSURANCE_RATE)
+                                .totalTax(500000.0)
                                 .build()
                 )
-                .finalSalary(4500000.0)
+                .finalSalary(user1.getPosition().getBaseSalary() - 500000.0)  // 세금 제외 후 최종 연봉
                 .build();
 
         Salary salary2 = Salary.builder()
                 .user(user2)
-                .baseSalary(7000000.0)
+                .baseSalary(user2.getPosition().getBaseSalary())  // 직급에 맞는 기본 연봉 설정
                 .taxAmount(
                         Salary.TaxAmount.builder()
-                                .nationalPension(7000000.0 * NATIONAL_PENSION_RATE)
-                                .healthInsurance(7000000.0 * HEALTH_INSURANCE_RATE)
-                                .longTermCare(7000000.0 * LONG_TERM_CARE_INSURANCE_RATE)
-                                .employmentInsurance(7000000.0 * EMPLOYMENT_INSURANCE_RATE)
-                                .totalTax(700000.0)  // 세금 총액
+                                .nationalPension(user2.getPosition().getBaseSalary() * NATIONAL_PENSION_RATE)
+                                .healthInsurance(user2.getPosition().getBaseSalary() * HEALTH_INSURANCE_RATE)
+                                .longTermCare(user2.getPosition().getBaseSalary() * LONG_TERM_CARE_INSURANCE_RATE)
+                                .employmentInsurance(user2.getPosition().getBaseSalary() * EMPLOYMENT_INSURANCE_RATE)
+                                .totalTax(700000.0)
                                 .build()
                 )
-                .finalSalary(6300000.0)
+                .finalSalary(user2.getPosition().getBaseSalary() - 700000.0)  // 세금 제외 후 최종 연봉
                 .build();
-
-
 
         // 더미 데이터를 저장
         salaryRepository.save(salary1);
         salaryRepository.save(salary2);
 
 
-        // 대분류 데이터 생성
+    // 대분류 데이터 생성
         Evalutionb workAbility = new Evalutionb(null, "업무 수행 능력");
         Evalutionb problemSolving = new Evalutionb(null, "문제 해결");
         Evalutionb responsibility = new Evalutionb(null, "책임감");
