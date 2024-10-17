@@ -3,7 +3,7 @@ package com.example.exodia.board.service;
 import com.example.exodia.board.domain.BoardTags;
 import com.example.exodia.board.dto.TagDto;
 import com.example.exodia.board.repository.BoardTagRepository;
-import com.example.exodia.board.repository.TagRepository;
+import com.example.exodia.board.repository.BoardTagsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import jakarta.persistence.EntityNotFoundException;
@@ -15,12 +15,12 @@ import java.util.stream.Collectors;
 @Service
 public class TagService {
 
-    private final TagRepository tagRepository;
+    private final BoardTagsRepository boardTagsRepository;
     private final BoardTagRepository boardTagRepository;
 
     @Autowired
-    public TagService(TagRepository tagRepository, BoardTagRepository boardTagRepository) {
-        this.tagRepository = tagRepository;
+    public TagService(BoardTagsRepository boardTagsRepository, BoardTagRepository boardTagRepository) {
+        this.boardTagsRepository = boardTagsRepository;
         this.boardTagRepository = boardTagRepository;
     }
 
@@ -34,7 +34,7 @@ public class TagService {
         BoardTags newTag = BoardTags.builder()
                 .tag(tagDto.getTag())
                 .build();
-        return tagRepository.save(newTag);
+        return boardTagsRepository.save(newTag);
     }
 
     /**
@@ -42,7 +42,7 @@ public class TagService {
      * @return 태그 리스트
      */
     public List<TagDto> getAllTags() {
-        List<BoardTags> boardTagsList = tagRepository.findAll();
+        List<BoardTags> boardTagsList = boardTagsRepository.findAll();
         return boardTagsList.stream()
                 .map(tag -> new TagDto(tag.getId(), tag.getTag()))
                 .collect(Collectors.toList());
@@ -58,10 +58,10 @@ public class TagService {
         boardTagRepository.deleteByTagId(id);
 
         // 태그 삭제
-        BoardTags tag = tagRepository.findById(id)
+        BoardTags tag = boardTagsRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("태그를 찾을 수 없습니다."));
 
-        tagRepository.delete(tag);
+        boardTagsRepository.delete(tag);
     }
 
 }
