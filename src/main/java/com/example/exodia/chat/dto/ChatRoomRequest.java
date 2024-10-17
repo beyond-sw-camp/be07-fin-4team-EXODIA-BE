@@ -22,6 +22,7 @@ public class ChatRoomRequest { // 받아오는 값
         return ChatRoom.builder()
                 .roomName(this.getRoomName())
                 .chatUsers(new ArrayList<>())
+                .recentChat("")
                 .build();
     }
 }

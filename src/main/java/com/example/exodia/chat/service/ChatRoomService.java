@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -28,13 +29,13 @@ import java.util.stream.Collectors;
 @Transactional
 public class ChatRoomService {
 
-    private final ChatRoomManage chatRoomManage; // redis로 채팅룸 입장유저들 관리 -> 읽음처리
+    private final ChatRoomManage chatRoomManage; // redis로 채팅룸 입장유저들 관리
     private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatUserRepository chatUserRepository;
     private final UserRepository userRepository;
 
-    @Qualifier("chat") // 메세지 pubsub + 각 chatRoom + user의 unread 메세지 개수 관리
+    @Qualifier("chat") // 메세지 pubsub // 각 chatRoom + user의 unread 메세지 개수 관리
     private final RedisTemplate<String, Object> redisTemplate;
 
 
@@ -90,6 +91,7 @@ public class ChatRoomService {
         // 채팅방을 만드려는 유저가 속한 채팅방이 없거나 // 있는데 중복 채팅방 없으면 신규 생성
         // 새로운 채팅방 생성- 1. 채팅방저장
         ChatRoom savedChatRoom = chatRoomRequest.toEntity();
+        savedChatRoom.setRecentChatTime(LocalDateTime.now());
         chatRoomRepository.save(savedChatRoom);
         // 새로운 채팅방 생성 - 2. 채팅유저저장
         for(User user : participants){
@@ -116,6 +118,7 @@ public class ChatRoomService {
 
         for(ChatRoom chatRoom : chatRooms){
             String key = "chatRoom_" + chatRoom.getId() + "_" + userNum;
+
             String unread = (String)redisTemplate.opsForValue().get(key);
             int unreadChat = 0;
 //            assert unread != null;
@@ -144,7 +147,9 @@ public class ChatRoomService {
         String key = "chatRoom_" + roomId + "_" + userNum;
         String unread = (String) redisTemplate.opsForValue().get(key);
         String alarm = chatRoomManage.getChatAlarm(userNum);
-        chatRoomManage.updateChatAlarm(userNum, Integer.parseInt(alarm) - Integer.parseInt(unread));
+        if(unread!=null && alarm!=null){
+            chatRoomManage.updateChatAlarm(userNum, Integer.parseInt(alarm) - Integer.parseInt(unread));
+        }
         redisTemplate.delete(key);
 
         return chatMessageRepository.findAllByChatRoomId(roomId)

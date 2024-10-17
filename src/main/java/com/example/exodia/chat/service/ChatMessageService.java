@@ -75,7 +75,7 @@ public class ChatMessageService {
             // receiver 채팅방에 있는 지 확인 // 알림과 unread 메세지 관리
             String receiverChatRoomId = chatRoomManage.getChatroomIdByUser(receiverNum);
             String key = "chatRoom_" + chatRoom.getId() + "_" + receiverNum;
-            String alarmKey = "user_alarm_" + receiverNum;
+//            String alarmKey = "user_alarm_" + receiverNum;
             // receiver 채팅방에 있다면
             if(receiverChatRoomId != null && receiverChatRoomId.equals(Long.toString(chatRoom.getId()))){
                 chatredisTemplate.opsForValue().set(key, "0");
@@ -84,25 +84,25 @@ public class ChatMessageService {
                 // chatAlarm 개수 + 1
                 // 해당 chatRoom 입장시 -> chatRoom의 unread = 0 // chatAlarm개수 - 해당 chatRoom unreadChat 개수
 
-                if(chatMessageRequest.getMessageType() == MessageType.FILE){
-                    sseEmitters.sendChatToUser(receiverNum, ChatAlarmResponse.builder()
-                            .senderName(user.getName())
-                            .roomName(chatRoom.getRoomName())
-                            .message("FILE 전송")
-                            .build());
-                }else{
-                    sseEmitters.sendChatToUser(receiverNum, ChatAlarmResponse.builder()
-                            .senderName(user.getName())
-                            .roomName(chatRoom.getRoomName())
-                            .message(chatMessageRequest.getMessage())
-                            .build());
-                }
-                String temp = chatRoomManage.getChatAlarm(receiverNum);
-                int alarm = 0;
-                if(temp != null){
-                    alarm = Integer.parseInt(temp);
-                }
-                chatRoomManage.updateChatAlarm(receiverNum, alarm+1);
+//                if(chatMessageRequest.getMessageType() == MessageType.FILE){
+//                    sseEmitters.sendChatToUser(receiverNum, ChatAlarmResponse.builder()
+//                            .senderName(user.getName())
+//                            .roomName(chatRoom.getRoomName())
+//                            .message("FILE 전송")
+//                            .build());
+//                }else{
+//                    sseEmitters.sendChatToUser(receiverNum, ChatAlarmResponse.builder()
+//                            .senderName(user.getName())
+//                            .roomName(chatRoom.getRoomName())
+//                            .message(chatMessageRequest.getMessage())
+//                            .build());
+//                }
+//                String temp = chatRoomManage.getChatAlarm(receiverNum);
+//                int alarm = 0;
+//                if(temp != null){
+//                    alarm = Integer.parseInt(temp);
+//                }
+//                chatRoomManage.updateChatAlarm(receiverNum, alarm+1);
 
                 Object obj = chatredisTemplate.opsForValue().get(key);
                 if(obj != null){ // unread 메세지가 있다면

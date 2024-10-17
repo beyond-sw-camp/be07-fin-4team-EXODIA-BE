@@ -33,6 +33,11 @@ public class SseEmitters {
             e.printStackTrace();
         });
 
+//        try {
+//            emitter.send(SseEmitter.event().name("connect").data("connected!"));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
         return emitter;
     }
     // 모든 사용자
