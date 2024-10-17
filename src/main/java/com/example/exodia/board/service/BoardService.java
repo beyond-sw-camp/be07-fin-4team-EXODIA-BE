@@ -164,6 +164,10 @@ public class BoardService {
                     boards = boardRepository.findByTagsContainingIgnoreCaseAndCategoryAndDelYn(
                             searchQuery, category, DelYN.N, pageable);
                     break;
+                case "title + content":
+                    boards = boardRepository.findByTitleContainingOrContentContainingIgnoreCaseAndCategoryAndDelYn(
+                            searchQuery, searchQuery, category, DelYN.N, pageable);
+                    break;
                 default:
                     boards = boardRepository.findByCategoryAndDelYn(category, DelYN.N, pageable);
                     break;
@@ -178,6 +182,7 @@ public class BoardService {
 
         return boards.map(Board::listFromEntity);
     }
+
 
     /**
      * 특정 게시물 상세 조회

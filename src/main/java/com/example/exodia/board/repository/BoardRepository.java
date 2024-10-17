@@ -35,4 +35,9 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     Page<Board> findAllWithPinnedByCategory(Category category, Pageable pageable);
 
     Optional<Board> findById(Long boardId);
+
+    // 타이틀 또는 내용으로 검색하고 카테고리와 삭제 여부에 따라 필터링
+    Page<Board> findByTitleContainingOrContentContainingIgnoreCaseAndCategoryAndDelYn(
+            String title, String content, Category category, DelYN delYN, Pageable pageable);
+
 }
