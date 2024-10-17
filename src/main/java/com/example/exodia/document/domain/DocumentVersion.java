@@ -37,9 +37,6 @@ public class DocumentVersion {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@ManyToOne
-	@JoinColumn(name = "document_type_id", nullable = false)
-	private DocumentType documentType;
 
 	private Long document_id;
 
@@ -50,7 +47,6 @@ public class DocumentVersion {
 	public static DocumentVersion toEntity(Document document) {
 		return DocumentVersion.builder()
 			.document_id(document.getId())
-			.documentType(document.getDocumentType())
 			.delYn(DelYN.N)
 			.build();
 	}

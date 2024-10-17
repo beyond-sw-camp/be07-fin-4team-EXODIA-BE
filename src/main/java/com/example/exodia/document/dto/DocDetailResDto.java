@@ -1,6 +1,7 @@
 package com.example.exodia.document.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,7 +16,7 @@ public class DocDetailResDto {
 	private Long id;
 	private String fileName;
 	private String fileExtension;
-	private String documentType;
+	private List<String> tags;
 	private String userName;
 	private String description;	// 설명
 	private LocalDateTime createAt;

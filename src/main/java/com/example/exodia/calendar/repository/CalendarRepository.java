@@ -21,4 +21,7 @@ public interface CalendarRepository extends JpaRepository<Calendar, Long> {
 
     /* 휴일 필터링 */
     boolean existsByTitleAndStartTime(String title, LocalDateTime startTime);
+
+
+    Calendar findByTitle(String title);
 }

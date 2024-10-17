@@ -234,6 +234,17 @@ public class CalendarService {
         return allEvents;
     }
 
+
+
+
+    public CalendarResponseDto findByTitle(String title) {
+        Calendar calendar = calendarRepository.findByTitle(title);
+        if (calendar != null) {
+            return CalendarResponseDto.fromEntity(calendar);
+        }
+        return null;
+    }
+
     /* 사용자 별 캘린더 조회 */
 //    @Transactional(readOnly = true)
 //    public List<CalendarResponseDto> getUserCalendarsForAuthenticatedUser() {

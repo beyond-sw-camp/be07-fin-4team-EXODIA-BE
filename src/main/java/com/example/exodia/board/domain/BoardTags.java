@@ -1,6 +1,6 @@
 package com.example.exodia.board.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,7 +11,7 @@ import lombok.*;
 @Builder
 @Entity
 @Table(name = "tags")
-public class Tags {
+public class BoardTags {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

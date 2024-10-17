@@ -24,13 +24,16 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.exodia.common.dto.CommonErrorDto;
 import com.example.exodia.common.dto.CommonResDto;
 import com.example.exodia.document.domain.Document;
+import com.example.exodia.document.domain.DocumentTag;
 import com.example.exodia.document.dto.DocDetailResDto;
 import com.example.exodia.document.dto.DocHistoryResDto;
 import com.example.exodia.document.dto.DocListResDto;
 import com.example.exodia.document.dto.DocSaveReqDto;
-//import com.example.exodia.document.dto.DocTagReqDto;
+import com.example.exodia.document.dto.DocTagListReqDto;
+import com.example.exodia.document.dto.DocTagReqDto;
 import com.example.exodia.document.dto.DocUpdateReqDto;
 // import com.example.exodia.document.service.DocumentSearchService;
+import com.example.exodia.document.service.DocumentSearchService;
 import com.example.exodia.document.service.DocumentService;
 
 @RestController
@@ -38,22 +41,22 @@ import com.example.exodia.document.service.DocumentService;
 public class DocumentController {
 
 	private final DocumentService documentService;
-	// private final DocumentSearchService documentSearchService;
+	private final DocumentSearchService documentSearchService;
 
 	@Autowired
-	public DocumentController(DocumentService documentService) {
+	public DocumentController(DocumentService documentService, DocumentSearchService documentSearchService) {
 		this.documentService = documentService;
-		// this.documentSearchService = documentSearchService;
+		this.documentSearchService = documentSearchService;
 	}
 
 	// 	문서 업로드
 	@PostMapping("/uploadFile")
 	public ResponseEntity<?> uploadDocument(
-			@RequestPart(value = "file", required = true) List<MultipartFile> files,
-			@RequestPart(value = "data") DocSaveReqDto docSaveReqDto) {
+		@RequestPart(value = "file", required = true) List<MultipartFile> files,
+		@RequestPart(value = "data") DocSaveReqDto docSaveReqDto) {
 		try {
 			return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "파일 저장 성공", documentService.saveDoc(files,
-					docSaveReqDto).getId()));
+				docSaveReqDto).getId()));
 		} catch (IOException e) {
 			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage()), HttpStatus.NOT_FOUND);
 		}
@@ -68,8 +71,8 @@ public class DocumentController {
 	// 	전체 문서 조회
 	@GetMapping("/list/all")
 	public ResponseEntity<?> docList(
-			@PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
-	) {
+		@PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+		) {
 		Page<DocListResDto> docListResDtos = documentService.getDocList(pageable);
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "전체 문서 조회 성공", docListResDtos));
 	}
@@ -98,7 +101,7 @@ public class DocumentController {
 	// 	문서 업데이트
 	@PostMapping("/update")
 	public ResponseEntity<?> updateDocument(@RequestPart(value = "file", required = false) List<MultipartFile> files,
-											@RequestPart(value = "data") DocUpdateReqDto docUpdateReqDto) {
+		@RequestPart(value = "data") DocUpdateReqDto docUpdateReqDto) {
 		try {
 			Document updatedDoc = documentService.updateDoc(files, docUpdateReqDto);
 			return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "파일 업데이트 성공", updatedDoc.getId()));
@@ -108,7 +111,7 @@ public class DocumentController {
 		}
 	}
 
-	// 문서 버전 되돌리기
+	 // 문서 버전 되돌리기
 	@PostMapping("/rollback/{id}")
 	public ResponseEntity<?> revertToVersion(@PathVariable Long id) {
 		documentService.rollbackDoc(id);
@@ -136,32 +139,33 @@ public class DocumentController {
 	}
 
 	// 모든 타입 조회
-	@GetMapping("/list/types")
-	public ResponseEntity<?> getAllDocumentTypes() {
-		List<String> typeNames = documentService.getAllTypeNames();
-		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "전체 문서 타입 조회 성공", typeNames));
+	@GetMapping("/list/tags")
+	public ResponseEntity<?> getAllDocumentTags() {
+		List<String> tags = documentService.getAllTags();
+		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "문서 태그 조회 성공", tags));
 	}
 
-//	// 타입 생성
-//	@PostMapping("/tag/create")
-//	public ResponseEntity<?> addDocumentType(@RequestBody DocTagReqDto docTagReqDto){
-//		Long cnt = documentService.addType(docTagReqDto);
-//		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "태그 추가 성공", cnt));
-//	}
+	// 타입 생성
+	@PostMapping("/tag/create")
+	public ResponseEntity<?> addDocumentType(@RequestBody DocTagReqDto docTagReqDto){
+		Long cnt = documentService.addTag(docTagReqDto);
+		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "타입 추가 성공", cnt));
+	}
 
 	// 	타입별 문서 조회
-	@GetMapping("/list/type/{id}")
-	public ResponseEntity<?> docListByType(@PathVariable Long id) {
-		List<DocListResDto> docListResDtos = documentService.getDocByType(id);
-		System.out.println(docListResDtos.size());
-
-		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "타입별 문서 조회 성공", docListResDtos));
-	}
-
+	// // @GetMapping("/list/type/{id}")
+	// // public ResponseEntity<?> docListByType(@PathVariable Long id) {
+	// // 	List<DocListResDto> docListResDtos = documentService.getDocByType(id);
+	// // 	System.out.println(docListResDtos.size());
+	// //
+	// // 	return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "타입별 문서 조회 성공", docListResDtos));
+	// }
+	//
 	// @GetMapping("/search")
 	// public ResponseEntity<?> searchDocuments(@RequestParam String keyword) {
-	// 	// List<DocListResDto> documents = documentSearchService.searchDocumentsQuery(keyword);
+	// 	List<DocListResDto> documents = documentSearchService.searchDocumentsQuery(keyword);
 	// 	System.out.println("검색 결과: " + documents.size());
 	// 	return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "문서 검색 성공", documents));
 	// }
+
 }

@@ -10,16 +10,12 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.example.exodia.document.domain.Document;
-import com.example.exodia.document.domain.DocumentType;
 import com.example.exodia.document.domain.DocumentVersion;
 
 @Repository
 public interface DocumentRepository extends JpaRepository<Document,Long> {
 	// 현재문서의 모든 버전 조회
 	List<Document> findAllByDocumentVersion(DocumentVersion documentVersion);
-
-	// 프로젝트별 문서 조회
-	List<Document> findAllByDocumentTypeAndStatus(DocumentType documentType, String status);
 
 	// 최신 버전의 문서들 조회
 	Page<Document> findAllByStatus(String status, Pageable pageable);
