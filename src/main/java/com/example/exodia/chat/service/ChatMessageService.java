@@ -1,6 +1,7 @@
 package com.example.exodia.chat.service;
 
 import com.example.exodia.chat.domain.*;
+import com.example.exodia.chat.dto.ChatAlarmResponse;
 import com.example.exodia.chat.dto.ChatFileMetaDataResponse;
 import com.example.exodia.chat.dto.ChatMessageRequest;
 import com.example.exodia.chat.dto.ChatMessageResponse;
@@ -8,6 +9,7 @@ import com.example.exodia.chat.repository.ChatMessageRepository;
 import com.example.exodia.chat.repository.ChatRoomRepository;
 import com.example.exodia.chat.repository.ChatUserRepository;
 import com.example.exodia.common.domain.DelYN;
+import com.example.exodia.common.service.SseEmitters;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -37,8 +39,13 @@ public class ChatMessageService {
     private final FileUploadService fileUploadService;
     private final ChatUserRepository chatUserRepository;
 
+    private final SseEmitters sseEmitters;
+
     @Autowired
-    public ChatMessageService(ChatRoomManage chatRoomManage, @Qualifier("chat") RedisTemplate<String, Object> chatredisTemplate, @Qualifier("chat") ChannelTopic channelTopic, ChatMessageRepository chatMessageRepository, ChatRoomRepository chatRoomRepository, UserRepository userRepository, FileUploadService fileUploadService, ChatUserRepository chatUserRepository) {
+    public ChatMessageService(ChatRoomManage chatRoomManage, @Qualifier("chat") RedisTemplate<String, Object> chatredisTemplate, @Qualifier("chat") ChannelTopic channelTopic,
+                              ChatMessageRepository chatMessageRepository, ChatRoomRepository chatRoomRepository,
+                              UserRepository userRepository, FileUploadService fileUploadService,
+                              ChatUserRepository chatUserRepository, SseEmitters sseEmitters) {
         this.chatRoomManage = chatRoomManage;
         this.chatredisTemplate = chatredisTemplate;
         this.channelTopic = channelTopic;
@@ -47,6 +54,7 @@ public class ChatMessageService {
         this.userRepository = userRepository;
         this.fileUploadService = fileUploadService;
         this.chatUserRepository = chatUserRepository;
+        this.sseEmitters = sseEmitters;
     }
 
     // 채팅방에 메세지 발송
@@ -67,11 +75,35 @@ public class ChatMessageService {
             // receiver 채팅방에 있는 지 확인 // 알림과 unread 메세지 관리
             String receiverChatRoomId = chatRoomManage.getChatroomIdByUser(receiverNum);
             String key = "chatRoom_" + chatRoom.getId() + "_" + receiverNum;
+            String alarmKey = "user_alarm_" + receiverNum;
             // receiver 채팅방에 있다면
             if(receiverChatRoomId != null && receiverChatRoomId.equals(Long.toString(chatRoom.getId()))){
                 chatredisTemplate.opsForValue().set(key, "0");
             }else { // receiver 채팅방에 없다면
-                // ⭐⭐⭐ 알림 뿅 내용 : 어느방의 누가 무엇을 보냈나.
+                // ⭐⭐⭐ 알림 내용 : 어느방의 누가 무엇을 보냈나.
+                // chatAlarm 개수 + 1
+                // 해당 chatRoom 입장시 -> chatRoom의 unread = 0 // chatAlarm개수 - 해당 chatRoom unreadChat 개수
+
+                if(chatMessageRequest.getMessageType() == MessageType.FILE){
+                    sseEmitters.sendChatToUser(receiverNum, ChatAlarmResponse.builder()
+                            .senderName(user.getName())
+                            .roomName(chatRoom.getRoomName())
+                            .message("FILE 전송")
+                            .build());
+                }else{
+                    sseEmitters.sendChatToUser(receiverNum, ChatAlarmResponse.builder()
+                            .senderName(user.getName())
+                            .roomName(chatRoom.getRoomName())
+                            .message(chatMessageRequest.getMessage())
+                            .build());
+                }
+                String temp = chatRoomManage.getChatAlarm(receiverNum);
+                int alarm = 0;
+                if(temp != null){
+                    alarm = Integer.parseInt(temp);
+                }
+                chatRoomManage.updateChatAlarm(receiverNum, alarm+1);
+
                 Object obj = chatredisTemplate.opsForValue().get(key);
                 if(obj != null){ // unread 메세지가 있다면
                     try {

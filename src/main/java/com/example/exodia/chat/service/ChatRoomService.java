@@ -116,10 +116,11 @@ public class ChatRoomService {
 
         for(ChatRoom chatRoom : chatRooms){
             String key = "chatRoom_" + chatRoom.getId() + "_" + userNum;
-            String temp = (String)redisTemplate.opsForValue().get(key);
+            String unread = (String)redisTemplate.opsForValue().get(key);
             int unreadChat = 0;
-            if(temp != null){
-                unreadChat = Integer.parseInt(temp);
+//            assert unread != null;
+            if(unread != null){
+                unreadChat = Integer.parseInt(unread);
             }
             chatRoomResponses.add(chatRoom.fromEntity(unreadChat));
         }
@@ -139,9 +140,13 @@ public class ChatRoomService {
 
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         chatRoomManage.updateChatRoomId(userNum, roomId);
-        // 채팅방의 unread 메세지 삭제
+        // alarm개수 해당 채팅방의 unread 개수만큼 감소, 채팅방의 unread 메세지 개수 삭제
         String key = "chatRoom_" + roomId + "_" + userNum;
+        String unread = (String) redisTemplate.opsForValue().get(key);
+        String alarm = chatRoomManage.getChatAlarm(userNum);
+        chatRoomManage.updateChatAlarm(userNum, Integer.parseInt(alarm) - Integer.parseInt(unread));
         redisTemplate.delete(key);
+
         return chatMessageRepository.findAllByChatRoomId(roomId)
                 .stream().map(ChatMessage::fromEntityForChatList).collect(Collectors.toList());
     }

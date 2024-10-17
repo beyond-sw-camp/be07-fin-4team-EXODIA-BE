@@ -11,17 +11,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ChatAlarmResponse {
-    private String senderNum;
+
     private String senderName;
-    private String senderDepName;
-    private String senderPosName;
 
-    private Long roomId;
     private String roomName;
-
-    private MessageType messageType;
 
     private String message;
 
-    private String createAt;
 }
