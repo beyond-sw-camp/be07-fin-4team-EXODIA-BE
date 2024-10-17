@@ -1,5 +1,6 @@
 package com.example.exodia.board.controller;
 
+import com.example.exodia.board.domain.Board;
 import com.example.exodia.board.domain.Category;
 import com.example.exodia.board.dto.*;
 import com.example.exodia.board.service.BoardService;
@@ -55,42 +56,59 @@ public class BoardController {
                 throw new IllegalArgumentException("내용을 입력해 주세요.");
             }
 
-            // 2. 파일이 null이거나 비어 있는지 확인
+            // 2. 파일 확인 (비어 있는지 체크)
             List<MultipartFile> files = dto.getFiles() != null ? dto.getFiles() : Collections.emptyList();
-            if (!files.isEmpty()) {
-                for (MultipartFile file : files) {
-                    if (file.isEmpty()) {
-                        throw new IllegalArgumentException("빈 파일은 업로드할 수 없습니다.");
-                    }
+            for (MultipartFile file : files) {
+                if (file.isEmpty()) {
+                    throw new IllegalArgumentException("빈 파일은 업로드할 수 없습니다.");
                 }
             }
 
             // 3. 게시물 정보, 파일 정보, 태그 저장
-            boardService.createBoard(dto, files, tagIds);
-            CommonResDto response = new CommonResDto(HttpStatus.CREATED, "게시물이 성공적으로 등록되었습니다.", dto);
+            Board createdBoard = boardService.createBoard(dto, files, tagIds);
+
+            // BoardResDto 빌더 사용
+            BoardResDto boardResponse = BoardResDto.builder()
+                    .id(createdBoard.getId())          // 게시글 ID
+                    .title(createdBoard.getTitle())    // 게시글 제목
+                    .content(createdBoard.getContent())// 게시글 내용
+                    .category(createdBoard.getCategory()) // 게시글 카테고리
+                    .isPinned(createdBoard.getIsPinned()) // 고정 여부
+                    .hits(createdBoard.getHits())      // 조회수
+                    .build();
+
+            // 성공 응답 반환
+            CommonResDto response = new CommonResDto(HttpStatus.CREATED, "게시물이 성공적으로 등록되었습니다.", boardResponse);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
 
         } catch (SecurityException e) {
+            // 권한 예외 처리
             e.printStackTrace();
             CommonErrorDto errorResponse = new CommonErrorDto(HttpStatus.FORBIDDEN, "권한이 없습니다.");
             return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
 
         } catch (EntityNotFoundException e) {
+            // 엔티티를 찾을 수 없는 경우 처리
             e.printStackTrace();
             CommonErrorDto errorResponse = new CommonErrorDto(HttpStatus.NOT_FOUND, "요청한 엔티티를 찾을 수 없습니다.");
             return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
 
         } catch (IllegalArgumentException e) {
+            // 잘못된 인자 예외 처리
             e.printStackTrace();
             CommonErrorDto errorResponse = new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage());
             return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
 
         } catch (Exception e) {
+            // 기타 예외 처리
             e.printStackTrace();
             CommonErrorDto errorResponse = new CommonErrorDto(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다.");
             return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
+
 
     /**
      * 게시물 목록 조회
@@ -187,7 +205,7 @@ public class BoardController {
     @PostMapping("/pin/{id}")
     public ResponseEntity<?> pinBoard(@PathVariable Long id, @RequestBody BoardPinReqDto requestDto) {
         try {
-            boardService.pinBoard(id, requestDto.getUserId(), requestDto.getIsPinned());
+            boardService.pinBoard(requestDto.getBoardId(), requestDto.getIsPinned());
 
             String message = requestDto.getIsPinned()
                     ? "게시물이 상단에 고정되었습니다."

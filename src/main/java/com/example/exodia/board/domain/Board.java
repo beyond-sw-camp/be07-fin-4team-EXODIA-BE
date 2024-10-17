@@ -90,9 +90,9 @@ public class Board extends BaseTimeEntity {
      * @return BoardDetailDto
      */
     public BoardDetailDto detailFromEntity(List<BoardFile> files) {
-        // BoardTag 엔티티에서 태그 ID 추출
-        List<Long> tagIds = this.boardTags.stream()
-                .map(boardTag -> boardTag.getTags().getId()) // 태그 ID 추출
+        // BoardTag 엔티티에서 태그 이름 추출
+        List<String> tagNames = this.boardTags.stream()
+                .map(boardTag -> boardTag.getTags().getTag()) // 태그 이름 추출
                 .collect(Collectors.toList());
 
         return BoardDetailDto.builder()
@@ -105,9 +105,10 @@ public class Board extends BaseTimeEntity {
                 .files(files) // Board 객체에 포함된 파일 리스트 사용
                 .hits(this.hits)
                 .user_num(user.getUserNum())
-                .tagIds(tagIds) // 태그 ID 리스트 추가
+                .tags(tagNames) // 태그 이름 리스트 추가
                 .build();
     }
+
 
     /**
      * 조회수를 업데이트하는 메서드
