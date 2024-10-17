@@ -195,10 +195,10 @@ public class QnAService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 사번을 가진 유저가 없습니다."));
 
         // 사용자가 매니저 테이블에 있는지 확인
-        boolean isManager = managerRepository.existsByUser(answerer);
-        if (!isManager) {
-            throw new SecurityException("매니저만 질문에 답변할 권한이 있습니다.");
-        }
+//        boolean isManager = managerRepository.existsByUser(answerer);
+//        if (!isManager) {
+//            throw new SecurityException("매니저만 질문에 답변할 권한이 있습니다.");
+//        }
 
         // 다른 부서의 질문에 답변할 수 있는지 체크
         if (!answerer.getDepartment().getId().equals(questionerDepartment.getId())) {
