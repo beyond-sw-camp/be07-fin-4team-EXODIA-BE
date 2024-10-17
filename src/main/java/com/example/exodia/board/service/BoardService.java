@@ -77,21 +77,22 @@ public class BoardService {
         processFiles(files, board);
         boardHitsService.resetBoardHits(board.getId());
 
-        return board;
+        return board;  // 기존 dto 대신 저장된 board 반환
     }
+
 
     /**
      * 태그를 게시판에 연결하는 메서드
      */
     private void addTagsToBoard(Board board, List<Long> tagIds) {
         // 태그 ID를 사용하여 태그 리스트를 조회합니다.
-        List<Tags> tags = tagRepository.findAllById(tagIds);
+        List<BoardTags> tags = tagRepository.findAllById(tagIds);
 
         // 각 태그와 게시물 간의 연결을 설정합니다.
-        for (Tags tag : tags) {
+        for (BoardTags tag : tags) {
             BoardTag boardTag = BoardTag.builder()
                     .board(board)
-                    .tags(tag)
+                    .boardTags(tag)
                     .build();
             boardTagRepository.save(boardTag);  // BoardTag 테이블에 저장
         }
@@ -197,20 +198,26 @@ public class BoardService {
                 .map(CommentResDto::fromEntity)
                 .collect(Collectors.toList());
 
-        // 태그 조회
-        List<Long> tagIds = boardTagRepository.findByBoardId(id)
+        // 태그 조회 (tagIds로 태그 이름 가져오기)
+        List<BoardTags> tags = boardTagRepository.findByBoardId(id)
                 .stream()
-                .map(boardTag -> boardTag.getTags().getId())
+                .map(boardTag -> boardTag.getBoardTags())
                 .collect(Collectors.toList());
 
+        List<String> tagNames = tags.stream()
+                .map(BoardTags::getTag)
+                .collect(Collectors.toList());
+
+        // BoardDetailDto 생성 및 설정
         BoardDetailDto boardDetailDto = board.detailFromEntity(boardFiles);
         boardDetailDto.setComments(commentResDto);
         boardDetailDto.setHits(updatedHits);
         boardDetailDto.setUser_num(board.getUser().getUserNum());
-        boardDetailDto.setTagIds(tagIds);
+        boardDetailDto.setTags(tagNames);  // 태그 이름 설정
 
         return boardDetailDto;
     }
+
 
     /**
      * 게시물 업데이트 메서드
@@ -261,16 +268,10 @@ public class BoardService {
      * 게시물 상단 고정 메서드
      */
     @Transactional
-    public void pinBoard(Long boardId, Long userId, boolean isPinned) {
+    public void pinBoard(Long boardId, boolean isPinned) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new EntityNotFoundException("게시물을 찾을 수 없습니다."));
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
-
-        if (!user.getDepartment().getName().equals("인사팀")) {
-            throw new SecurityException("상단 고정은 인사팀만 가능합니다.");
-        }
 
         if (!board.getCategory().equals(Category.NOTICE)) {
             throw new IllegalArgumentException("공지사항 게시물만 상단 고정이 가능합니다.");

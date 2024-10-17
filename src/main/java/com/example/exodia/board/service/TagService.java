@@ -1,7 +1,8 @@
 package com.example.exodia.board.service;
 
-import com.example.exodia.board.domain.Tags;
+import com.example.exodia.board.domain.BoardTags;
 import com.example.exodia.board.dto.TagDto;
+import com.example.exodia.board.repository.BoardTagRepository;
 import com.example.exodia.board.repository.TagRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,10 +16,12 @@ import java.util.stream.Collectors;
 public class TagService {
 
     private final TagRepository tagRepository;
+    private final BoardTagRepository boardTagRepository;
 
     @Autowired
-    public TagService(TagRepository tagRepository) {
+    public TagService(TagRepository tagRepository, BoardTagRepository boardTagRepository) {
         this.tagRepository = tagRepository;
+        this.boardTagRepository = boardTagRepository;
     }
 
     /**
@@ -27,8 +30,8 @@ public class TagService {
      * @return 생성된 태그 엔티티
      */
     @Transactional
-    public Tags createTag(TagDto tagDto) {
-        Tags newTag = Tags.builder()
+    public BoardTags createTag(TagDto tagDto) {
+        BoardTags newTag = BoardTags.builder()
                 .tag(tagDto.getTag())
                 .build();
         return tagRepository.save(newTag);
@@ -39,8 +42,8 @@ public class TagService {
      * @return 태그 리스트
      */
     public List<TagDto> getAllTags() {
-        List<Tags> tagsList = tagRepository.findAll();
-        return tagsList.stream()
+        List<BoardTags> boardTagsList = tagRepository.findAll();
+        return boardTagsList.stream()
                 .map(tag -> new TagDto(tag.getId(), tag.getTag()))
                 .collect(Collectors.toList());
     }
@@ -51,8 +54,14 @@ public class TagService {
      */
     @Transactional
     public void deleteTag(Long id) {
-        Tags tag = tagRepository.findById(id)
+        // board_tag 테이블에서 해당 태그와 연결된 모든 레코드를 먼저 삭제
+        boardTagRepository.deleteByTagId(id);
+
+        // 태그 삭제
+        BoardTags tag = tagRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("태그를 찾을 수 없습니다."));
+
         tagRepository.delete(tag);
     }
+
 }
