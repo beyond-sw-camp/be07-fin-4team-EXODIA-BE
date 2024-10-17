@@ -74,4 +74,5 @@ public class ReservationController {
         List<CarReservationStatusDto> carReservationStatusList = reservationService.getAllCarsWithReservationStatusForDay(date.atStartOfDay());
         return ResponseEntity.ok(carReservationStatusList);
     }
+
 }

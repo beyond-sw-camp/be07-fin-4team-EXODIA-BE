@@ -95,7 +95,7 @@ public class User extends BaseTimeEntity {
     }
 
 
-    public static User fromRegisterDto(UserRegisterDto dto, Department department, Position position, String encodedPassword) {
+    public static User fromRegisterDto(UserRegisterDto dto, Department department, Position position, Status status, String encodedPassword) {
         User user = new User();
         user.setUserNum(dto.getUserNum());
         user.setName(dto.getName());
@@ -104,17 +104,15 @@ public class User extends BaseTimeEntity {
         user.setAddress(dto.getAddress());
         user.setPhone(dto.getPhone());
         user.setSocialNum(dto.getSocialNum());
-//        user.setGender(dto.getGender()); // Gender enum 설정
-//        user.setHireType(dto.getHireType()); // HireType enum 설정
-//        user.setStatus(dto.getStatus()); // Status enum 설정
+        user.setGender(Gender.valueOf(dto.getGender()));
+        user.setHireType(dto.getHireType());
+        user.setStatus(status);
         user.setAnnualLeave(dto.getAnnualLeave());
         user.setDepartment(department);
         user.setPosition(position);
-        user.setAnnualLeave(dto.getAnnualLeave());
-        user.setStatus(Status.valueOf(dto.getStatus()));
-        user.setGender(Gender.valueOf(dto.getGender()));
         return user;
     }
+
 
 
     public void softDelete() {

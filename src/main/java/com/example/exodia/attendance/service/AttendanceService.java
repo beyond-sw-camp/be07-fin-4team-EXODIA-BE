@@ -36,6 +36,14 @@ public class AttendanceService {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUserNum(userNum).orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
 
+        LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
+        LocalDateTime endOfToday = LocalDateTime.of(LocalDate.now(), LocalTime.MAX);
+
+        Optional<Attendance> existingAttendance = attendanceRepository.findByUserAndInTimeBetween(user, startOfToday, endOfToday);
+        if (existingAttendance.isPresent()) {
+            throw new RuntimeException("이미 오늘 출근 기록이 있습니다.");
+        }
+
         Attendance attendance = dto.toEntity(user);
         attendance.setOutTime(null);  // 출근 시에는 퇴근 시간을 null로 설정
         return attendanceRepository.save(attendance);

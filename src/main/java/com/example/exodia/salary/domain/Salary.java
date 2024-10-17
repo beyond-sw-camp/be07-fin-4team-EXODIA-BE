@@ -23,6 +23,7 @@ public class Salary {
     private double baseSalary;
 
     @Embedded
+    @Builder.Default
     private TaxAmount taxAmount = new TaxAmount();
 
     private double finalSalary;

@@ -16,6 +16,7 @@ public class CourseListDto {
 
     private Long id;
     private String courseName;
+    private String content;
     private String courseUrl;
     private int maxParticipants; // 최대 신청인원
     private int remainingParticipants; // 남은 신청인원 ( 최대 - 신청 )
@@ -27,6 +28,7 @@ public class CourseListDto {
         return CourseListDto.builder()
                 .id(course.getId())
                 .courseName(course.getCourseName())
+                .content(course.getContent())
                 .courseUrl(course.getCourseUrl())
                 .maxParticipants(course.getMaxParticipants())
                 .remainingParticipants(course.getMaxParticipants() - currentParticipants)

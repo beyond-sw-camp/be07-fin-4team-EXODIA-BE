@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 public class CourseUpdateDto {
 
     private String courseName;
+    private String content;
     private String courseUrl;
     private int maxParticipants;
 
@@ -21,6 +22,7 @@ public class CourseUpdateDto {
         return Course.builder()
                 .id(existingCourse.getId())
                 .courseName(this.courseName)
+                .content(this.content)
                 .courseUrl(this.courseUrl)
                 .maxParticipants(this.maxParticipants)
                 .user(user)

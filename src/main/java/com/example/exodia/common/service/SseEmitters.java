@@ -11,6 +11,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class SseEmitters {
@@ -18,8 +21,19 @@ public class SseEmitters {
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
 
     public SseEmitter addEmitter(String userNum) {
-        SseEmitter emitter = new SseEmitter(180_000L); // 무제한 타임아웃
+        SseEmitter emitter = new SseEmitter(360_000L);
         emitters.put(userNum, emitter);
+        System.out.println("SSE Emitter 추가: " + userNum);
+
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.scheduleAtFixedRate(() -> {
+            try {
+                emitter.send(SseEmitter.event().comment("heartbeat"));
+            } catch (IOException e) {
+                emitters.remove(userNum);
+                System.out.println("SSE 연결 오류 발생: " + userNum);
+            }
+        }, 0, 30, TimeUnit.SECONDS);
 
         // SSE 종료/에러 -> 백업처리로직
         emitter.onCompletion(() -> emitters.remove(userNum));

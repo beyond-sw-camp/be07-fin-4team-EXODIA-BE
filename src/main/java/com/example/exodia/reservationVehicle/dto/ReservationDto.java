@@ -20,6 +20,7 @@ public class ReservationDto {
     private String carNum;
     private String carType;
     private String userName;
+    private String departmentName;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private Status status;
@@ -31,6 +32,7 @@ public class ReservationDto {
                 .carNum(reservation.getCar().getCarNum())
                 .carType(reservation.getCar().getCarType())
                 .userName(reservation.getUser().getName())
+                .departmentName(reservation.getUser().getDepartment().getName())
                 .startTime(reservation.getStartTime())
                 .endTime(reservation.getEndTime())
                 .status(reservation.getStatus())

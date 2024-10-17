@@ -161,7 +161,7 @@ public class ReservationService {
         User user = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
-        userService.checkHrAuthority(user.getDepartment().getId().toString());
+//        userService.checkHrAuthority(user.getDepartment().getId().toString());
 
         return reservationRepository.findAll().stream()
                 .map(ReservationDto::fromEntity)
@@ -181,11 +181,13 @@ public class ReservationService {
 
             // 예약 상태 확인: 예약이 없으면 AVAILABLE, 있으면 RESERVED
             boolean isAvailable = reservations.isEmpty();
+            User user = isAvailable ? null : reservations.get(0).getUser(); // 예약된 경우 사용자 정보 가져오기
 
             // Create DTO using fromEntity method
             CarReservationStatusDto carReservationStatusDto = CarReservationStatusDto.fromEntity(
                     car,
-                    isAvailable ? Status.AVAILABLE : Status.RESERVED
+                    isAvailable ? Status.AVAILABLE : Status.RESERVED,
+                    user
             );
 
             carReservationStatusList.add(carReservationStatusDto);
@@ -193,7 +195,6 @@ public class ReservationService {
 
         return carReservationStatusList;
     }
-
 
 }
 
