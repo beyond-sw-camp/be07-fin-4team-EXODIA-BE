@@ -32,7 +32,7 @@ import com.example.exodia.document.dto.DocDetailResDto;
 import com.example.exodia.document.dto.DocHistoryResDto;
 import com.example.exodia.document.dto.DocListResDto;
 import com.example.exodia.document.dto.DocSaveReqDto;
-import com.example.exodia.document.dto.DocTypeReqDto;
+//import com.example.exodia.document.dto.DocTagReqDto;
 import com.example.exodia.document.dto.DocUpdateReqDto;
 import com.example.exodia.document.repository.DocumentRepository;
 import com.example.exodia.document.repository.DocumentTypeRepository;
@@ -56,21 +56,21 @@ public class DocumentService {
 	private final UserRepository userRepository;
 	private final RedisService redisService;
 	private final UploadAwsFileService uploadAwsFileService;
-	private final DocumentSearchService documentSearchService;
+	// private final DocumentSearchService documentSearchService;
 	private S3Client s3Client;
 	private KafkaProducer kafkaProducer;
 
 	@Autowired
 	public DocumentService(DocumentRepository documentRepository, DocumentVersionRepository documentVersionRepository,
-		DocumentTypeRepository documentTypeRepository, UserRepository userRepository, RedisService redisService,
-		UploadAwsFileService uploadAwsFileService, DocumentSearchService documentSearchService, S3Client s3Client, KafkaProducer kafkaProducer) {
+						   DocumentTypeRepository documentTypeRepository, UserRepository userRepository, RedisService redisService,
+						   UploadAwsFileService uploadAwsFileService,S3Client s3Client, KafkaProducer kafkaProducer) {
 		this.documentRepository = documentRepository;
 		this.documentVersionRepository = documentVersionRepository;
 		this.documentTypeRepository = documentTypeRepository;
 		this.userRepository = userRepository;
 		this.redisService = redisService;
 		this.uploadAwsFileService = uploadAwsFileService;
-		this.documentSearchService = documentSearchService;
+		// this.documentSearchService = documentSearchService;
 		this.s3Client = s3Client;
 		this.kafkaProducer = kafkaProducer;
 	}
@@ -78,18 +78,18 @@ public class DocumentService {
 	public Document saveDoc(List<MultipartFile> files, DocSaveReqDto docSaveReqDto) throws IOException{
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 		User user = userRepository.findByUserNum(userNum)
-			.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
+				.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
 
 		// s3에 업로드
 		String fileName = files.get(0).getOriginalFilename();
 		List<String> fileDownloadUrl = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files, "document");
 
 		DocumentType documentType = documentTypeRepository.findByTypeName(docSaveReqDto.getTypeName())
-			.orElseGet(() -> {
-				return documentTypeRepository.save(
-					DocumentType.builder()
-						.typeName(docSaveReqDto.getTypeName()).delYn(DelYN.N).build());
-			});
+				.orElseGet(() -> {
+					return documentTypeRepository.save(
+							DocumentType.builder()
+									.typeName(docSaveReqDto.getTypeName()).delYn(DelYN.N).build());
+				});
 
 		// doc 저장
 		Document document = docSaveReqDto.toEntity(docSaveReqDto, user, fileName, fileDownloadUrl.get(0), documentType);
@@ -105,7 +105,7 @@ public class DocumentService {
 
 		// opens search 저장
 		EsDocument esDocument = EsDocument.toEsDocument(document);
-		documentSearchService.indexDocuments(esDocument);
+		// documentSearchService.indexDocuments(esDocument);
 		return document;
 	}
 
@@ -119,17 +119,17 @@ public class DocumentService {
 		filePath = filePath.substring(filePath.indexOf(".com/") + 5);
 		String fileKey = filePath.substring(filePath.indexOf("document/"));
 		GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-			.bucket("exodia-file")
-			.key(fileKey)
-			.build();
+				.bucket("exodia-file")
+				.key(fileKey)
+				.build();
 
 		ResponseInputStream<GetObjectResponse> s3Object = s3Client.getObject(getObjectRequest);
 		InputStreamResource resource = new InputStreamResource(s3Object);
 
 		if (resource.exists() && resource.isReadable()) {
 			return ResponseEntity.ok()
-				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + doc.getFileName() + "\"")
-				.body(resource);
+					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + doc.getFileName() + "\"")
+					.body(resource);
 		} else {
 			throw new IOException("파일을 읽어올 수 없음: " + doc.getFileName());
 		}
@@ -140,7 +140,7 @@ public class DocumentService {
 		// 생성시간 == 수정시간 doc만 조회 -> 수정되지 않은 모든 데이터
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 		User user = userRepository.findByUserNum(userNum)
-			.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
+				.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
 
 		Page<Document> docs = documentRepository.findAllByStatus("now", pageable);
 		// Page<DocListResDto> docListResDtos = new ArrayList<>();
@@ -158,15 +158,15 @@ public class DocumentService {
 
 		// docIds 리스트에서 문서를 조회하고, 필터링한 결과를 리스트로 수집
 		List<Document> documents = docIds.stream()
-			.map(docId -> documentRepository.findById(((Integer) docId).longValue())
-				.orElseThrow(() -> new EntityNotFoundException("문서를 찾을 수 없습니다.")))
-			.filter(document -> "now".equals(document.getStatus()))
-			.collect(Collectors.toList());
+				.map(docId -> documentRepository.findById(((Integer) docId).longValue())
+						.orElseThrow(() -> new EntityNotFoundException("문서를 찾을 수 없습니다.")))
+				.filter(document -> "now".equals(document.getStatus()))
+				.collect(Collectors.toList());
 
 		// 리스트를 페이지네이션하여 Page 형태로 변환
 		List<DocListResDto> docListResDtos = documents.stream()
-			.map(Document::fromEntityList)
-			.collect(Collectors.toList());
+				.map(Document::fromEntityList)
+				.collect(Collectors.toList());
 
 		// Pageable 객체를 활용하여 Page로 변환
 		int start = Math.min((int) pageable.getOffset(), docListResDtos.size());
@@ -181,15 +181,15 @@ public class DocumentService {
 
 		// docIds 리스트에서 문서를 조회하고, 필터링한 결과를 리스트로 수집
 		List<Document> documents = docIds.stream()
-			.map(docId -> documentRepository.findById(((Integer) docId).longValue())
-				.orElseThrow(() -> new EntityNotFoundException("문서를 찾을 수 없습니다.")))
-			.filter(document -> "now".equals(document.getStatus()))
-			.collect(Collectors.toList());
+				.map(docId -> documentRepository.findById(((Integer) docId).longValue())
+						.orElseThrow(() -> new EntityNotFoundException("문서를 찾을 수 없습니다.")))
+				.filter(document -> "now".equals(document.getStatus()))
+				.collect(Collectors.toList());
 
 		// 리스트를 페이지네이션하여 Page 형태로 변환
 		List<DocListResDto> docListResDtos = documents.stream()
-			.map(Document::fromEntityList)
-			.collect(Collectors.toList());
+				.map(Document::fromEntityList)
+				.collect(Collectors.toList());
 
 		// Pageable 객체를 활용하여 Page로 변환
 		int start = Math.min((int) pageable.getOffset(), docListResDtos.size());
@@ -202,7 +202,7 @@ public class DocumentService {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 
 		Document document = documentRepository.findById(id)
-			.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
+				.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
 
 		// 최근 조회 목록: redis에 저장
 		List<Object> docIds = redisService.getViewdListValue(userNum);
@@ -219,11 +219,11 @@ public class DocumentService {
 	public Document updateDoc(List<MultipartFile> files, DocUpdateReqDto docUpdateReqDto) throws IOException {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 		User user = userRepository.findByUserNum(userNum)
-			.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
+				.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
 
 		// 현재 문서 상태 변경
 		Document document = documentRepository.findById(docUpdateReqDto.getId())
-			.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
+				.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
 		document.updateStatus();
 		documentRepository.save(document);
 		DocumentVersion documentVersion = document.getDocumentVersion();
@@ -250,7 +250,7 @@ public class DocumentService {
 
 		// opens search 인덱싱
 		EsDocument esDocument = EsDocument.toEsDocument(newDocument);
-		documentSearchService.indexDocuments(esDocument);
+		// documentSearchService.indexDocuments(esDocument);
 
 		// 문서 업데이트 후 Kafka에 이벤트 전송
 		String departmentId = document.getUser().getDepartment().getId().toString();
@@ -262,23 +262,23 @@ public class DocumentService {
 	}
 
 	// 문서 버전 rollback
-	 public void rollbackDoc(Long id) {
-		 Document document = documentRepository.findById(id)
-			 .orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
-		 document.revertDoc();
+	public void rollbackDoc(Long id) {
+		Document document = documentRepository.findById(id)
+				.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
+		document.revertDoc();
 
-		 List<Document> documents = documentRepository.findByDocumentVersionAndIdGreaterThan(document.getDocumentVersion(), id);
-		 for (Document doc : documents) {
-			 doc.softDelete();
-			 doc.updateStatus();
-			 documentRepository.save(doc);
-		 }
+		List<Document> documents = documentRepository.findByDocumentVersionAndIdGreaterThan(document.getDocumentVersion(), id);
+		for (Document doc : documents) {
+			doc.softDelete();
+			doc.updateStatus();
+			documentRepository.save(doc);
+		}
 	}
 
 	// 	문서 히스토리 조회
 	public List<DocHistoryResDto> getDocumentVersions(Long id) {
 		Document document = documentRepository.findById(id)
-			.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
+				.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
 
 		List<DocHistoryResDto> versions = new ArrayList<>();
 
@@ -293,9 +293,9 @@ public class DocumentService {
 	// 문서 삭제 -> 해당 문서만 삭제
 	public void deleteDocument(Long id) {
 		Document document = documentRepository.findById(id)
-			.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
+				.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
 		document.softDelete();
-		documentSearchService.deleteDocument(id.toString());
+		// documentSearchService.deleteDocument(id.toString());
 		documentRepository.save(document);
 	}
 
@@ -303,27 +303,27 @@ public class DocumentService {
 	public List<String> getAllTypeNames() {
 		List<DocumentType> documentTypes = documentTypeRepository.findAll();
 		return documentTypes.stream()
-			.map(DocumentType::getTypeName)
-			.collect(Collectors.toList());
+				.map(DocumentType::getTypeName)
+				.collect(Collectors.toList());
 	}
 
 	// 타입 추가
-	public Long addType(DocTypeReqDto docTypeReqDto) {
-		documentTypeRepository.save(
-			DocumentType.builder().typeName(docTypeReqDto.getTypeName()).delYn(DelYN.N).build());
-		return documentTypeRepository.count();
-	}
+//	public Long addType(DocTagReqDto docTagReqDto) {
+//		documentTypeRepository.save(
+//				DocumentType.builder().typeName(docTagReqDto.getTagName()).delYn(DelYN.N).build());
+//		return documentTypeRepository.count();
+//	}
 
 	// 타입별 리스트 조회
 	public List<DocListResDto> getDocByType(Long id) {
 		// DocumentType documentType = documentTypeRepository.findByTypeName(docTypeListReqDto.getTypeName())
 		// 	.orElseThrow(() -> new RuntimeException("존재하지 않는 타입입니다."));
 		DocumentType documentType = documentTypeRepository.findById(id)
-			.orElseThrow(() -> new RuntimeException("존재하지 않는 타입입니다."));
+				.orElseThrow(() -> new RuntimeException("존재하지 않는 타입입니다."));
 		List<Document> documents = documentRepository.findAllByDocumentTypeAndStatus(documentType, "now");
 
 		return documents.stream()
-			.map(Document::fromEntityList)
-			.collect(Collectors.toList());
+				.map(Document::fromEntityList)
+				.collect(Collectors.toList());
 	}
 }
