@@ -9,6 +9,8 @@ import com.example.exodia.chat.repository.ChatRoomRepository;
 import com.example.exodia.chat.repository.ChatUserRepository;
 
 import com.example.exodia.department.domain.Department;
+import com.example.exodia.document.domain.Tag;
+import com.example.exodia.document.repository.TagRepository;
 import com.example.exodia.evalutionFrame.evalutionBig.domain.Evalutionb;
 import com.example.exodia.evalutionFrame.evalutionBig.repository.EvalutionbRepository;
 import com.example.exodia.evalutionFrame.evalutionMiddle.domain.Evalutionm;
@@ -50,6 +52,7 @@ public class InitialDataLoader implements CommandLineRunner {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatUserRepository chatUserRepository;
     private final SalaryRepository salaryRepository;
+    private final TagRepository tagRepository;
 
     private final double NATIONAL_PENSION_RATE = 0.045;
     private final double HEALTH_INSURANCE_RATE = 0.03545;
@@ -68,7 +71,7 @@ public class InitialDataLoader implements CommandLineRunner {
                              ChatUserRepository chatUserRepository,
                              CarRepository carRepository,
                              SubmitTypeRepository submitTypeRepository,
-                             SalaryRepository salaryRepository) {  // Constructor에 추가
+                             SalaryRepository salaryRepository, TagRepository tagRepository) {  // Constructor에 추가
         this.departmentRepository = departmentRepository;
         this.positionRepository = positionRepository;
         this.userRepository = userRepository;
@@ -81,7 +84,8 @@ public class InitialDataLoader implements CommandLineRunner {
         this.chatRoomRepository = chatRoomRepository;
         this.chatUserRepository = chatUserRepository;
         this.salaryRepository = salaryRepository;  // 주입
-    }
+		this.tagRepository = tagRepository;
+	}
 
     @Override
     public void run(String... args) throws Exception {
@@ -142,7 +146,7 @@ public class InitialDataLoader implements CommandLineRunner {
         User user2 = new User(
                 null,
                 "20240901002",
-                null,
+                "https://exodia-file.s3.ap-northeast-2.amazonaws.com/document/user.png",
                 "김수연",
                 Gender.W,
                 Status.재직,
@@ -163,7 +167,7 @@ public class InitialDataLoader implements CommandLineRunner {
         User user3 = new User(
                 null,
                 "20240901003",
-                null,
+                "https://exodia-file.s3.ap-northeast-2.amazonaws.com/document/user.png",
                 "test3",
                 Gender.W,
                 Status.재직,
@@ -273,8 +277,9 @@ public class InitialDataLoader implements CommandLineRunner {
         cars.add(new Car(null, "18유3752", "황금마티즈", 4, 0.8, "matiz.jpg"));
         carRepository.saveAll(cars);
       
-        submitTypeRepository.save(new SubmitType(1L, "법인 카드 신청"));
-        submitTypeRepository.save( new SubmitType(2L, "휴가 신청"));
+        submitTypeRepository.save(new SubmitType(1L, "법인 카드 사용 신청서"));
+        submitTypeRepository.save( new SubmitType(2L, "휴가 신청서"));
+        submitTypeRepository.save( new SubmitType(3L, "경조사 신청서"));
 
         ChatRoom chatRoom = ChatRoom.builder().roomName("test").build();
         chatRoomRepository.save(chatRoom);
@@ -283,5 +288,9 @@ public class InitialDataLoader implements CommandLineRunner {
         chatUserRepository.save(chatUser1);
         chatUserRepository.save(chatUser2);
 
+        tagRepository.save(new Tag(1L, "회의록"));
+        tagRepository.save(new Tag(2L, "프로젝트 계획서"));
+        tagRepository.save(new Tag(3L, "성과 보고서"));
+        tagRepository.save(new Tag(4L, "EXODIA-POT"));
     }
 }
