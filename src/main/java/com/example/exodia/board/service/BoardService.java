@@ -8,7 +8,7 @@ import com.example.exodia.board.dto.BoardUpdateDto;
 import com.example.exodia.board.repository.BoardFileRepository;
 import com.example.exodia.board.repository.BoardRepository;
 import com.example.exodia.board.repository.BoardTagRepository;
-import com.example.exodia.board.repository.TagRepository;
+import com.example.exodia.board.repository.BoardTagsRepository;
 import com.example.exodia.comment.domain.Comment;
 import com.example.exodia.comment.dto.CommentResDto;
 import com.example.exodia.comment.repository.CommentRepository;
@@ -39,13 +39,13 @@ public class BoardService {
     private final CommentRepository commentRepository;
     private final BoardHitsService boardHitsService;
     private final BoardTagRepository boardTagRepository;
-    private final TagRepository tagRepository;
+    private final BoardTagsRepository boardTagsRepository;
 
     @Autowired
     public BoardService(BoardRepository boardRepository, UploadAwsFileService uploadAwsFileService,
                         BoardFileRepository boardFileRepository, UserRepository userRepository,
                         CommentRepository commentRepository, BoardHitsService boardHitsService,
-                        BoardTagRepository boardTagRepository, TagRepository tagRepository) {
+                        BoardTagRepository boardTagRepository, BoardTagsRepository boardTagsRepository) {
         this.boardRepository = boardRepository;
         this.uploadAwsFileService = uploadAwsFileService;
         this.boardFileRepository = boardFileRepository;
@@ -53,7 +53,7 @@ public class BoardService {
         this.commentRepository = commentRepository;
         this.boardHitsService = boardHitsService;
         this.boardTagRepository = boardTagRepository;
-        this.tagRepository = tagRepository;
+        this.boardTagsRepository = boardTagsRepository;
     }
 
     /**
@@ -86,7 +86,7 @@ public class BoardService {
      */
     private void addTagsToBoard(Board board, List<Long> tagIds) {
         // 태그 ID를 사용하여 태그 리스트를 조회합니다.
-        List<BoardTags> tags = tagRepository.findAllById(tagIds);
+        List<BoardTags> tags = boardTagsRepository.findAllById(tagIds);
 
         // 각 태그와 게시물 간의 연결을 설정합니다.
         for (BoardTags tag : tags) {
