@@ -31,7 +31,7 @@ public class KafkaProducer {
     // 결재 알림 전송
     public void sendSubmitNotification(String topic, String userNum, String message) {
         kafkaTemplate.send(topic, userNum, message);
-        System.out.println("Kafka 결재 알림 전송: " + message);
+        System.out.println("Kafka 결재 알림 전송: " + message + " / 유저 넘버: " + userNum);
     }
 
     // 문서 업데이트 알림을 위한 메서드 (부서 ID 포함)

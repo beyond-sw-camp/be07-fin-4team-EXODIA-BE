@@ -142,6 +142,7 @@ public class KafkaConsumer {
                 // SSE로 실시간 알림 전송
                 NotificationDTO dto = new NotificationDTO(notification);
                 sseEmitters.sendToUser(userNum, dto);
+                System.out.println("결재 알림 전송 완료: " + submitMessage);
             }
         }
     }
