@@ -70,13 +70,13 @@ public class Document extends BaseTimeEntity {
 	@OneToMany(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<DocumentTag> tags = new ArrayList<>();
 
-	public DocDetailResDto fromEntity(){
+	public DocDetailResDto fromEntity(List<String> docTagName){
 		return DocDetailResDto.builder()
 			.id(this.id)
 			.fileName(this.fileName)
 			.fileExtension(this.fileName.substring(fileName.lastIndexOf(".") + 1))
 			.userName(this.user.getName())
-			// .tags(this.tags.stream().map(DocumentTag::getTagName).collect(Collectors.toList()))
+			.tags(docTagName)
 			.description(this.description)
 			.createAt(this.getCreatedAt())
 			.build();

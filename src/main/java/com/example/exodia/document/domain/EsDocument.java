@@ -52,7 +52,6 @@ public class EsDocument {
 		return EsDocument.builder()
 			.id(document.getId())
 			.fileName(document.getFileName())
-			.type(document.getDocumentType().getTypeName())
 			.userName(document.getUser().getName())
 			.createdAt(document.getCreatedAt())
 			.description(document.getDescription())

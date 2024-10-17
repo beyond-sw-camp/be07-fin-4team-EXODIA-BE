@@ -100,7 +100,6 @@ public class DocumentService {
 			DocumentTag documentTag = DocumentTag.builder().document(document).tagName(tagName).delYn(DelYN.N).build();
 			documentTagRepository.save(documentTag);
 			document.getTags().add(documentTag);
-
 		}
 
 		// docVersion 생성
@@ -147,15 +146,8 @@ public class DocumentService {
 	public Page<DocListResDto> getDocList(Pageable pageable) {
 		// 생성시간 == 수정시간 doc만 조회 -> 수정되지 않은 모든 데이터
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
-		User user = userRepository.findByUserNum(userNum)
-			.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
 
 		Page<Document> docs = documentRepository.findAllByStatus("now", pageable);
-		// Page<DocListResDto> docListResDtos = new ArrayList<>();
-		// for (Document doc : docs) {
-		// 	docListResDtos.add(doc.fromEntityList());
-		// }
-		// return docListResDtos;
 		return docs.map(Document::fromEntityList);
 	}
 
@@ -212,15 +204,21 @@ public class DocumentService {
 		Document document = documentRepository.findById(id)
 			.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
 
+		List<String> docTagName = new ArrayList<>();
+		for (DocumentTag documentTag : document.getTags()) {
+			docTagName.add(documentTag.getTagName());
+		}
+
 		// 최근 조회 목록: redis에 저장
 		List<Object> docIds = redisService.getViewdListValue(userNum);
+
 		// 이미 있으면 순서 변경
 		if (docIds.contains(id.intValue())) {
 			redisService.removeViewdListValue(userNum, id);
 		}
 		redisService.setViewdListValue(userNum, document.getId());
 
-		return document.fromEntity();
+		return document.fromEntity(docTagName);
 	}
 
 	// 문서 업데이트
@@ -243,6 +241,13 @@ public class DocumentService {
 		// 새로운 문서 저장
 		Document newDocument = docUpdateReqDto.toEntity(docUpdateReqDto, document, fileName, fileDownloadUrl.get(0));
 		documentRepository.save(newDocument);
+
+		// 태그 추가
+		List<String> docTagNames = docUpdateReqDto.getTags();
+		for (String docTag :docTagNames) {
+			DocumentTag documentTag = DocumentTag.builder().document(newDocument).tagName(docTag).delYn(DelYN.N).build();
+			newDocument.getTags().add(documentTag);
+		}
 
 		// documentVersion 업데이트
 		documentVersion.updateVersion(newDocument);
@@ -315,7 +320,7 @@ public class DocumentService {
 	// 타입 추가
 	public Long addTag(DocTagReqDto docTagReqDto) {
 		tagRepository.save(
-			Tag.builder().tagName(docTagReqDto.getTagName()).delYn(DelYN.N).build());
+			Tag.builder().tagName(docTagReqDto.getTagName()).build());
 		return tagRepository.count();
 	}
 

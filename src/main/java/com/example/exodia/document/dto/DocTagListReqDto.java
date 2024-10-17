@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DocTypeListReqDto {
-	private String typeName;
+public class DocTagListReqDto {
+	private String tagName;
 
 }

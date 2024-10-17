@@ -21,7 +21,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Entity
 @Builder
-@Where(clause = "del_yn = 'N'")
 public class Tag {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,10 +28,6 @@ public class Tag {
 
 	@Column(nullable = false)
 	private String tagName;
-
-	@Enumerated(EnumType.STRING)
-	@Column(name = "del_yn", nullable = false)
-	private DelYN delYn = DelYN.N;
 
 	public DocumentTag toEntity(Document document){
 		return DocumentTag.builder()
