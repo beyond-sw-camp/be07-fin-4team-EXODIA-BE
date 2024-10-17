@@ -69,7 +69,7 @@ public class Board extends BaseTimeEntity {
     public BoardListResDto listFromEntity() {
         // BoardTag 엔티티에서 태그 ID 추출
         List<Long> tagIds = this.boardTags.stream()
-                .map(boardTag -> boardTag.getTags().getId()) // 태그 ID 추출
+                .map(boardTag -> boardTag.getBoardTags().getId()) // 태그 ID 추출
                 .collect(Collectors.toList());
 
         return BoardListResDto.builder()
@@ -92,7 +92,7 @@ public class Board extends BaseTimeEntity {
     public BoardDetailDto detailFromEntity(List<BoardFile> files) {
         // BoardTag 엔티티에서 태그 이름 추출
         List<String> tagNames = this.boardTags.stream()
-                .map(boardTag -> boardTag.getTags().getTag()) // 태그 이름 추출
+                .map(boardTag -> boardTag.getBoardTags().getTag()) // 태그 이름 추출
                 .collect(Collectors.toList());
 
         return BoardDetailDto.builder()

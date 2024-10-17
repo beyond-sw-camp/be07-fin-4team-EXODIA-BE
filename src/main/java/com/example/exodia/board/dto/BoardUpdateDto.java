@@ -1,15 +1,12 @@
 package com.example.exodia.board.dto;
 
-import com.example.exodia.board.domain.Board;
 import com.example.exodia.board.domain.Category;
-import com.example.exodia.board.domain.Tags;
 import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.user.domain.User;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor

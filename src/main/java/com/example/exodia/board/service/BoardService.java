@@ -86,13 +86,13 @@ public class BoardService {
      */
     private void addTagsToBoard(Board board, List<Long> tagIds) {
         // 태그 ID를 사용하여 태그 리스트를 조회합니다.
-        List<Tags> tags = tagRepository.findAllById(tagIds);
+        List<BoardTags> tags = tagRepository.findAllById(tagIds);
 
         // 각 태그와 게시물 간의 연결을 설정합니다.
-        for (Tags tag : tags) {
+        for (BoardTags tag : tags) {
             BoardTag boardTag = BoardTag.builder()
                     .board(board)
-                    .tags(tag)
+                    .boardTags(tag)
                     .build();
             boardTagRepository.save(boardTag);  // BoardTag 테이블에 저장
         }
@@ -199,13 +199,13 @@ public class BoardService {
                 .collect(Collectors.toList());
 
         // 태그 조회 (tagIds로 태그 이름 가져오기)
-        List<Tags> tags = boardTagRepository.findByBoardId(id)
+        List<BoardTags> tags = boardTagRepository.findByBoardId(id)
                 .stream()
-                .map(boardTag -> boardTag.getTags())
+                .map(boardTag -> boardTag.getBoardTags())
                 .collect(Collectors.toList());
 
         List<String> tagNames = tags.stream()
-                .map(Tags::getTag)
+                .map(BoardTags::getTag)
                 .collect(Collectors.toList());
 
         // BoardDetailDto 생성 및 설정

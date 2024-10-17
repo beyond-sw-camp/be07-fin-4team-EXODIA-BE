@@ -1,6 +1,6 @@
 package com.example.exodia.board.controller;
 
-import com.example.exodia.board.domain.Tags;
+import com.example.exodia.board.domain.BoardTags;
 import com.example.exodia.board.dto.TagDto;
 import com.example.exodia.board.service.TagService;
 import com.example.exodia.common.dto.CommonErrorDto;
@@ -28,7 +28,7 @@ public class TagController {
     @PostMapping("/create")
     public ResponseEntity<?> createTag(@RequestBody TagDto tagDto) {
         try {
-            Tags newTag = tagService.createTag(tagDto);
+            BoardTags newTag = tagService.createTag(tagDto);
             CommonResDto response = new CommonResDto(HttpStatus.CREATED, "태그가 성공적으로 추가되었습니다.", newTag);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (EntityNotFoundException e) {

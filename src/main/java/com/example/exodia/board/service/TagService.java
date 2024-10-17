@@ -1,6 +1,6 @@
 package com.example.exodia.board.service;
 
-import com.example.exodia.board.domain.Tags;
+import com.example.exodia.board.domain.BoardTags;
 import com.example.exodia.board.dto.TagDto;
 import com.example.exodia.board.repository.BoardTagRepository;
 import com.example.exodia.board.repository.TagRepository;
@@ -30,8 +30,8 @@ public class TagService {
      * @return 생성된 태그 엔티티
      */
     @Transactional
-    public Tags createTag(TagDto tagDto) {
-        Tags newTag = Tags.builder()
+    public BoardTags createTag(TagDto tagDto) {
+        BoardTags newTag = BoardTags.builder()
                 .tag(tagDto.getTag())
                 .build();
         return tagRepository.save(newTag);
@@ -42,8 +42,8 @@ public class TagService {
      * @return 태그 리스트
      */
     public List<TagDto> getAllTags() {
-        List<Tags> tagsList = tagRepository.findAll();
-        return tagsList.stream()
+        List<BoardTags> boardTagsList = tagRepository.findAll();
+        return boardTagsList.stream()
                 .map(tag -> new TagDto(tag.getId(), tag.getTag()))
                 .collect(Collectors.toList());
     }
@@ -58,7 +58,7 @@ public class TagService {
         boardTagRepository.deleteByTagId(id);
 
         // 태그 삭제
-        Tags tag = tagRepository.findById(id)
+        BoardTags tag = tagRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("태그를 찾을 수 없습니다."));
 
         tagRepository.delete(tag);
