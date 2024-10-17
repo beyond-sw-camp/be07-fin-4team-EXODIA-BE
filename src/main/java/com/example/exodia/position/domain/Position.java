@@ -1,13 +1,7 @@
 package com.example.exodia.position.domain;
 
-
-import com.example.exodia.salary.domain.PositionSalary;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.util.ArrayList;
-import java.util.List;
-
 
 @Getter
 @Setter
@@ -24,12 +18,6 @@ public class Position {
 
     private String name;
 
-    @OneToMany(mappedBy = "position", cascade = CascadeType.ALL)
-    private List<PositionSalary> salaries = new ArrayList<>();
+    private double baseSalary;
 
-    public Position(Long id, String name) {
-        this.id = id;
-        this.name = name;
-    }
 }
-

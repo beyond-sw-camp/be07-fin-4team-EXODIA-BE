@@ -1,6 +1,8 @@
 package com.example.exodia.salary.service;
 
+import com.example.exodia.salary.domain.PositionSalary;
 import com.example.exodia.salary.domain.Salary;
+import com.example.exodia.salary.repository.PositionSalaryRepository;
 import com.example.exodia.salary.repository.SalaryRepository;
 import com.example.exodia.user.domain.User;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,7 @@ import java.util.Optional;
 public class SalaryService {
 
     private final SalaryRepository salaryRepository;
+    private final PositionSalaryRepository positionSalaryRepository;
 
     private final double NATIONAL_PENSION_RATE = 0.045;
     private final double HEALTH_INSURANCE_RATE = 0.03545;
@@ -75,6 +78,24 @@ public class SalaryService {
         return Period.between(joinDate, currentDate).getYears();
     }
 
+    public Salary createSalaryForUser(User user) {
+        double baseSalary = user.getPosition().getBaseSalary();
+
+        Salary salary = Salary.builder()
+                .user(user)
+                .baseSalary(baseSalary)
+                .build();
+
+        calculateTaxes(salary);
+        return salaryRepository.save(salary);
+    }
+
+
+
+    private double calculateFinalSalary(double baseSalary) {
+        // Implement your tax calculations here
+        return baseSalary * 0.9;  // Example tax calculation (10% deduction)
+    }
 }
 
 
