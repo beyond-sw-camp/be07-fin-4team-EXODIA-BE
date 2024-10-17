@@ -22,6 +22,6 @@ public interface BoardTagRepository extends JpaRepository<BoardTag, Long> {
     // 태그 ID로 연관된 BoardTag 데이터 삭제
     @Modifying
     @Transactional
-    @Query("DELETE FROM BoardTag bt WHERE bt.tags.id = :tagId")
+    @Query("DELETE FROM BoardTag bt WHERE bt.boardTags.id = :tagId")
     void deleteByTagId(Long tagId);
 }

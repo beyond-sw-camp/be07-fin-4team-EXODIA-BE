@@ -20,11 +20,11 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     Page<Board> findByContentContainingIgnoreCaseAndCategoryAndDelYn(String content, Category category, DelYN delYN, Pageable pageable);
 
     // 태그 ID로 검색하고 카테고리와 삭제 여부에 따라 필터링 (BoardTag 테이블과 조인하여 태그 검색)
-    @Query("SELECT b FROM Board b JOIN b.boardTags bt JOIN bt.tags t WHERE t.id IN :tagIds AND b.category = :category AND b.delYn = :delYN")
+    @Query("SELECT b FROM Board b JOIN b.boardTags bt JOIN bt.boardTags t WHERE t.id IN :tagIds AND b.category = :category AND b.delYn = :delYN")
     Page<Board> findByTagIdsAndCategoryAndDelYn(List<Long> tagIds, Category category, DelYN delYN, Pageable pageable);
 
     // 태그 이름으로 검색하고 카테고리와 삭제 여부에 따라 필터링
-    @Query("SELECT b FROM Board b JOIN b.boardTags bt JOIN bt.tags t WHERE LOWER(t.tag) LIKE LOWER(CONCAT('%', :tagName, '%')) AND b.category = :category AND b.delYn = :delYN")
+    @Query("SELECT b FROM Board b JOIN b.boardTags bt JOIN bt.boardTags t WHERE LOWER(t.tag) LIKE LOWER(CONCAT('%', :tagName, '%')) AND b.category = :category AND b.delYn = :delYN")
     Page<Board> findByTagsContainingIgnoreCaseAndCategoryAndDelYn(String tagName, Category category, DelYN delYN, Pageable pageable);
 
     // 카테고리와 삭제 여부에 따라 필터링
