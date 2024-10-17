@@ -165,10 +165,12 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("해당 부서가 존재하지 않습니다."));
 
         List<User> users = userRepository.findAllByDepartmentId(departmentId);
+
         return users.stream()
                 .map(UserInfoDto::fromEntity)
                 .collect(Collectors.toList());
     }
+
 
     public List<User> searchUsers(String search, String searchType, Pageable pageable) {
         if (search == null || search.isEmpty()) {
