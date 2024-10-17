@@ -71,6 +71,20 @@ public class CalendarController {
     }
 
 
+    @GetMapping("/findByTitle/{title}")
+    public ResponseEntity<?> getCalendarByTitle(@PathVariable String title) {
+        try {
+            CalendarResponseDto calendarDto = calendarService.findByTitle(title);
+            if (calendarDto != null) {
+                return new ResponseEntity<>(calendarDto, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
     /* 캘린더 리스트 */
 //    @PreAuthorize("hasRole('USER')")
