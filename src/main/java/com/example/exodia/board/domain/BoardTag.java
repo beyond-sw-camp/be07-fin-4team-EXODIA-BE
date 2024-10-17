@@ -22,5 +22,5 @@ public class BoardTag {
 
     @ManyToOne
     @JoinColumn(name = "tag_id", nullable = false)
-    private Tags tags;
+    private BoardTags boardTags;
 }
