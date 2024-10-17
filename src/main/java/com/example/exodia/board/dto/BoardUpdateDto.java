@@ -23,31 +23,20 @@ public class BoardUpdateDto {
     private boolean isPinned;
     private Category category;
     private User user;
-    private List<String> tags; // 태그를 List<String>으로 변경
+    private List<Long> tagIds;
     @Builder.Default
     private DelYN delYn = DelYN.N;
 
-    /**
-     * Board 엔티티 업데이트 메서드.
-     * 기존 Board 엔티티에 새로운 태그와 기타 필드를 업데이트합니다.
-     *
-     * @param category 게시물 카테고리
-     * @param user 게시물 작성자(User 객체)
-     * @return 업데이트된 Board 엔티티
-     */
-    public Board updateFromEntity(Category category, User user) {
-        List<Tags> tagList = this.tags.stream()
-                .map(tag -> Tags.builder().tag(tag.trim()).build())
-                .collect(Collectors.toList());
 
-        return Board.builder()
-                .title(this.title)
-                .content(this.content)
-                .isPinned(this.isPinned)
-                .category(category)
-                .user(user)
-                .delYn(this.delYn != null ? this.delYn : DelYN.N)
-                .tags(tagList)
-                .build();
-    }
+//    public Board updateFromEntity(Category category, User user, List<Tags> tags) {
+//        return Board.builder()
+//                .title(this.title)
+//                .content(this.content)
+//                .isPinned(this.isPinned)
+//                .category(category)
+//                .user(user)
+//                .delYn(this.delYn != null ? this.delYn : DelYN.N)
+//                .tags(tags)  // tagIds 대신 tags 객체 리스트로 수정
+//                .build();
+//    }
 }

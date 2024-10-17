@@ -1,16 +1,14 @@
 package com.example.exodia.board.service;
 
-import com.example.exodia.board.domain.Board;
-import com.example.exodia.board.domain.BoardFile;
-import com.example.exodia.board.domain.Category;
-import com.example.exodia.board.domain.Tags;
+import com.example.exodia.board.domain.*;
 import com.example.exodia.board.dto.BoardDetailDto;
 import com.example.exodia.board.dto.BoardListResDto;
 import com.example.exodia.board.dto.BoardSaveReqDto;
 import com.example.exodia.board.dto.BoardUpdateDto;
 import com.example.exodia.board.repository.BoardFileRepository;
 import com.example.exodia.board.repository.BoardRepository;
-import com.example.exodia.board.repository.BoardTagsRepository;
+import com.example.exodia.board.repository.BoardTagRepository;
+import com.example.exodia.board.repository.TagRepository;
 import com.example.exodia.comment.domain.Comment;
 import com.example.exodia.comment.dto.CommentResDto;
 import com.example.exodia.comment.repository.CommentRepository;
@@ -40,58 +38,62 @@ public class BoardService {
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
     private final BoardHitsService boardHitsService;
-    private final BoardTagsRepository boardTagsRepository;
+    private final BoardTagRepository boardTagRepository;
+    private final TagRepository tagRepository;
 
     @Autowired
     public BoardService(BoardRepository boardRepository, UploadAwsFileService uploadAwsFileService,
                         BoardFileRepository boardFileRepository, UserRepository userRepository,
                         CommentRepository commentRepository, BoardHitsService boardHitsService,
-                        BoardTagsRepository boardTagsRepository) {
+                        BoardTagRepository boardTagRepository, TagRepository tagRepository) {
         this.boardRepository = boardRepository;
         this.uploadAwsFileService = uploadAwsFileService;
         this.boardFileRepository = boardFileRepository;
         this.userRepository = userRepository;
         this.commentRepository = commentRepository;
         this.boardHitsService = boardHitsService;
-        this.boardTagsRepository = boardTagsRepository;
+        this.boardTagRepository = boardTagRepository;
+        this.tagRepository = tagRepository;
     }
 
     /**
      * 새로운 게시물을 생성하는 메서드
      * @param dto - 사용자가 작성한 게시물 정보 객체 (제목, 내용, 카테고리 등)
      * @param files - 사용자가 업로드한 파일 리스트
-     * @param tags - 사용자가 추가한 태그 리스트
+     * @param tagIds - 사용자가 추가한 태그 리스트
      * @return 생성된 게시물 객체
      */
     @Transactional
-    public Board createBoard(BoardSaveReqDto dto, List<MultipartFile> files, List<String> tags) {
-        // 사용자와 카테고리 유효성 검증
+    public Board createBoard(BoardSaveReqDto dto, List<MultipartFile> files, List<Long> tagIds) {
         User user = validateUserAndCategory(dto.getUserNum(), dto.getCategory());
-
-        // 게시물 저장
-        Board board = dto.toEntity(user, dto.getCategory());
+        Board board = dto.toEntity(user);
         board = boardRepository.save(board);
 
-        // 태그 저장
-        saveTags(board, tags);
+        // 태그와 연결 (BoardTag)
+        if (tagIds != null && !tagIds.isEmpty()) {
+            addTagsToBoard(board, tagIds);
+        }
 
-        // 파일 처리
         processFiles(files, board);
-
         boardHitsService.resetBoardHits(board.getId());
+
         return board;
     }
 
     /**
-     * 태그 저장 로직
+     * 태그를 게시판에 연결하는 메서드
      */
-    private void saveTags(Board board, List<String> tags) {
-        if (tags != null && !tags.isEmpty()) {
-            List<Tags> tagsList = tags.stream()
-                    .map(tag -> Tags.createTag(board, tag))
-                    .collect(Collectors.toList());
-            boardTagsRepository.saveAll(tagsList);
-            board.setTags(tagsList);
+    private void addTagsToBoard(Board board, List<Long> tagIds) {
+        // 태그 ID를 사용하여 태그 리스트를 조회합니다.
+        List<Tags> tags = tagRepository.findAllById(tagIds);
+
+        // 각 태그와 게시물 간의 연결을 설정합니다.
+        for (Tags tag : tags) {
+            BoardTag boardTag = BoardTag.builder()
+                    .board(board)
+                    .tags(tag)
+                    .build();
+            boardTagRepository.save(boardTag);  // BoardTag 테이블에 저장
         }
     }
 
@@ -144,7 +146,7 @@ public class BoardService {
     /**
      * 게시물 목록 조회
      */
-    public Page<BoardListResDto> BoardListWithSearch(Pageable pageable, String searchType, String searchQuery, Category category, String tagFilter) {
+    public Page<BoardListResDto> BoardListWithSearch(Pageable pageable, String searchType, String searchQuery, Category category, List<Long> tagIds) {
         Page<Board> boards;
 
         if (searchQuery != null && !searchQuery.isEmpty()) {
@@ -165,8 +167,8 @@ public class BoardService {
                     boards = boardRepository.findByCategoryAndDelYn(category, DelYN.N, pageable);
                     break;
             }
-        } else if (tagFilter != null && !tagFilter.isEmpty()) {
-            boards = boardRepository.findByTagAndCategoryAndDelYn(tagFilter, category, DelYN.N, pageable);
+        } else if (tagIds != null && !tagIds.isEmpty()) {
+            boards = boardRepository.findByTagIdsAndCategoryAndDelYn(tagIds, category, DelYN.N, pageable);
         } else if (category != null) {
             boards = boardRepository.findByCategoryAndDelYn(category, DelYN.N, pageable);
         } else {
@@ -195,25 +197,26 @@ public class BoardService {
                 .map(CommentResDto::fromEntity)
                 .collect(Collectors.toList());
 
-        // 태그 조회 및 반환
-        List<String> tags = board.getTags().stream()
-                .map(Tags::getTag)
+        // 태그 조회
+        List<Long> tagIds = boardTagRepository.findByBoardId(id)
+                .stream()
+                .map(boardTag -> boardTag.getTags().getId())
                 .collect(Collectors.toList());
 
         BoardDetailDto boardDetailDto = board.detailFromEntity(boardFiles);
         boardDetailDto.setComments(commentResDto);
         boardDetailDto.setHits(updatedHits);
         boardDetailDto.setUser_num(board.getUser().getUserNum());
-        boardDetailDto.setTags(tags);
+        boardDetailDto.setTagIds(tagIds);
 
         return boardDetailDto;
     }
 
     /**
-     * 게시물 수정
+     * 게시물 업데이트 메서드
      */
     @Transactional
-    public void updateBoard(Long id, BoardUpdateDto dto, List<MultipartFile> files, List<String> tags, String userNum) {
+    public void updateBoard(Long id, BoardUpdateDto dto, List<MultipartFile> files, List<Long> tagIds, String userNum) {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다."));
 
@@ -228,26 +231,34 @@ public class BoardService {
         board.setCategory(dto.getCategory());
         board.setUpdatedAt(LocalDateTime.now());
 
-        // 기존 태그 컬렉션을 비우고 새로운 태그 추가
-        if (tags != null && !tags.isEmpty()) {
-            // 1. 기존 태그를 비운 후 새 태그 추가
-            board.getTags().clear();  // 기존 태그 컬렉션 비우기
-            List<Tags> updatedTags = tags.stream()
-                    .map(tag -> Tags.createTag(board, tag))  // 새로운 태그 생성
-                    .collect(Collectors.toList());
-            board.getTags().addAll(updatedTags);  // 새 태그 추가
+        // 기존 태그 삭제 후 새로운 태그 추가
+        boardTagRepository.deleteByBoardId(board.getId());
+        if (tagIds != null && !tagIds.isEmpty()) {
+            addTagsToBoard(board, tagIds);
         }
 
         // 파일 처리
         processFiles(files, board);
 
-        // 게시물 저장
         boardRepository.save(board);
     }
 
+    /**
+     * 게시물 삭제 메서드
+     */
+    @Transactional
+    public void deleteBoard(Long id) {
+        Board board = boardRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("게시물을 찾을 수 없습니다."));
+
+        // 게시글과 관련된 태그 삭제
+        boardTagRepository.deleteByBoardId(id);
+
+        boardRepository.delete(board);
+    }
 
     /**
-     * 게시물 상단 고정
+     * 게시물 상단 고정 메서드
      */
     @Transactional
     public void pinBoard(Long boardId, Long userId, boolean isPinned) {
@@ -267,23 +278,5 @@ public class BoardService {
 
         board.setIsPinned(isPinned);
         boardRepository.save(board);
-    }
-
-    /**
-     * 게시물 삭제
-     */
-    @Transactional
-    public void deleteBoard(Long id) {
-        Board board = boardRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("게시물을 찾을 수 없습니다."));
-
-        board.getTags().clear();
-
-        if ((board.getCategory() == Category.NOTICE || board.getCategory() == Category.FAMILY_EVENT) &&
-                !board.getUser().getDepartment().getName().equals("인사팀")) {
-            throw new SecurityException("공지사항 또는 가족 행사 게시물은 인사팀만 삭제할 수 있습니다.");
-        }
-
-        boardRepository.delete(board);
     }
 }

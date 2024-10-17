@@ -40,7 +40,6 @@ public class Board extends BaseTimeEntity {
 
     private Long hits = 0L;
 
-    // 작성자 정보 (익명 게시글의 경우 null, 수정 필요)
     @ManyToOne
     @JoinColumn(name = "user_num", nullable = false)
     private User user;
@@ -59,17 +58,18 @@ public class Board extends BaseTimeEntity {
     @Column(name = "is_pinned", nullable = false)
     private Boolean isPinned = false;
 
+    @Builder.Default
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Tags> tags = new ArrayList<>();
+    private List<BoardTag> boardTags = new ArrayList<>();
 
     /**
      * 게시물 목록 DTO로 변환
      * @return BoardListResDto
      */
     public BoardListResDto listFromEntity() {
-        // 태그 목록을 String 리스트로 변환
-        List<String> tagList = this.tags.stream()
-                .map(Tags::getTag) // 태그 문자열 추출
+        // BoardTag 엔티티에서 태그 ID 추출
+        List<Long> tagIds = this.boardTags.stream()
+                .map(boardTag -> boardTag.getTags().getId()) // 태그 ID 추출
                 .collect(Collectors.toList());
 
         return BoardListResDto.builder()
@@ -81,7 +81,7 @@ public class Board extends BaseTimeEntity {
                 .updatedAt(this.getUpdatedAt())
                 .isPinned(this.isPinned)
                 .user_num(user.getUserNum())
-                .tags(tagList) // 태그 리스트 추가
+                .tagIds(tagIds) // 태그 ID 리스트 추가
                 .build();
     }
 
@@ -90,9 +90,9 @@ public class Board extends BaseTimeEntity {
      * @return BoardDetailDto
      */
     public BoardDetailDto detailFromEntity(List<BoardFile> files) {
-        // 태그 목록을 String 리스트로 변환
-        List<String> tagList = this.getTags().stream()
-                .map(tags -> tags.getTag()) // 태그 객체에서 태그 문자열을 추출
+        // BoardTag 엔티티에서 태그 ID 추출
+        List<Long> tagIds = this.boardTags.stream()
+                .map(boardTag -> boardTag.getTags().getId()) // 태그 ID 추출
                 .collect(Collectors.toList());
 
         return BoardDetailDto.builder()
@@ -105,7 +105,7 @@ public class Board extends BaseTimeEntity {
                 .files(files) // Board 객체에 포함된 파일 리스트 사용
                 .hits(this.hits)
                 .user_num(user.getUserNum())
-                .tags(tagList) // 변환된 태그 리스트 추가
+                .tagIds(tagIds) // 태그 ID 리스트 추가
                 .build();
     }
 

@@ -18,7 +18,7 @@ public class BoardDetailDto {
     private String title;
     private String content;
     private Category category;
-    private List<String> tags;
+    private List<Long> tagIds;
     private Long hits;
     private String user_num;
     private LocalDateTime createdAt;
