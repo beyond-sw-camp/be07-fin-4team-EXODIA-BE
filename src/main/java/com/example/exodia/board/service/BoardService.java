@@ -13,6 +13,7 @@ import com.example.exodia.comment.domain.Comment;
 import com.example.exodia.comment.dto.CommentResDto;
 import com.example.exodia.comment.repository.CommentRepository;
 import com.example.exodia.common.domain.DelYN;
+import com.example.exodia.common.service.KafkaProducer;
 import com.example.exodia.common.service.UploadAwsFileService;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
@@ -40,12 +41,12 @@ public class BoardService {
     private final BoardHitsService boardHitsService;
     private final BoardTagRepository boardTagRepository;
     private final BoardTagsRepository boardTagsRepository;
-
+    private final KafkaProducer kafkaProducer;
     @Autowired
     public BoardService(BoardRepository boardRepository, UploadAwsFileService uploadAwsFileService,
                         BoardFileRepository boardFileRepository, UserRepository userRepository,
                         CommentRepository commentRepository, BoardHitsService boardHitsService,
-                        BoardTagRepository boardTagRepository, BoardTagsRepository boardTagsRepository) {
+                        BoardTagRepository boardTagRepository, BoardTagsRepository boardTagsRepository, KafkaProducer kafkaProducer) {
         this.boardRepository = boardRepository;
         this.uploadAwsFileService = uploadAwsFileService;
         this.boardFileRepository = boardFileRepository;
@@ -54,6 +55,7 @@ public class BoardService {
         this.boardHitsService = boardHitsService;
         this.boardTagRepository = boardTagRepository;
         this.boardTagsRepository = boardTagsRepository;
+        this.kafkaProducer = kafkaProducer;
     }
 
     /**
@@ -76,6 +78,19 @@ public class BoardService {
 
         processFiles(files, board);
         boardHitsService.resetBoardHits(board.getId());
+
+
+        // Kafka 이벤트 전송
+
+        // 공지사항 또는 경조사 게시물일 경우 모든 사용자에게 알림 전송
+        String message = user.getDepartment().getName() + " 에서 " + dto.getTitle() + "를 작성했습니다";
+        if (board.getCategory() == Category.NOTICE) {
+            kafkaProducer.sendBoardEvent("notice-events", message); // 공지사항 토픽
+        } else if (board.getCategory() == Category.FAMILY_EVENT) {
+            kafkaProducer.sendBoardEvent("family-event-notices", message); // 경조사 토픽
+        }
+
+
 
         return board;  // 기존 dto 대신 저장된 board 반환
     }
@@ -286,3 +301,5 @@ public class BoardService {
         boardRepository.save(board);
     }
 }
+
+
