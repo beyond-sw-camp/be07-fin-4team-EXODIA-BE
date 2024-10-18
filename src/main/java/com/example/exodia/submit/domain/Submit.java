@@ -55,6 +55,9 @@ public class Submit extends BaseTimeEntity {
 	private String reason;
 
 	@Column(nullable = false)
+	private boolean uploadBoard = false;	// 게시판에 등록 여부
+
+	@Column(nullable = false)
 	private Long department_id;
 
 	@OneToMany(mappedBy = "submit", cascade = CascadeType.PERSIST)

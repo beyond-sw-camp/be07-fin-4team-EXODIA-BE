@@ -22,6 +22,7 @@ public class SubmitSaveReqDto {
 
 	private String submitType;
 	private String contents;
+	private boolean uploadBoard = false;
 
 	private List<SubmitUserDto> submitUserDtos;
 
@@ -43,6 +44,7 @@ public class SubmitSaveReqDto {
 			.user(user)
 			.submitLines(new ArrayList<>())
 			.department_id(user.getDepartment().getId())
+			.uploadBoard(this.uploadBoard)
 			.delYn(DelYN.N)
 			.build();
 	}

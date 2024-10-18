@@ -3,6 +3,7 @@ package com.example.exodia.document.service;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -66,9 +67,9 @@ public class DocumentService {
 
 	@Autowired
 	public DocumentService(DocumentRepository documentRepository, DocumentVersionRepository documentVersionRepository,
-		UserRepository userRepository, RedisService redisService,
-		UploadAwsFileService uploadAwsFileService, DocumentSearchService documentSearchService, S3Client s3Client, KafkaProducer kafkaProducer,
-		DocumentTagRepository documentTagRepository, TagRepository tagRepository) {
+						   UserRepository userRepository, RedisService redisService,
+						   UploadAwsFileService uploadAwsFileService, DocumentSearchService documentSearchService, S3Client s3Client, KafkaProducer kafkaProducer,
+						   DocumentTagRepository documentTagRepository, TagRepository tagRepository) {
 		this.documentRepository = documentRepository;
 		this.documentVersionRepository = documentVersionRepository;
 		this.userRepository = userRepository;
@@ -85,7 +86,7 @@ public class DocumentService {
 	public Document saveDoc(List<MultipartFile> files, DocSaveReqDto docSaveReqDto) throws IOException{
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 		User user = userRepository.findByUserNum(userNum)
-			.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
+				.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
 
 		// s3에 업로드
 		String fileName = files.get(0).getOriginalFilename();
@@ -126,17 +127,17 @@ public class DocumentService {
 		filePath = filePath.substring(filePath.indexOf(".com/") + 5);
 		String fileKey = filePath.substring(filePath.indexOf("document/"));
 		GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-			.bucket("exodia-file")
-			.key(fileKey)
-			.build();
+				.bucket("exodia-file")
+				.key(fileKey)
+				.build();
 
 		ResponseInputStream<GetObjectResponse> s3Object = s3Client.getObject(getObjectRequest);
 		InputStreamResource resource = new InputStreamResource(s3Object);
 
 		if (resource.exists() && resource.isReadable()) {
 			return ResponseEntity.ok()
-				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + doc.getFileName() + "\"")
-				.body(resource);
+					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + doc.getFileName() + "\"")
+					.body(resource);
 		} else {
 			throw new IOException("파일을 읽어올 수 없음: " + doc.getFileName());
 		}
@@ -158,15 +159,15 @@ public class DocumentService {
 
 		// docIds 리스트에서 문서를 조회하고, 필터링한 결과를 리스트로 수집
 		List<Document> documents = docIds.stream()
-			.map(docId -> documentRepository.findById(((Integer) docId).longValue())
-				.orElseThrow(() -> new EntityNotFoundException("문서를 찾을 수 없습니다.")))
-			.filter(document -> "now".equals(document.getStatus()))
-			.collect(Collectors.toList());
+				.map(docId -> documentRepository.findById(((Integer) docId).longValue())
+						.orElseThrow(() -> new EntityNotFoundException("문서를 찾을 수 없습니다.")))
+				.filter(document -> "now".equals(document.getStatus()))
+				.collect(Collectors.toList());
 
 		// 리스트를 페이지네이션하여 Page 형태로 변환
 		List<DocListResDto> docListResDtos = documents.stream()
-			.map(Document::fromEntityList)
-			.collect(Collectors.toList());
+				.map(Document::fromEntityList)
+				.collect(Collectors.toList());
 
 		// Pageable 객체를 활용하여 Page로 변환
 		int start = Math.min((int) pageable.getOffset(), docListResDtos.size());
@@ -181,15 +182,15 @@ public class DocumentService {
 
 		// docIds 리스트에서 문서를 조회하고, 필터링한 결과를 리스트로 수집
 		List<Document> documents = docIds.stream()
-			.map(docId -> documentRepository.findById(((Integer) docId).longValue())
-				.orElseThrow(() -> new EntityNotFoundException("문서를 찾을 수 없습니다.")))
-			.filter(document -> "now".equals(document.getStatus()))
-			.collect(Collectors.toList());
+				.map(docId -> documentRepository.findById(((Integer) docId).longValue())
+						.orElseThrow(() -> new EntityNotFoundException("문서를 찾을 수 없습니다.")))
+				.filter(document -> "now".equals(document.getStatus()))
+				.collect(Collectors.toList());
 
 		// 리스트를 페이지네이션하여 Page 형태로 변환
 		List<DocListResDto> docListResDtos = documents.stream()
-			.map(Document::fromEntityList)
-			.collect(Collectors.toList());
+				.map(Document::fromEntityList)
+				.collect(Collectors.toList());
 
 		// Pageable 객체를 활용하여 Page로 변환
 		int start = Math.min((int) pageable.getOffset(), docListResDtos.size());
@@ -202,7 +203,7 @@ public class DocumentService {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 
 		Document document = documentRepository.findById(id)
-			.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
+				.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
 
 		List<String> docTagName = new ArrayList<>();
 		for (DocumentTag documentTag : document.getTags()) {
@@ -225,11 +226,11 @@ public class DocumentService {
 	public Document updateDoc(List<MultipartFile> files, DocUpdateReqDto docUpdateReqDto) throws IOException {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 		User user = userRepository.findByUserNum(userNum)
-			.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
+				.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
 
 		// 현재 문서 상태 변경
 		Document document = documentRepository.findById(docUpdateReqDto.getId())
-			.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
+				.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
 		document.updateStatus();
 		documentRepository.save(document);
 		DocumentVersion documentVersion = document.getDocumentVersion();
@@ -268,30 +269,36 @@ public class DocumentService {
 		// 문서 업데이트 후 Kafka에 이벤트 전송
 		String departmentId = document.getUser().getDepartment().getId().toString();
 		String userName = document.getUser().getName();
-		kafkaProducer.sendDocumentUpdateEvent("document-events", document.getDescription(), userName, departmentId, LocalDateTime.now().toString());
+		kafkaProducer.sendDocumentUpdateEvent("document-events", document.getFileName(), userName, departmentId, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")));
 
 
 		return newDocument;
 	}
 
 	// 문서 버전 rollback
-	 public void rollbackDoc(Long id) {
-		 Document document = documentRepository.findById(id)
-			 .orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
-		 document.revertDoc();
+	public void rollbackDoc(Long id) {
+		Document document = documentRepository.findById(id)
+				.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
+		document.revertDoc();
 
-		 List<Document> documents = documentRepository.findByDocumentVersionAndIdGreaterThan(document.getDocumentVersion(), id);
-		 for (Document doc : documents) {
-			 doc.softDelete();
-			 doc.updateStatus();
-			 documentRepository.save(doc);
-		 }
+		List<Document> documents = documentRepository.findByDocumentVersionAndIdGreaterThan(document.getDocumentVersion(), id);
+		for (Document doc : documents) {
+			doc.softDelete();
+			doc.updateStatus();
+			documentRepository.save(doc);
+		}
+
+		// 문서 롤백 후 Kafka에 이벤트 전송
+		String departmentId = document.getUser().getDepartment().getId().toString();
+		String userName = document.getUser().getName();
+		kafkaProducer.sendDocumentRollBackEvent("document-events", document.getFileName(), userName, departmentId, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")));
+
 	}
 
 	// 	문서 히스토리 조회
 	public List<DocHistoryResDto> getDocumentVersions(Long id) {
 		Document document = documentRepository.findById(id)
-			.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
+				.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
 
 		List<DocHistoryResDto> versions = new ArrayList<>();
 
@@ -306,7 +313,7 @@ public class DocumentService {
 	// 문서 삭제 -> 해당 문서만 삭제
 	public void deleteDocument(Long id) {
 		Document document = documentRepository.findById(id)
-			.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
+				.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
 		document.softDelete();
 		documentSearchService.deleteDocument(id.toString());
 		documentRepository.save(document);
@@ -320,7 +327,7 @@ public class DocumentService {
 	// 타입 추가
 	public Long addTag(DocTagReqDto docTagReqDto) {
 		tagRepository.save(
-			Tag.builder().tagName(docTagReqDto.getTagName()).build());
+				Tag.builder().tagName(docTagReqDto.getTagName()).build());
 		return tagRepository.count();
 	}
 
@@ -340,7 +347,7 @@ public class DocumentService {
 	public List<String> getAllTags() {
 		List<Tag> tags = tagRepository.findAll();
 		return tags.stream()
-			.map(Tag::getTagName)
-			.collect(Collectors.toList());
+				.map(Tag::getTagName)
+				.collect(Collectors.toList());
 	}
 }

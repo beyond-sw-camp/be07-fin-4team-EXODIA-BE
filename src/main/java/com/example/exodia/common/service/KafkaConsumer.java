@@ -92,6 +92,29 @@ public class KafkaConsumer {
             }
         }
     }
+    // 결재 알림 처리
+    private void processSubmitNotification(String message) {
+        // 메시지 형식: "userNum|submitMessage"
+        if (message.contains("|")) {
+            String[] splitMessage = message.split("\\|", 2);
+            String userNum = splitMessage[0];
+            String submitMessage = splitMessage[1];
+
+            User user = userRepository.findByUserNum(userNum)
+                    .orElseThrow(() -> new EntityNotFoundException("회원정보가 존재하지 않습니다."));
+
+            boolean exists = notificationRepository.existsByUserAndMessage(user, submitMessage);
+            if (!exists) {
+                Notification notification = new Notification(user, NotificationType.결재, submitMessage);
+                notificationRepository.save(notification);
+
+                // SSE로 실시간 알림 전송
+                NotificationDTO dto = new NotificationDTO(notification);
+                sseEmitters.sendToUser(userNum, dto);
+                System.out.println("결재 알림 전송 완료: " + submitMessage);
+            }
+        }
+    }
 
     // 경조사 알림 처리 로직
     private void processFamilyEventNotification(String message) {
@@ -123,29 +146,7 @@ public class KafkaConsumer {
         }
     }
 
-    // 결재 알림 처리
-    private void processSubmitNotification(String message) {
-        // 메시지 형식: "userNum|submitMessage"
-        if (message.contains("|")) {
-            String[] splitMessage = message.split("\\|", 2);
-            String userNum = splitMessage[0];
-            String submitMessage = splitMessage[1];
 
-            User user = userRepository.findByUserNum(userNum)
-                    .orElseThrow(() -> new EntityNotFoundException("회원정보가 존재하지 않습니다."));
-
-            boolean exists = notificationRepository.existsByUserAndMessage(user, submitMessage);
-            if (!exists) {
-                Notification notification = new Notification(user, NotificationType.결재, submitMessage);
-                notificationRepository.save(notification);
-
-                // SSE로 실시간 알림 전송
-                NotificationDTO dto = new NotificationDTO(notification);
-                sseEmitters.sendToUser(userNum, dto);
-                System.out.println("결재 알림 전송 완료: " + submitMessage);
-            }
-        }
-    }
 
 
     @KafkaListener(topics = "course-registration", groupId = "course-registration-group")
