@@ -147,6 +147,7 @@ public class SubmitService {
 		return submitLines;
 	}
 
+	// 반려로 상태 변경
 	@Transactional
 	public void changeToReject(Long submitId, String reason) {
 		// 히스토리 모든 문서들 REJECT
@@ -197,6 +198,7 @@ public class SubmitService {
 		return mySubmitList;
 	}
 
+	// 결재 상세 조회
 	public SubmitDetResDto getSubmitDetail(Long id) {
 		Submit submit = submitRepository.findById(id)
 			.orElseThrow(() -> new EntityNotFoundException("결재 정보가 존재하지 않습니다."));
@@ -205,6 +207,17 @@ public class SubmitService {
 			.orElseThrow(() -> new EntityNotFoundException("부서 정보가 존재하지 않습니다."));
 
 		return submit.fromEntity(department.getName());
+	}
+
+	// 결재 삭제
+	public void deleteSubmit(Long id) {
+		Submit submit = submitRepository.findById(id)
+			.orElseThrow(() -> new EntityNotFoundException("결재 정보가 존재하지 않습니다."));
+
+		// WAITING 상태 일 때만 삭제 가능
+		if(submit.getSubmitStatus() == SubmitStatus.WAITING) {
+			submit.softDelete();
+		}
 	}
 
 }
