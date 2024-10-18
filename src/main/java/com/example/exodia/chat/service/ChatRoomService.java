@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.*;
 
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -30,8 +29,8 @@ import java.util.stream.Collectors;
 public class ChatRoomService {
 
     private final ChatRoomManage chatRoomManage; // redis로 채팅룸 입장유저들 관리 // 채팅 알림 (unread 총합)
-    // "user_" + userNum , chatRommId
-    // "user_alarm_" + userNum , chatUnreadTotal(alarm)
+    // stateKey "user_" + userNum , chatRommId
+    // alarmKey "user_alarm_" + userNum , chatUnreadTotal(alarm)
 
     private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomRepository chatRoomRepository;
@@ -40,8 +39,7 @@ public class ChatRoomService {
 
     @Qualifier("chat") // 메세지 pubsub // 각 chatRoom + user의 unread 메세지 개수 관리
     private final RedisTemplate<String, Object> chatredisTemplate;
-    // "chatRoom_" + chatRoom.getId() + "_" + userNum , unread 개수
-
+    // unreadKey "chatRoom_" + chatRoom.getId() + "_" + userNum , unread 개수
 
     @Autowired
     public ChatRoomService(ChatRoomManage chatRoomManage, ChatMessageRepository chatMessageRepository, ChatRoomRepository chatRoomRepository,
@@ -54,6 +52,7 @@ public class ChatRoomService {
         this.userRepository = userRepository;
         this.chatredisTemplate = chatredisTemplate;
     }
+
 
     // 인원 중복 채팅방 조회
     public Long findExistChatRoom(Set<String> requestUserNums, List<ChatRoom> existChatRooms){
@@ -97,7 +96,6 @@ public class ChatRoomService {
         // 채팅방을 만드려는 유저가 속한 채팅방이 없거나 // 있는데 중복 채팅방 없으면 신규 생성
         // 새로운 채팅방 생성- 1. 채팅방저장
         ChatRoom savedChatRoom = chatRoomRequest.toEntity();
-        savedChatRoom.setRecentChatTime(LocalDateTime.now());
         chatRoomRepository.save(savedChatRoom);
         // 새로운 채팅방 생성 - 2. 채팅유저저장
         for(User user : participants){
@@ -109,8 +107,6 @@ public class ChatRoomService {
     }
 
     // 채팅방 목록 조회
-    // response에 unread 메세지 개수 추가 -> chatRoom 입장시 채팅 알림 개수에서 해당 chatRoom의 unread 메세지 개수 빼기
-    // chatRoom에 최근 온 메세지, 시간 추가 -> 메세지 보낼 때마다 unread 메세지 조정, 최근 온 메세지 조정.
     public List<ChatRoomResponse> viewChatRoomList(String userNum){
         // 채팅방 목록 조회하는 유저 확인
         User user = userRepository.findByUserNum(userNum).orElseThrow(()->new EntityNotFoundException("없는 사원입니다."));
@@ -123,8 +119,8 @@ public class ChatRoomService {
         List<ChatRoomResponse> chatRoomResponses = new ArrayList<>();
 
         for(ChatRoom chatRoom : chatRooms){
-            String key = "chatRoom_" + chatRoom.getId() + "_" + userNum;
-            String unread = (String)chatredisTemplate.opsForValue().get(key);
+            String unreadKey = "chatRoom_" + chatRoom.getId() + "_" + userNum;
+            String unread = (String)chatredisTemplate.opsForValue().get(unreadKey);
             int unreadChat = 0;
             if(unread != null){
                 unreadChat = Integer.parseInt(unread);
@@ -132,38 +128,40 @@ public class ChatRoomService {
             chatRoomResponses.add(chatRoom.fromEntity(unreadChat));
         }
 
-        return chatRoomResponses;
+        return chatRoomResponses; // id, name, usernums, unreadchatnum, recentChat + ⭐ recentchatTime
     }
 
-      // ⭐⭐⭐ 채팅방 list에서 검색. 채팅방명, 채팅user이름
+
+      // ⭐⭐ 채팅방 list에서 검색. 채팅방명, 채팅user이름
 //    public List<ChatRoomResponse> searchChatRoom(String searchValue){
 //
 //    }
 
-    // 채팅방 메세지 조회 == 채팅방 입장
-    // 해당 chatRoom 입장시 -> chatRoom의 unread = 0, 삭제 // chatAlarm개수 - 해당 chatRoom unreadChat 개수
-    public List<ChatMessageResponse> viewChatMessageList(Long roomId){
-        // chatMessageList를 불러온다 == chatRoom에 입장한다. chatRoomManage(redis로 관리)에 user의 현 채팅방id 기록
-        // chatMessageList를 불러온다 == 입장 유저가 확인하지 않은 채팅을 읽는다. 채팅방의 unread 메세지(redis로 관리)의 "chatRoom_" + roomId + "_" + userNum 삭제.
 
+    // 채팅방 메세지 조회 == 채팅방 입장
+    public List<ChatMessageResponse> viewChatMessageList(Long roomId){
+        // chatMessageList를 불러온다 == chatRoom에 입장한다. 1. chatRoomManage(redis로 관리) user의 현 채팅방id 기록
+        // chatMessageList를 불러온다 == 입장 유저가 확인하지 않은 채팅을 읽는다. // 3. 채팅방의 unread 메세지 삭제.
+                                                                         // 2. chatAlarm개수에서 해당 chatRoom unread 개수 뺀다.
+        // 1
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         chatRoomManage.updateChatRoomId(userNum, roomId);
-        // alarm개수 해당 채팅방의 unread 개수만큼 감소, 채팅방의 unread 메세지 개수 삭제
-        String key = "chatRoom_" + roomId + "_" + userNum;
+        // 2
+        String unreadKey = "chatRoom_" + roomId + "_" + userNum;
 //        String unread = (String) chatredisTemplate.opsForValue().get(key);
 //        String alarm = chatRoomManage.getChatAlarm(userNum);
 //        if(unread!=null && alarm!=null){
 //            chatRoomManage.updateChatAlarm(userNum, Integer.parseInt(alarm) - Integer.parseInt(unread));
 //        }
-        chatredisTemplate.delete(key);
-
+        // 3
+        chatredisTemplate.delete(unreadKey);
         return chatMessageRepository.findAllByChatRoomId(roomId)
                 .stream().map(ChatMessage::fromEntityForChatList).collect(Collectors.toList());
     }
 
     // 채팅방 퇴장
     public String exitChatRoom(String userNum){
-        // chatRoom을 나올 때 chatRoomManage에 userNum-채팅방id 삭제
+        // chatRoom을 나올 때 chatRoomManage(redis로 관리) user의 현 채팅방id 기록 삭제
         User user = userRepository.findByUserNum(userNum).orElseThrow(()->new EntityNotFoundException("없는 사원입니다."));
         chatRoomManage.exitChatRoom(userNum);
         return userNum;
@@ -174,7 +172,6 @@ public class ChatRoomService {
         User user = userRepository.findByUserNum(userNum).orElseThrow(()->new EntityNotFoundException("없는 사원입니다."));
         ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(()->new EntityNotFoundException("채팅방이 없습니다."));
         List<ChatUser> chatUsers = chatUserRepository.findAllByChatRoom(chatRoom);
-
         if(chatUsers.isEmpty()){ // 채팅방에 참여한 chatUser가 없다. -> 채팅방 삭제
             chatRoom.softDelete();
         }else{
@@ -183,15 +180,14 @@ public class ChatRoomService {
                         .orElseThrow(()->new EntityNotFoundException("없는 채팅 유저 입니다."))
                         .softDelete();
 
-                // 채팅방 삭제 in 채팅방 메뉴 // 채팅방을 나간다. -> user의 chatRoom 현황 업데이트
+                // chatRoom을 나올 때 chatRoomManage(redis로 관리) user의 현 채팅방id 기록 삭제
                 chatRoomManage.exitChatRoom(userNum);
                 // 채팅방의 unread 메세지 삭제
-                String key = "chatRoom_" + roomId + "_" + userNum;
-                chatredisTemplate.delete(key);
+                String unreadKey = "chatRoom_" + roomId + "_" + userNum;
+                chatredisTemplate.delete(unreadKey);
             }
         }
-        // ⭐⭐⭐ 채팅방에 메세지 남겨야하나? oo님이 퇴장하셨습니다. 메세지 발송?
-
+        // ⭐⭐ 채팅방에 메세지 : oo님이 퇴장하셨습니다.
         return userNum;
     }
 
@@ -204,17 +200,13 @@ public class ChatRoomService {
     }
 
     // 채팅방 구성원 초대
-    // chatRoomId(chatRoom)과 초대하려는 userNum(user)을 chatUser에 저장.
-    // ⭐⭐⭐ 새로 들어왔다는 메세지 chatRoom 에 전송.
     public String inviteChatUser(String inviteUserNum, Long roomId){
-        // 채팅 유저 초대
+        // chatRoomId(chatRoom)과 초대하려는 userNum(user)을 chatUser에 저장.
         User user = userRepository.findByUserNum(inviteUserNum).orElseThrow(()->new EntityNotFoundException("없는 사원입니다."));
         ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(()->new EntityNotFoundException("채팅방이 없습니다."));
         ChatUser chatUser = ChatUser.toEntity(chatRoom, user);
         chatUserRepository.save(chatUser);
-
-        // ⭐⭐⭐ oo님이 입장하셨습니다. 메세지 발송? 아님 이것만 알림?
-
+        // ⭐⭐ 채팅방에 메세지 : oo님이 입장하셨습니다. // 초대된 유저에게도 알림?
         return chatUser.getUser().getUserNum();
     }
 

@@ -48,10 +48,6 @@ public class ChatRoom extends BaseTimeEntity {
         this.chatUsers.add(chatUsers);
     }
 
-    public void setRecentChatTime(LocalDateTime now){
-        this.recentChatTime = now;
-    }
-
     public ChatRoomResponse fromEntity (int unreadChat){ // 단일 조회 , 목록 조회
         List<String> userNums = this.getChatUsers().stream().map(p->p.getUser().getUserNum()).collect(Collectors.toList());
 

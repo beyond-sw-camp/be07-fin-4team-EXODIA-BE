@@ -29,12 +29,12 @@ import java.util.List;
 @Slf4j
 public class ChatMessageService {
     private final ChatRoomManage chatRoomManage; // redis로 채팅룸 입장유저들 관리 // 채팅 알림 (unread 총합)
-    // "user_" + userNum , chatRommId
-    // "user_alarm_" + userNum , chatUnreadTotal(alarm)
+    // stateKey "user_" + userNum , chatRommId
+    // alarmKey "user_alarm_" + userNum , chatUnreadTotal(alarm)
 
     @Qualifier("chat") // 메세지 pubsub // 각 chatRoom + user의 unread 메세지 개수 관리
     private final RedisTemplate<String, Object> chatredisTemplate;
-    // "chatRoom_" + chatRoom.getId() + "_" + userNum , unread 개수
+    // unreadKey "chatRoom_" + chatRoom.getId() + "_" + userNum , unread 개수
 
     @Qualifier("chat")
     private final ChannelTopic channelTopic;
@@ -84,7 +84,7 @@ public class ChatMessageService {
                 continue;
             }
             String receiverChatRoomId = chatRoomManage.getChatroomIdByUser(receiverNum);
-            String unreadkey = "chatRoom_" + chatRoom.getId() + "_" + receiverNum;
+            String unreadKey = "chatRoom_" + chatRoom.getId() + "_" + receiverNum;
 //            String alarmKey = "user_alarm_" + receiverNum;
             if(receiverChatRoomId != null && receiverChatRoomId.equals(Long.toString(chatRoom.getId()))){ // receiver 채팅방에 있다면
                 System.out.println("채팅방에 있다.");
@@ -115,17 +115,17 @@ public class ChatMessageService {
 //                chatRoomManage.updateChatAlarm(receiverNum, alarm+1);
 
                 // 1-2
-                Object obj = chatredisTemplate.opsForValue().get(unreadkey);
+                Object obj = chatredisTemplate.opsForValue().get(unreadKey);
                 if(obj != null){ // unread 메세지가 있다면
                     try {
                         String s =(String) obj;
                         int num = Integer.parseInt(s);
-                        chatredisTemplate.opsForValue().set(unreadkey, Integer.toString(num+1));
+                        chatredisTemplate.opsForValue().set(unreadKey, Integer.toString(num+1));
                     }catch (Exception e){
                         log.error(e.getMessage());
                     }
                 }else { // unread 메세지가 없다면
-                    chatredisTemplate.opsForValue().set(unreadkey, "1");
+                    chatredisTemplate.opsForValue().set(unreadKey, "1");
                 }
 
                 // 2
