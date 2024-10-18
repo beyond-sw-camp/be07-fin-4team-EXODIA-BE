@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.example.exodia.board.domain.Board;
+import com.example.exodia.board.repository.BoardRepository;
 import com.example.exodia.common.service.KafkaProducer;
 
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -40,11 +42,12 @@ public class SubmitService {
 	private final KafkaProducer kafkaProducer;
 	private final SubmitTypeRepository submitTypeRepository;
 	private final DepartmentRepository departmentRepository;
+	private final BoardRepository boardRepository;
 
 	public SubmitService(SubmitRepository submitRepository, UserRepository userRepository,
 		PositionRepository positionRepository, SubmitLineRepository submitLineRepository,
 		SubmitTypeRepository submitTypeRepository, KafkaProducer kafkaProducer,
-		DepartmentRepository departmentRepository) {
+		DepartmentRepository departmentRepository, BoardRepository boardRepository) {
 		this.submitRepository = submitRepository;
 		this.userRepository = userRepository;
 		this.positionRepository = positionRepository;
@@ -52,6 +55,7 @@ public class SubmitService {
 		this.kafkaProducer = kafkaProducer;
 		this.submitTypeRepository = submitTypeRepository;
 		this.departmentRepository = departmentRepository;
+		this.boardRepository = boardRepository;
 	}
 
 	// 	결재라인 등록
@@ -130,11 +134,14 @@ public class SubmitService {
 					submitLine.updateStatus(SubmitStatus.ACCEPT);
 					if (idx == submitLines.size() - 1) {
 						submit.updateStatus(SubmitStatus.ACCEPT,null);
+					// 	경조사 게시판 올리기 선택되어있으면 게시판에 등록
+						if (submit.isUploadBoard()) {
+							Board board = dto.toEntity(submit);
+							boardRepository.save(board);
+						}
 					}
 				}
 			}
-
-
 			idx++;
 		}
 		return submitLines;
