@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.example.exodia.board.domain.Category;
+import com.example.exodia.board.domain.Board;
+import com.example.exodia.board.repository.BoardRepository;
 import com.example.exodia.common.service.KafkaProducer;
 
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -43,11 +45,12 @@ public class SubmitService {
 	private final KafkaProducer kafkaProducer;
 	private final SubmitTypeRepository submitTypeRepository;
 	private final DepartmentRepository departmentRepository;
+	private final BoardRepository boardRepository;
 
 	public SubmitService(SubmitRepository submitRepository, UserRepository userRepository,
-						 PositionRepository positionRepository, SubmitLineRepository submitLineRepository,
-						 SubmitTypeRepository submitTypeRepository, KafkaProducer kafkaProducer,
-						 DepartmentRepository departmentRepository) {
+		PositionRepository positionRepository, SubmitLineRepository submitLineRepository,
+		SubmitTypeRepository submitTypeRepository, KafkaProducer kafkaProducer,
+		DepartmentRepository departmentRepository, BoardRepository boardRepository) {
 		this.submitRepository = submitRepository;
 		this.userRepository = userRepository;
 		this.positionRepository = positionRepository;
@@ -55,6 +58,7 @@ public class SubmitService {
 		this.kafkaProducer = kafkaProducer;
 		this.submitTypeRepository = submitTypeRepository;
 		this.departmentRepository = departmentRepository;
+		this.boardRepository = boardRepository;
 	}
 
 	// 	결재라인 등록
@@ -139,7 +143,11 @@ public class SubmitService {
 					if (idx == submitLines.size() - 1) {
 						submit.updateStatus(SubmitStatus.ACCEPT,null);
 
-						// 결재 최종 승인 시 알림
+					if (submit.isUploadBoard()) {
+							Board board = dto.toEntity(submit);
+							boardRepository.save(board);
+					}
+
 					}
 				}
 			}
@@ -148,6 +156,7 @@ public class SubmitService {
 		return submitLines;
 	}
 
+	// 반려로 상태 변경
 	@Transactional
 	public void changeToReject(Long submitId, String reason) {
 		// 히스토리 모든 문서들 REJECT
@@ -198,6 +207,7 @@ public class SubmitService {
 		return mySubmitList;
 	}
 
+	// 결재 상세 조회
 	public SubmitDetResDto getSubmitDetail(Long id) {
 		Submit submit = submitRepository.findById(id)
 				.orElseThrow(() -> new EntityNotFoundException("결재 정보가 존재하지 않습니다."));
@@ -206,6 +216,17 @@ public class SubmitService {
 				.orElseThrow(() -> new EntityNotFoundException("부서 정보가 존재하지 않습니다."));
 
 		return submit.fromEntity(department.getName());
+	}
+
+	// 결재 삭제
+	public void deleteSubmit(Long id) {
+		Submit submit = submitRepository.findById(id)
+			.orElseThrow(() -> new EntityNotFoundException("결재 정보가 존재하지 않습니다."));
+
+		// WAITING 상태 일 때만 삭제 가능
+		if(submit.getSubmitStatus() == SubmitStatus.WAITING) {
+			submit.softDelete();
+		}
 	}
 
 }
