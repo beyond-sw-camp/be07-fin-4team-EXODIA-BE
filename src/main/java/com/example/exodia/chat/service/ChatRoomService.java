@@ -29,24 +29,30 @@ import java.util.stream.Collectors;
 @Transactional
 public class ChatRoomService {
 
-    private final ChatRoomManage chatRoomManage; // redis로 채팅룸 입장유저들 관리
+    private final ChatRoomManage chatRoomManage; // redis로 채팅룸 입장유저들 관리 // 채팅 알림 (unread 총합)
+    // "user_" + userNum , chatRommId
+    // "user_alarm_" + userNum , chatUnreadTotal(alarm)
+
     private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatUserRepository chatUserRepository;
     private final UserRepository userRepository;
 
     @Qualifier("chat") // 메세지 pubsub // 각 chatRoom + user의 unread 메세지 개수 관리
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final RedisTemplate<String, Object> chatredisTemplate;
+    // "chatRoom_" + chatRoom.getId() + "_" + userNum , unread 개수
 
 
     @Autowired
-    public ChatRoomService(ChatRoomManage chatRoomManage, ChatMessageRepository chatMessageRepository, ChatRoomRepository chatRoomRepository, ChatUserRepository chatUserRepository, UserRepository userRepository, RedisTemplate<String, Object> redisTemplate) {
+    public ChatRoomService(ChatRoomManage chatRoomManage, ChatMessageRepository chatMessageRepository, ChatRoomRepository chatRoomRepository,
+                           ChatUserRepository chatUserRepository, UserRepository userRepository,
+                           @Qualifier("chat") RedisTemplate<String, Object> chatredisTemplate) {
         this.chatRoomManage = chatRoomManage;
         this.chatMessageRepository = chatMessageRepository;
         this.chatRoomRepository = chatRoomRepository;
         this.chatUserRepository = chatUserRepository;
         this.userRepository = userRepository;
-        this.redisTemplate = redisTemplate;
+        this.chatredisTemplate = chatredisTemplate;
     }
 
     // 인원 중복 채팅방 조회
@@ -61,7 +67,7 @@ public class ChatRoomService {
         return 0L;
     }
 
-    // 채팅방 생성
+    // 채팅방 생성 (생성 이후 채팅방목록으로 넘어감.)
     public ChatRoomExistResponse createChatRoom(ChatRoomRequest chatRoomRequest){
         // 유저들 존재여부 확인 -> 채팅방 구성원
         List<User> participants = new ArrayList<>();
@@ -103,7 +109,7 @@ public class ChatRoomService {
     }
 
     // 채팅방 목록 조회
-    // response에 unread 메세지 개수 추가 -> chatRoom 입장시 localStorage에서 채팅 알림 개수 해당 chatRoom의 unread 메세지 개수 빼기.
+    // response에 unread 메세지 개수 추가 -> chatRoom 입장시 채팅 알림 개수에서 해당 chatRoom의 unread 메세지 개수 빼기
     // chatRoom에 최근 온 메세지, 시간 추가 -> 메세지 보낼 때마다 unread 메세지 조정, 최근 온 메세지 조정.
     public List<ChatRoomResponse> viewChatRoomList(String userNum){
         // 채팅방 목록 조회하는 유저 확인
@@ -118,10 +124,8 @@ public class ChatRoomService {
 
         for(ChatRoom chatRoom : chatRooms){
             String key = "chatRoom_" + chatRoom.getId() + "_" + userNum;
-
-            String unread = (String)redisTemplate.opsForValue().get(key);
+            String unread = (String)chatredisTemplate.opsForValue().get(key);
             int unreadChat = 0;
-//            assert unread != null;
             if(unread != null){
                 unreadChat = Integer.parseInt(unread);
             }
@@ -137,6 +141,7 @@ public class ChatRoomService {
 //    }
 
     // 채팅방 메세지 조회 == 채팅방 입장
+    // 해당 chatRoom 입장시 -> chatRoom의 unread = 0, 삭제 // chatAlarm개수 - 해당 chatRoom unreadChat 개수
     public List<ChatMessageResponse> viewChatMessageList(Long roomId){
         // chatMessageList를 불러온다 == chatRoom에 입장한다. chatRoomManage(redis로 관리)에 user의 현 채팅방id 기록
         // chatMessageList를 불러온다 == 입장 유저가 확인하지 않은 채팅을 읽는다. 채팅방의 unread 메세지(redis로 관리)의 "chatRoom_" + roomId + "_" + userNum 삭제.
@@ -145,12 +150,12 @@ public class ChatRoomService {
         chatRoomManage.updateChatRoomId(userNum, roomId);
         // alarm개수 해당 채팅방의 unread 개수만큼 감소, 채팅방의 unread 메세지 개수 삭제
         String key = "chatRoom_" + roomId + "_" + userNum;
-        String unread = (String) redisTemplate.opsForValue().get(key);
-        String alarm = chatRoomManage.getChatAlarm(userNum);
-        if(unread!=null && alarm!=null){
-            chatRoomManage.updateChatAlarm(userNum, Integer.parseInt(alarm) - Integer.parseInt(unread));
-        }
-        redisTemplate.delete(key);
+//        String unread = (String) chatredisTemplate.opsForValue().get(key);
+//        String alarm = chatRoomManage.getChatAlarm(userNum);
+//        if(unread!=null && alarm!=null){
+//            chatRoomManage.updateChatAlarm(userNum, Integer.parseInt(alarm) - Integer.parseInt(unread));
+//        }
+        chatredisTemplate.delete(key);
 
         return chatMessageRepository.findAllByChatRoomId(roomId)
                 .stream().map(ChatMessage::fromEntityForChatList).collect(Collectors.toList());
@@ -182,7 +187,7 @@ public class ChatRoomService {
                 chatRoomManage.exitChatRoom(userNum);
                 // 채팅방의 unread 메세지 삭제
                 String key = "chatRoom_" + roomId + "_" + userNum;
-                redisTemplate.delete(key);
+                chatredisTemplate.delete(key);
             }
         }
         // ⭐⭐⭐ 채팅방에 메세지 남겨야하나? oo님이 퇴장하셨습니다. 메세지 발송?

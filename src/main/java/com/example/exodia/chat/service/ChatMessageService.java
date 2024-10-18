@@ -28,9 +28,14 @@ import java.util.List;
 @Service
 @Slf4j
 public class ChatMessageService {
-    private final ChatRoomManage chatRoomManage; // redis로 채팅룸 입장유저들 관리
-    @Qualifier("chat")
+    private final ChatRoomManage chatRoomManage; // redis로 채팅룸 입장유저들 관리 // 채팅 알림 (unread 총합)
+    // "user_" + userNum , chatRommId
+    // "user_alarm_" + userNum , chatUnreadTotal(alarm)
+
+    @Qualifier("chat") // 메세지 pubsub // 각 chatRoom + user의 unread 메세지 개수 관리
     private final RedisTemplate<String, Object> chatredisTemplate;
+    // "chatRoom_" + chatRoom.getId() + "_" + userNum , unread 개수
+
     @Qualifier("chat")
     private final ChannelTopic channelTopic;
     private final ChatMessageRepository chatMessageRepository;
@@ -67,23 +72,28 @@ public class ChatMessageService {
         // 채팅 참여자.
         List<ChatUser> chatUsers = chatUserRepository.findAllByChatRoom(chatRoom);
 
+        // 채팅 메세지 db 저장
+        ChatMessage savedChatMessage = chatMessageRepository.save(chatMessageRequest.toEntity(user, chatRoom));
+        // chatRoom 에 최신메세지와 시간 저장. -> 목록 조회시 사용
+        chatRoom.updateRecentChat(savedChatMessage);
+
+        // 알림
         for(ChatUser receiver : chatUsers){
             String receiverNum = receiver.getUser().getUserNum();
-            if(receiverNum.equals(user.getUserNum())){
+            if(receiverNum.equals(user.getUserNum())){ // sender 외의 채팅유저들에게
                 continue;
             }
-            // receiver 채팅방에 있는 지 확인 // 알림과 unread 메세지 관리
             String receiverChatRoomId = chatRoomManage.getChatroomIdByUser(receiverNum);
-            String key = "chatRoom_" + chatRoom.getId() + "_" + receiverNum;
+            String unreadkey = "chatRoom_" + chatRoom.getId() + "_" + receiverNum;
 //            String alarmKey = "user_alarm_" + receiverNum;
-            // receiver 채팅방에 있다면
-            if(receiverChatRoomId != null && receiverChatRoomId.equals(Long.toString(chatRoom.getId()))){
-                chatredisTemplate.opsForValue().set(key, "0");
+            if(receiverChatRoomId != null && receiverChatRoomId.equals(Long.toString(chatRoom.getId()))){ // receiver 채팅방에 있다면
+                System.out.println("채팅방에 있다.");
             }else { // receiver 채팅방에 없다면
-                // ⭐⭐⭐ 알림 내용 : 어느방의 누가 무엇을 보냈나.
-                // chatAlarm 개수 + 1
-                // 해당 chatRoom 입장시 -> chatRoom의 unread = 0 // chatAlarm개수 - 해당 chatRoom unreadChat 개수
+                // ⭐⭐⭐ 알림
+                // 1-1 header sse : 어느방의 누가 무엇을 보냈나. chatAlarm 개수 + 1 // 1-2 그 외 해당 채팅방 unread + 1 // 1-3 해당 채팅방 recent 관련 업데이트(위에서)
+                // 2. 해당 유저 chatList sse : 채팅방 리스트 reload
 
+                // 1-1
 //                if(chatMessageRequest.getMessageType() == MessageType.FILE){
 //                    sseEmitters.sendChatToUser(receiverNum, ChatAlarmResponse.builder()
 //                            .senderName(user.getName())
@@ -104,25 +114,25 @@ public class ChatMessageService {
 //                }
 //                chatRoomManage.updateChatAlarm(receiverNum, alarm+1);
 
-                Object obj = chatredisTemplate.opsForValue().get(key);
+                // 1-2
+                Object obj = chatredisTemplate.opsForValue().get(unreadkey);
                 if(obj != null){ // unread 메세지가 있다면
                     try {
                         String s =(String) obj;
                         int num = Integer.parseInt(s);
-                        chatredisTemplate.opsForValue().set(key, Integer.toString(num+1));
+                        chatredisTemplate.opsForValue().set(unreadkey, Integer.toString(num+1));
                     }catch (Exception e){
                         log.error(e.getMessage());
                     }
                 }else { // unread 메세지가 없다면
-                    chatredisTemplate.opsForValue().set(key, "1");
+                    chatredisTemplate.opsForValue().set(unreadkey, "1");
                 }
+
+                // 2
+
+
             }
         }
-
-        // 채팅 메세지 db 저장
-        ChatMessage savedChatMessage = chatMessageRepository.save(chatMessageRequest.toEntity(user, chatRoom)); // chatFile new array 만든다..!
-        // chatRoom 에 최신메세지와 시간 저장. -> 목록 조회시 사용
-        chatRoom.updateRecentChat(savedChatMessage);
 
         // 파일을 포함한 메세지일 경우, 파일메타데이터 db에 저장
         // 전송할 messageRes 조정
@@ -132,8 +142,6 @@ public class ChatMessageService {
             for(ChatFile cf : chatFileList){
                 savedChatMessage.getChatFiles().add(cf);
             }
-//            savedChatMessage.setChatFiles(fileUploadService.saveChatFileMetaData(savedChatMessage, chatMessageRequest.getFiles())); // 전송 온 파일들 chatFile 저장
-
             chatMessageResponse = savedChatMessage.fromEntityWithFile();
             List<ChatFileMetaDataResponse> files = savedChatMessage.getChatFiles().stream().map(ChatFile::fromEntity).toList();
             for(ChatFileMetaDataResponse cfmd : files){

@@ -16,6 +16,7 @@ public class ChatRoomManage { // redis로 채팅룸 입장유저들 관리
     public ChatRoomManage(@Qualifier("chatRoom") RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
+
     // "user_" + userNum , chatRommId
     // "user_alarm_" + userNum, chatUnreadTotal(alarm)
 
@@ -37,6 +38,7 @@ public class ChatRoomManage { // redis로 채팅룸 입장유저들 관리
     public void exitChatRoom(String userNum){
         redisTemplate.delete("user_"+userNum);
     }
+
 
     // 알림 개수
     public String getChatAlarm(String userNum){
