@@ -3,6 +3,7 @@ package com.example.exodia.department.controller;
 import com.example.exodia.common.dto.CommonResDto;
 import com.example.exodia.department.domain.Department;
 import com.example.exodia.department.dto.DepartmentDto;
+import com.example.exodia.department.dto.DepartmentUpdateDto;
 import com.example.exodia.department.service.DepartmentService;
 import com.example.exodia.user.dto.UserInfoDto;
 import com.example.exodia.user.service.UserService;
@@ -86,6 +87,20 @@ public class DepartmentController {
     public ResponseEntity<List<UserInfoDto>> getUsersByDepartment(@PathVariable Long departmentId) {
         List<UserInfoDto> users = userService.getUsersByDepartment(departmentId);
         return ResponseEntity.ok(users);
+    }
+
+    // 부서 설명 업데이트 (POST 메서드)
+    @PostMapping("/update")
+    public ResponseEntity<String> updateDepartmentDescription(
+            @RequestBody DepartmentUpdateDto dto) {
+        departmentService.updateDepartmentDescription(dto.getDepartmentId(), dto.getDescription());
+        return ResponseEntity.ok("부서 설명이 성공적으로 업데이트되었습니다.");
+    }
+
+    @GetMapping("/description")
+    public ResponseEntity<String> getDepartmentDescription(@RequestParam Long departmentId) {
+        String description = departmentService.getDepartmentDescription(departmentId);
+        return ResponseEntity.ok(description);
     }
 
 }

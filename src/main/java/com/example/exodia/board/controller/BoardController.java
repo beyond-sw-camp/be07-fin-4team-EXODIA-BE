@@ -44,7 +44,7 @@ public class BoardController {
      * @param tagIds - 게시물에 추가할 태그 리스트
      * @return HTTP 응답 본문과 상태 코드를 포함한 ResponseEntity 반환
      */
-    @PostMapping("/create")
+    @PostMapping("/{category}/create")
     public ResponseEntity<?> createBoard(@ModelAttribute BoardSaveReqDto dto, @RequestParam List<Long> tagIds) {
         try {
             // 1. DTO 객체의 유효성 확인 (필수 값 체크 등)

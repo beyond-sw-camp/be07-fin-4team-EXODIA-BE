@@ -83,7 +83,23 @@ public class DepartmentService {
             }
         }
     }
+    // 부서 설명 업데이트 메서드
+    @Transactional
+    public void updateDepartmentDescription(Long departmentId, String description) {
+        Department department = departmentRepository.findById(departmentId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 부서를 찾을 수 없습니다. ID: " + departmentId));
 
+        department.setDescription(description);
+        departmentRepository.save(department);
+    }
+
+    // 부서 설명 가져오기 메서드
+    public String getDepartmentDescription(Long departmentId) {
+        Department department = departmentRepository.findById(departmentId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 부서를 찾을 수 없습니다. ID: " + departmentId));
+
+        return department.getDescription();
+    }
 
 
 
