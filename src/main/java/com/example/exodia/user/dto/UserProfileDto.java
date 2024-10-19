@@ -19,7 +19,7 @@ public class UserProfileDto {
     private LocalDate joinDate;
     private String name;
     private String profileImage;
-    private int annualLeave;
+    private double annualLeave;
 
     public static UserProfileDto fromProfileEntity(User user) {
         return new UserProfileDto(
