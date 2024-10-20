@@ -8,7 +8,9 @@ import com.example.exodia.course.service.CourseService;
 import com.example.exodia.registration.dto.RegistrationDto;
 import com.example.exodia.registration.repository.RegistrationRepository;
 import com.example.exodia.registration.service.RegistrationService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -71,4 +73,28 @@ public class CourseController {
         return ResponseEntity.ok(confirmedParticipants);
     }
 
+    /* 내가 신청한 강좌 리스트 */
+    @GetMapping("/my-registrations")
+    public ResponseEntity<List<CourseListDto>> getMyRegisteredCourses() {
+        List<CourseListDto> registeredCourses = courseService.getMyRegisteredCourses();
+        return ResponseEntity.ok(registeredCourses);
+    }
+    /* 내가 신청한 강좌 삭제 */
+    @DeleteMapping("/my-registrations/{registrationId}")
+    public ResponseEntity<Void> deleteRegistration(@PathVariable Long registrationId) {
+        registrationService.deleteRegistration(registrationId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/transmit/{courseId}")
+    public ResponseEntity<String> transmitCourse(@PathVariable Long courseId) {
+        registrationService.triggerCourseTransmission(courseId);
+        return ResponseEntity.ok("강좌 전송 완료");
+    }
+
+    @GetMapping("/{courseId}/participants")
+    public ResponseEntity<List<RegistrationDto>> getCourseParticipants(@PathVariable Long courseId) {
+        List<RegistrationDto> participants = courseService.getParticipantsByCourseId(courseId);
+        return ResponseEntity.ok(participants);
+    }
 }
