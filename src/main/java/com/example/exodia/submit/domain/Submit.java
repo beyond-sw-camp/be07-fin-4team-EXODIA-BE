@@ -89,5 +89,9 @@ public class Submit extends BaseTimeEntity {
 			.submitTime(this.getCreatedAt())
 			.build();
 	}
+
+	public String getUserNum() {
+		return this.user.getUserNum();
+	}
 }
 

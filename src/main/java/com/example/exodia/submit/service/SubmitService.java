@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import com.example.exodia.board.domain.Category;
 import com.example.exodia.board.domain.Board;
+import com.example.exodia.board.dto.BoardSaveReqDto;
 import com.example.exodia.board.repository.BoardRepository;
 import com.example.exodia.common.service.KafkaProducer;
 
@@ -102,59 +103,99 @@ public class SubmitService {
 	}
 
 	// 결재 상태 변경
+//	@Transactional
+//	public List<SubmitLine> updateSubmit(SubmitStatusUpdateDto dto) throws IOException, EntityNotFoundException {
+//		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();    // 사용자
+//		// 이전 결재자들의 결재 상태를 확인하기 위해 필요
+//		List<SubmitLine> submitLines = submitLineRepository.findBySubmitIdOrderByUserPositionId(
+//				dto.getSubmitId());    // 직급 순서대로 가져오는걸로
+//		Submit submit = submitRepository.findById(dto.getSubmitId())
+//				.orElseThrow(() -> new EntityNotFoundException("결재 정보가 존재하지 않습니다."));
+//
+//		// 나의 결재 상태를 확인하기 위해서 필요
+//
+//		// 1. 내가 이미 처리한 결재인 경우
+//		SubmitLine mySubmitLine = submitLineRepository.findBySubmitIdAndUserNum(dto.getSubmitId(), userNum);
+//		if (mySubmitLine.getSubmitStatus() != SubmitStatus.WAITING) {
+//			throw new IOException("이미 처리 된 결재입니다.");
+//		}
+//
+//		int idx = 0;
+//		for (SubmitLine submitLine : submitLines) {
+//			if (!submitLine.getUserNum().equals(userNum)) {
+//				// 2. 이전 결재자의 결재가 필요한 경우
+//				if (submitLine.getSubmitStatus() == SubmitStatus.WAITING) {
+//					throw new IOException("이전 결재자의 결재가 필요합니다.");
+//				}
+//			} else {
+//				// REJECT
+//				if (dto.getStatus() == SubmitStatus.REJECT) {
+//					if (dto.getReason() == null) {
+//						throw new IOException("반려 사유를 입력해주세요.");
+//					} else {
+//						// 	submitLine, submit 모든걸 reject로
+//						changeToReject(dto.getSubmitId(), dto.getReason());
+//					}
+//				} else {
+//					// 	ACCEPT
+//					// 	subLine상태 바꾸기
+//					// 	내가 최상단 결재자라면 submit상태도 바꾸기
+//					submitLine.updateStatus(SubmitStatus.ACCEPT);
+//					if (idx == submitLines.size() - 1) {
+//						submit.updateStatus(SubmitStatus.ACCEPT,null);
+//
+//					if (submit.isUploadBoard()) {
+//							Board board = dto.toEntity(submit);
+//							boardRepository.save(board);
+//					}
+//
+//					}
+//				}
+//			}
+//			idx++;
+//		}
+//		return submitLines;
+//	}
+
 	@Transactional
 	public List<SubmitLine> updateSubmit(SubmitStatusUpdateDto dto) throws IOException, EntityNotFoundException {
-		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();    // 사용자
-		// 이전 결재자들의 결재 상태를 확인하기 위해 필요
-		List<SubmitLine> submitLines = submitLineRepository.findBySubmitIdOrderByUserPositionId(
-				dto.getSubmitId());    // 직급 순서대로 가져오는걸로
+		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 		Submit submit = submitRepository.findById(dto.getSubmitId())
-				.orElseThrow(() -> new EntityNotFoundException("결재 정보가 존재하지 않습니다."));
+				.orElseThrow(() -> new EntityNotFoundException("결재 정보를 찾을 수 없습니다."));
 
-		// 나의 결재 상태를 확인하기 위해서 필요
+		List<SubmitLine> submitLines = submitLineRepository.findBySubmitIdOrderByUserPositionId(dto.getSubmitId());
 
-		// 1. 내가 이미 처리한 결재인 경우
 		SubmitLine mySubmitLine = submitLineRepository.findBySubmitIdAndUserNum(dto.getSubmitId(), userNum);
 		if (mySubmitLine.getSubmitStatus() != SubmitStatus.WAITING) {
-			throw new IOException("이미 처리 된 결재입니다.");
+			throw new IOException("이미 처리된 결재입니다.");
 		}
 
 		int idx = 0;
 		for (SubmitLine submitLine : submitLines) {
 			if (!submitLine.getUserNum().equals(userNum)) {
-				// 2. 이전 결재자의 결재가 필요한 경우
 				if (submitLine.getSubmitStatus() == SubmitStatus.WAITING) {
 					throw new IOException("이전 결재자의 결재가 필요합니다.");
 				}
 			} else {
-				// REJECT
-				if (dto.getStatus() == SubmitStatus.REJECT) {
-					if (dto.getReason() == null) {
-						throw new IOException("반려 사유를 입력해주세요.");
-					} else {
-						// 	submitLine, submit 모든걸 reject로
-						changeToReject(dto.getSubmitId(), dto.getReason());
-					}
-				} else {
-					// 	ACCEPT
-					// 	subLine상태 바꾸기
-					// 	내가 최상단 결재자라면 submit상태도 바꾸기
+				if (dto.getStatus() == SubmitStatus.ACCEPT) {
 					submitLine.updateStatus(SubmitStatus.ACCEPT);
 					if (idx == submitLines.size() - 1) {
-						submit.updateStatus(SubmitStatus.ACCEPT,null);
+						submit.updateStatus(SubmitStatus.ACCEPT, null);
 
-					if (submit.isUploadBoard()) {
-							Board board = dto.toEntity(submit);
-							boardRepository.save(board);
+						if ("경조사 신청서".equals(submit.getSubmitType()) && submit.isUploadBoard()) {
+							uploadBoardAutomatically(submit);
+						}
 					}
-
-					}
+				} else if (dto.getStatus() == SubmitStatus.REJECT) {
+					submitLine.updateStatus(SubmitStatus.REJECT);
+					submit.updateStatus(SubmitStatus.REJECT, dto.getReason());
 				}
 			}
 			idx++;
 		}
 		return submitLines;
 	}
+
 
 	// 반려로 상태 변경
 	@Transactional
@@ -227,6 +268,35 @@ public class SubmitService {
 		if(submit.getSubmitStatus() == SubmitStatus.WAITING) {
 			submit.softDelete();
 		}
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+	private void uploadBoardAutomatically(Submit submit) {
+		User user = userRepository.findByUserNum(submit.getUserNum())
+				.orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+
+		String title = "경조사 공지 - " + user.getDepartment().getName() + " " + user.getName();
+		String content = submit.getContents();
+
+		BoardSaveReqDto boardDto = BoardSaveReqDto.builder()
+				.title(title)
+				.content(content)
+				.category(Category.FAMILY_EVENT)
+				.userNum(submit.getUserNum())
+				.build();
+
+		Board board = boardDto.toEntity(user);
+		boardRepository.save(board);
 	}
 
 }
