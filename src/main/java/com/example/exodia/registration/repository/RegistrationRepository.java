@@ -11,4 +11,8 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
     boolean existsByCourseAndUser(Course course, User user);
     List<Registration> findAllByCourseAndRegistrationStatus(Course course, String registrationStatus);
     int countByCourse(Course course);
+    // 사원의 모든 강좌 조회
+    List<Registration> findAllByUser(User user);
+    // 강좌당 등록된 신청자 조회
+    List<Registration> findAllByCourse(Course course);
 }

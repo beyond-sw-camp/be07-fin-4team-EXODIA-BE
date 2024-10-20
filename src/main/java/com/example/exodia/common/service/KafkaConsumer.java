@@ -159,6 +159,33 @@ public class KafkaConsumer {
 
         registrationService.confirmRegistration(courseId, userNum);
     }
+
+    @KafkaListener(topics = {"course-transmission"}, groupId = "course-transmission-group")
+    public void listenCourseTransmission(@Header(KafkaHeaders.RECEIVED_TOPIC) String topic, String message) {
+        System.out.println("Kafka 강좌 전송 메시지 수신: " + message);
+
+        // 메시지 형식: "courseId|전송 메시지"
+        if (message.contains("|")) {
+            String[] splitMessage = message.split("\\|", 2);
+            String courseId = splitMessage[0];
+            String transmissionMessage = splitMessage[1];
+
+            // 강좌 전송 이벤트에 대해 처리할 로직
+            List<User> users = userRepository.findAll();
+            for (User user : users) {
+                boolean exists = notificationRepository.existsByUserAndMessage(user, transmissionMessage);
+                if (!exists) {
+                    Notification notification = new Notification(user, NotificationType.강좌, transmissionMessage);
+                    notificationRepository.save(notification);
+
+                    NotificationDTO dto = new NotificationDTO(notification);
+                    sseEmitters.sendToUser(user.getUserNum(), dto);
+                }
+            }
+
+            System.out.println("강좌 전송 알림 처리 완료: " + transmissionMessage);
+        }
+    }
 }
 
 
