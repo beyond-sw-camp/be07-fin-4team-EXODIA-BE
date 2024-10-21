@@ -29,6 +29,9 @@ public class Department {
     @JsonBackReference
     private Department parentDepartment;
 
+    @Column(length = 3000)
+    private String description;
+
     @OneToMany(mappedBy = "parentDepartment", cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<Department> children = new ArrayList<>();
