@@ -54,6 +54,11 @@ public class KafkaProducer {
         kafkaTemplate.send("course-registration", courseId, message);
         System.out.println("Kafka 강좌 등록 이벤트 전송: " + message + " / 코스 ID: " + courseId);
     }
+
+    public void sendCourseTransmissionEvent(String courseId, String message) {
+        kafkaTemplate.send("course-transmission", courseId, message);
+        System.out.println("Kafka 강좌 전송 이벤트 전송: " + message + " / 코스 ID: " + courseId);
+    }
 }
 
 

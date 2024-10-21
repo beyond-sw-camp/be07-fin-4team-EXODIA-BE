@@ -32,4 +32,6 @@ public class Course extends BaseTimeEntity {
     @JoinColumn(name = "user_num", nullable = false)
     private User user;
 
+    @Column(name = "transmitted", nullable = false)
+    private boolean transmitted = false; // 강좌의 전송 여부
 }
