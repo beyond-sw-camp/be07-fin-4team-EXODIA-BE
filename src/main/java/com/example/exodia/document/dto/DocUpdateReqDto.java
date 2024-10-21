@@ -30,6 +30,7 @@ public class DocUpdateReqDto {
 			.documentVersion(document.getDocumentVersion())
 			.user(user)
 			.status("now")
+			.departmentId(user.getDepartment().getId())
 			.tags(new ArrayList<>())
 			.description(docUpdateReqDto.getDescription())
 			.build();

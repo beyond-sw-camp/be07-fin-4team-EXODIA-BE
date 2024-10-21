@@ -153,8 +153,11 @@ public class DocumentService {
 	public Page<DocListResDto> getDocList(Pageable pageable) {
 		// 생성시간 == 수정시간 doc만 조회 -> 수정되지 않은 모든 데이터
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+		User user = userRepository.findByUserNum(userNum)
+			.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
 
-		Page<Document> docs = documentRepository.findAllByStatus("now", pageable);
+
+		Page<Document> docs = documentRepository.findAllByStatusAndDepartmentId("now", user.getDepartment().getId(), pageable);
 		return docs.map(Document::fromEntityList);
 	}
 

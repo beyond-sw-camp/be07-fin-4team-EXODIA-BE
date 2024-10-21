@@ -30,6 +30,7 @@ public class DocSaveReqDto {
 			.filePath(fileDownloadUrl)
 			.description(docSaveReqDto.description)
 			.user(user)
+			.departmentId(user.getDepartment().getId())
 			.status("now")
 			.documentVersion(null)
 			.tags(new ArrayList<>())
