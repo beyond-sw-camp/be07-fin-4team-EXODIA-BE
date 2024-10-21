@@ -23,12 +23,12 @@ public class DocUpdateReqDto {
 	private String description;	// 설명
 	private List<String> tags;
 
-	public Document toEntity(DocUpdateReqDto docUpdateReqDto, Document document, String fileName, String fileDownloadUrls){
+	public Document toEntity(DocUpdateReqDto docUpdateReqDto, User user, Document document, String fileName, String fileDownloadUrls){
 		return Document.builder()
 			.fileName(fileName)
 			.filePath(fileDownloadUrls)
 			.documentVersion(document.getDocumentVersion())
-			.user(document.getUser())
+			.user(user)
 			.status("now")
 			.tags(new ArrayList<>())
 			.description(docUpdateReqDto.getDescription())

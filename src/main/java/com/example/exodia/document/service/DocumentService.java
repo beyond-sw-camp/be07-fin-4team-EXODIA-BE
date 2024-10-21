@@ -240,7 +240,7 @@ public class DocumentService {
 		List<String> fileDownloadUrl = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files, "document");
 
 		// 새로운 문서 저장
-		Document newDocument = docUpdateReqDto.toEntity(docUpdateReqDto, document, fileName, fileDownloadUrl.get(0));
+		Document newDocument = docUpdateReqDto.toEntity(docUpdateReqDto, user, document, fileName, fileDownloadUrl.get(0));
 		documentRepository.save(newDocument);
 
 		// 태그 추가
