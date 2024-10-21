@@ -20,7 +20,7 @@ public class ManagerService {
     private final UserRepository userRepository;
 
     public ManagerListDto saveManager(ManagerSaveDto managerSaveDto) {
-        User user = userRepository.findById(managerSaveDto.getUserId())
+        User user = userRepository.findByUserNum(managerSaveDto.getUserNum())
                 .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
 
         Manager manager = new Manager();
@@ -35,12 +35,13 @@ public class ManagerService {
 
 
     // 2. 매니저 삭제
-    public void deleteManager(Long managerId) {
+    public void deleteManager(String userNum) {
         // 매니저 존재 여부 확인 후 삭제
-        Manager manager = managerRepository.findById(managerId)
+        Manager manager = managerRepository.findByUser_UserNum(userNum)
                 .orElseThrow(() -> new IllegalArgumentException("매니저를 찾을 수 없습니다."));
         managerRepository.delete(manager);
     }
+
 
     // 3. 매니저 목록 조회
     public List<ManagerListDto> getAllManagers() {

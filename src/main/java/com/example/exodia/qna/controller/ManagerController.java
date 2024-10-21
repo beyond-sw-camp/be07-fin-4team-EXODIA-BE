@@ -28,11 +28,12 @@ public class ManagerController {
 
 
     // 매니저 삭제
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Void> deleteManager(@PathVariable Long id) {
-        managerService.deleteManager(id);
+    @DeleteMapping("/delete/{userNum}")
+    public ResponseEntity<Void> deleteManager(@PathVariable String userNum) {
+        managerService.deleteManager(userNum);
         return ResponseEntity.noContent().build();
     }
+
 
     // 매니저 목록 조회
     @GetMapping("/list")

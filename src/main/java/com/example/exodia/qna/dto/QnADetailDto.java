@@ -33,6 +33,7 @@ public class QnADetailDto {
     private List<FileDto> qFiles;
     private List<FileDto> aFiles;
     private List<CommentResDto> comments;
+    private Long departmentId;
     @Builder.Default
     private Boolean anonymous = false;
 
@@ -55,6 +56,7 @@ public class QnADetailDto {
                 .questionUserNum(qna.getQuestioner().getUserNum())
                 .answerUserNum(qna.getAnswerer() != null ? qna.getAnswerer().getUserNum() : null)
                 .anonymous(qna.getAnonymous())
+                .departmentId(qna.getDepartment().getId())
                 .build();
     }
 }

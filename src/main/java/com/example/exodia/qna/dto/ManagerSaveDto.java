@@ -8,5 +8,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ManagerSaveDto {
-    private Long userId;
+    private String userNum;
 }
