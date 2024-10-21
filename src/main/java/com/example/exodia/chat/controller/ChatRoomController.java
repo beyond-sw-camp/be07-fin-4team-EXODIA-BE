@@ -26,7 +26,6 @@ public class ChatRoomController {
     @PostMapping("/create")
     public ResponseEntity<?> chatRoomCreate(@RequestBody ChatRoomRequest dto){
         ChatRoomExistResponse chatRoomExistResponse = chatRoomService.createChatRoom(dto);
-
         CommonResDto commonResDto = new CommonResDto();
         if(chatRoomExistResponse.isExistCheck()){
             commonResDto = new CommonResDto(HttpStatus.OK, "채팅방이 이미 존재합니다.", chatRoomExistResponse);
