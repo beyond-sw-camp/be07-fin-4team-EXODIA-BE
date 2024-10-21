@@ -10,6 +10,7 @@ import com.example.exodia.board.domain.Category;
 import com.example.exodia.board.domain.Board;
 import com.example.exodia.board.dto.BoardSaveReqDto;
 import com.example.exodia.board.repository.BoardRepository;
+import com.example.exodia.board.service.BoardAutoUploadService;
 import com.example.exodia.common.service.KafkaProducer;
 
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -47,11 +48,12 @@ public class SubmitService {
 	private final SubmitTypeRepository submitTypeRepository;
 	private final DepartmentRepository departmentRepository;
 	private final BoardRepository boardRepository;
+	private final BoardAutoUploadService boardAutoUploadService;
 
 	public SubmitService(SubmitRepository submitRepository, UserRepository userRepository,
-		PositionRepository positionRepository, SubmitLineRepository submitLineRepository,
-		SubmitTypeRepository submitTypeRepository, KafkaProducer kafkaProducer,
-		DepartmentRepository departmentRepository, BoardRepository boardRepository) {
+                         PositionRepository positionRepository, SubmitLineRepository submitLineRepository,
+                         SubmitTypeRepository submitTypeRepository, KafkaProducer kafkaProducer,
+                         DepartmentRepository departmentRepository, BoardRepository boardRepository, BoardAutoUploadService boardAutoUploadService) {
 		this.submitRepository = submitRepository;
 		this.userRepository = userRepository;
 		this.positionRepository = positionRepository;
@@ -60,7 +62,8 @@ public class SubmitService {
 		this.submitTypeRepository = submitTypeRepository;
 		this.departmentRepository = departmentRepository;
 		this.boardRepository = boardRepository;
-	}
+        this.boardAutoUploadService = boardAutoUploadService;
+    }
 
 	// 	결재라인 등록
 	@Transactional
@@ -183,7 +186,7 @@ public class SubmitService {
 						submit.updateStatus(SubmitStatus.ACCEPT, null);
 
 						if ("경조사 신청서".equals(submit.getSubmitType()) && submit.isUploadBoard()) {
-							uploadBoardAutomatically(submit);
+							boardAutoUploadService.checkAndUploadFamilyEvent(submit.getId());
 						}
 					}
 				} else if (dto.getStatus() == SubmitStatus.REJECT) {
