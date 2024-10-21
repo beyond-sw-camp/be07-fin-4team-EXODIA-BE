@@ -139,7 +139,7 @@ public class DocumentController {
 		}
 	}
 
-	// 모든 타입 조회
+	// 모든 태그 조회
 	@GetMapping("/list/tags")
 	public ResponseEntity<?> getAllDocumentTags() {
 		List<TagListResDto> tags = documentService.getAllTags();
