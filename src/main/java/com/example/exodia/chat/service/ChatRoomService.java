@@ -132,10 +132,42 @@ public class ChatRoomService {
     }
 
 
-      // ⭐⭐ 채팅방 list에서 검색. 채팅방명, 채팅user이름
-//    public List<ChatRoomResponse> searchChatRoom(String searchValue){
-//
-//    }
+      // 채팅방 list에서 검색. 채팅방명, 채팅user이름
+    // ⭐ 검색어 치면서 검색 결과가 나오면 참 좋을텐데 ㅎㅎ
+    public List<ChatRoomResponse> searchChatRoom(String userNum, String searchValue){
+        // 채팅방 목록 조회하는 유저 확인
+        User user = userRepository.findByUserNum(userNum).orElseThrow(()->new EntityNotFoundException("없는 사원입니다."));
+        if(searchValue == null || searchValue.isEmpty()){
+            return viewChatRoomList(userNum);
+        }
+        List<ChatUser> chatUsers = chatUserRepository.findAllByUser(user);
+        List<ChatRoom> chatRooms = chatUsers.stream().map(ChatUser::getChatRoom).toList();
+        chatRooms = chatRooms.stream().sorted(Comparator.comparing(ChatRoom::getRecentChatTime).reversed()).toList();
+
+        List<ChatRoomResponse> chatRoomResponseList = new ArrayList<>();
+
+        for(ChatRoom chatRoom : chatRooms){
+            String unreadKey = "chatRoom_" + chatRoom.getId() + "_" + userNum;
+            String unread = (String)chatredisTemplate.opsForValue().get(unreadKey);
+            int unreadChat = 0;
+            if(unread != null){
+                unreadChat = Integer.parseInt(unread);
+            }
+
+            if(chatRoom.getRoomName().equals(searchValue)){
+                chatRoomResponseList.add(chatRoom.fromEntity(unreadChat));
+            }
+
+            for(ChatUser chatUser : chatRoom.getChatUsers()){
+                if(chatUser.getUser().getName().equals(searchValue)){
+                    chatRoomResponseList.add(chatRoom.fromEntity(unreadChat));
+                }
+            }
+
+        }
+
+        return chatRoomResponseList;
+    }
 
 
     // 채팅방 메세지 조회 == 채팅방 입장
@@ -146,7 +178,7 @@ public class ChatRoomService {
         // 1
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         chatRoomManage.updateChatRoomId(userNum, roomId);
-        // 2
+        // 2 ⭐⭐⭐
         String unreadKey = "chatRoom_" + roomId + "_" + userNum;
 //        String unread = (String) chatredisTemplate.opsForValue().get(key);
 //        String alarm = chatRoomManage.getChatAlarm(userNum);
@@ -175,10 +207,10 @@ public class ChatRoomService {
         if(chatUsers.isEmpty()){ // 채팅방에 참여한 chatUser가 없다. -> 채팅방 삭제
             chatRoom.softDelete();
         }else{
-            if(chatUserRepository.findByUserAndChatRoom(user, chatRoom).isPresent()){
-                chatUserRepository.findByUserAndChatRoom(user, chatRoom)
-                        .orElseThrow(()->new EntityNotFoundException("없는 채팅 유저 입니다."))
-                        .softDelete();
+            ChatUser chatUser = chatUserRepository.findByUserAndChatRoom(user, chatRoom).orElseThrow(()->new EntityNotFoundException("채팅 유저가 없습니다."));
+            if(!chatUser.isDeleted()){
+//                chatUserRepository.delete(chatUser); // 삭제
+                chatUser.softDelete();
 
                 // chatRoom을 나올 때 chatRoomManage(redis로 관리) user의 현 채팅방id 기록 삭제
                 chatRoomManage.exitChatRoom(userNum);
@@ -187,7 +219,6 @@ public class ChatRoomService {
                 chatredisTemplate.delete(unreadKey);
             }
         }
-        // ⭐⭐ 채팅방에 메세지 : oo님이 퇴장하셨습니다.
         return userNum;
     }
 
@@ -206,7 +237,8 @@ public class ChatRoomService {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(()->new EntityNotFoundException("채팅방이 없습니다."));
         ChatUser chatUser = ChatUser.toEntity(chatRoom, user);
         chatUserRepository.save(chatUser);
-        // ⭐⭐ 채팅방에 메세지 : oo님이 입장하셨습니다. // 초대된 유저에게도 알림?
+        chatRoom.setChatUsers(chatUser);
+        // ⭐⭐ 초대된 유저에게도 알림
         return chatUser.getUser().getUserNum();
     }
 

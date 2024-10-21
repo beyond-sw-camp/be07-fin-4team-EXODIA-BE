@@ -43,6 +43,12 @@ public class ChatRoomController {
     }
 
     // ⭐⭐⭐ 채팅방 검색
+    @GetMapping("/search")
+    public ResponseEntity<?> chatRoomSearchList(@RequestParam(required = false) String userNum,
+                                                @RequestParam(required = false) String searchValue){
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "채팅방목록이 조회되었습니다.", chatRoomService.searchChatRoom(userNum, searchValue));
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+    }
 
     // 채팅방 메세지 조회 == 채팅방 입장
     @GetMapping("/{roomId}")
@@ -77,7 +83,7 @@ public class ChatRoomController {
     // 채팅방 구성원 초대
     @PostMapping("/invite")
     public ResponseEntity<?> chatRoomInviteUser(@RequestBody ChatUserRequest dto){
-        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "채팅방에 유저를 초대했습니다.", chatRoomService.hardExitChatRoom(dto.getInviteUserNum(), dto.getRoomId()));
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "채팅방에 유저를 초대했습니다.", chatRoomService.inviteChatUser(dto.getInviteUserNum(), dto.getRoomId()));
         return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
