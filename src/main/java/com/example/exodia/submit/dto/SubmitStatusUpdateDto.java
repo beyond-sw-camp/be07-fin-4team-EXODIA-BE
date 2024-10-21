@@ -21,7 +21,7 @@ public class SubmitStatusUpdateDto {
 	private String reason;
 
 	public void chkReason(){
-		if (status == SubmitStatus.REJECT && reason == null) {
+		if (status == SubmitStatus.반려 && reason == null) {
 			throw new IllegalArgumentException("반려 사유를 입력하세요.");
 		}
 	}
