@@ -73,7 +73,11 @@ public class SubmitService {
 		Submit submit = dto.toEntity(submitUser);
 		SubmitLine submitLine = SubmitLine.builder().build();
 
-		// 결재라인
+		// 결재라인 직급 내림차순 정렬
+		// List<SubmitSaveReqDto.SubmitUserDto> sortedUserDtos = dto.getSubmitUserDtos().stream()
+		// 	.sorted((u1, u2) -> Long.compare(u2.getPosition(), u1.getPosition()))
+		// 	.collect(Collectors.toList());
+
 		for (SubmitSaveReqDto.SubmitUserDto userDto : dto.getSubmitUserDtos()) {
 			Position position = positionRepository.findById(userDto.getPosition())
 				.orElseThrow(() -> new EntityNotFoundException("직급 정보가 존재하지 않습니다."));
@@ -103,6 +107,7 @@ public class SubmitService {
 	@Transactional
 	public List<SubmitLine> updateSubmit(SubmitStatusUpdateDto dto) throws IOException, EntityNotFoundException {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();    // 사용자
+
 		// 이전 결재자들의 결재 상태를 확인하기 위해 필요
 		List<SubmitLine> submitLines = submitLineRepository.findBySubmitIdOrderByUserPositionId(
 			dto.getSubmitId());    // 직급 순서대로 가져오는걸로
@@ -117,8 +122,9 @@ public class SubmitService {
 			throw new IOException("이미 처리 된 결재입니다.");
 		}
 
-		int idx = 0;
-		for (SubmitLine submitLine : submitLines) {
+		for (int i = 0; i < submitLines.size(); i++) {
+			SubmitLine submitLine = submitLines.get(i);
+
 			if (!submitLine.getUserNum().equals(userNum)) {
 				// 2. 이전 결재자의 결재가 필요한 경우
 				if (submitLine.getSubmitStatus() == SubmitStatus.WAITING) {
@@ -132,23 +138,69 @@ public class SubmitService {
 					} else {
 						// 	submitLine, submit 모든걸 reject로
 						changeToReject(dto.getSubmitId(), dto.getReason());
+						break;
 					}
 				} else {
 					// 	ACCEPT
 					// 	subLine상태 바꾸기
 					// 	내가 최상단 결재자라면 submit상태도 바꾸기
 					submitLine.updateStatus(SubmitStatus.ACCEPT);
-					if (idx == submitLines.size() - 1) {
+					if (i == submitLines.size() - 1) {
 						submit.updateStatus(SubmitStatus.ACCEPT, null);
 						ifVacationSubmit(submit);
 						if (submit.isUploadBoard()) {
 							Board board = dto.toEntity(submit);
 							boardRepository.save(board);
 						}
+						break;
+					}else{
+						String nextUserNum = submitLines.get(i + 1).getUserNum();
+						User nextUser = userRepository.findByUserNum(nextUserNum)
+							.orElseThrow(() -> new EntityNotFoundException("회원 정보가 존재하지 않습니다."));
+
+						kafkaProducer.sendSubmitNotification("submit-events",nextUser.getName(),
+							nextUser.getUserNum(),
+							LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM.dd")));
+						break;
 					}
 				}
-			}
-			idx++;
+
+		}
+		// for (SubmitLine submitLine : submitLines) {
+		// 	if (!submitLine.getUserNum().equals(userNum)) {
+		// 		// 2. 이전 결재자의 결재가 필요한 경우
+		// 		if (submitLine.getSubmitStatus() == SubmitStatus.WAITING) {
+		// 			throw new IOException("이전 결재자의 결재가 필요합니다.");
+		// 		}
+		// 	} else {
+		// 		// REJECT
+		// 		if (dto.getStatus() == SubmitStatus.REJECT) {
+		// 			if (dto.getReason() == null) {
+		// 				throw new IOException("반려 사유를 입력해주세요.");
+		// 			} else {
+		// 				// 	submitLine, submit 모든걸 reject로
+		// 				changeToReject(dto.getSubmitId(), dto.getReason());
+		// 			}
+		// 		} else {
+		// 			// 	ACCEPT
+		// 			// 	subLine상태 바꾸기
+		// 			// 	내가 최상단 결재자라면 submit상태도 바꾸기
+		// 			submitLine.updateStatus(SubmitStatus.ACCEPT);
+		// 			if (idx == submitLines.size() - 1) {
+		// 				submit.updateStatus(SubmitStatus.ACCEPT, null);
+		// 				ifVacationSubmit(submit);
+		// 				if (submit.isUploadBoard()) {
+		// 					Board board = dto.toEntity(submit);
+		// 					boardRepository.save(board);
+		// 				}
+		// 			}else{
+		// 				kafkaProducer.sendSubmitNotification("submit-events", approverName,,
+		// 					LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM.dd")));
+		// 			}
+		// 		}
+		// 	}
+		// 	idx++;
+		// }
 		}
 		return submitLines;
 	}
