@@ -39,6 +39,7 @@ public class BoardAutoUploadService {
         this.boardRepository = boardRepository;
     }
 
+
     @Transactional
     public void checkAndUploadFamilyEvent(Long submitId) {
         Submit submit = submitRepository.findById(submitId)
@@ -51,14 +52,11 @@ public class BoardAutoUploadService {
             String randomWeekendDate = getRandomWeekendDate();
             String randomLocation = getRandomElement(locations);
 
-            // 제목 생성
             String title = generateTitle(submit.getContents(), user, randomWeekendDate);
             System.out.println("Final Generated Title: " + title); // 제목 확인
 
-            // 내용 생성
-            String content = "장소: " + randomLocation + "\n일시: " + randomWeekendDate;
+            String content = generateContent(submit.getContents(), user, randomLocation, randomWeekendDate, "부고");
 
-            // 제목과 내용을 BoardSaveReqDto에 설정
             BoardSaveReqDto boardDto = BoardSaveReqDto.builder()
                     .userNum(submit.getUserNum())
                     .category(Category.FAMILY_EVENT)
@@ -78,10 +76,7 @@ public class BoardAutoUploadService {
         ObjectMapper objectMapper = new ObjectMapper();
         String title = "";
         try {
-            System.out.println("Raw Contents: " + contents); // 디버깅용 출력
-
             Map<String, String> parsedContents = objectMapper.readValue(contents, Map.class);
-            System.out.println("Parsed Contents: " + parsedContents); // 파싱된 내용 출력
 
             String eventTypeAndRelation = parsedContents.get("경조종류");
             if (eventTypeAndRelation == null) {
@@ -93,13 +88,25 @@ public class BoardAutoUploadService {
             String eventType = parts[0];
             String familyRelation = parts[1];
 
-            String positionName = user.getPosition().getName();
+            String positionName = user.getPosition().getName(); // 올바르게 직급명 추출
 
             if (eventType.equals("결혼")) {
-                title = "[결혼] " + user.getName() + "(" + user.getDepartment().getName() + ") " + positionName + " " + familyRelation + " 결혼 - " + date;
+                title = String.format("[결혼] %s(%s) %s %s 결혼 - %s",
+                        user.getName(),
+                        user.getDepartment().getName(),
+                        positionName,
+                        familyRelation,
+                        date
+                );
             } else if (eventType.equals("부고")) {
                 String deathType = getDeathType(familyRelation);
-                title = "[부고] " + user.getName() + "(" + user.getDepartment().getName() + ") " + positionName + " " + deathType + " - " + date;
+                title = String.format("[부고] %s(%s) %s %s - %s",
+                        user.getName(),
+                        user.getDepartment().getName(),
+                        positionName,
+                        deathType,
+                        date
+                );
             }
 
         } catch (Exception e) {
@@ -145,5 +152,44 @@ public class BoardAutoUploadService {
         }
 
         return weekends.get(random.nextInt(weekends.size())).toString();
+    }
+
+
+    private String generateContent(String contents, User user, String location, String date, String eventType) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        String content = "";
+
+        try {
+            Map<String, String> parsedContents = objectMapper.readValue(contents, Map.class);
+            String eventTypeAndRelation = parsedContents.get("경조종류");
+
+            if (eventType.equals("부고")) {
+                content = String.format(
+                        "[부고]\n%s 부서 %s(%s)님의 %s께서 별세하셨기에 삼가 고인의 명복을 빕니다.\n" +
+                                "빈소: %s\n발인일: %s\n많은 위로 부탁드립니다.",
+                        user.getDepartment().getName(),
+                        user.getName(),
+                        user.getPosition().getName(),
+                        getDeathType(eventTypeAndRelation.split(" ")[1]),
+                        location,
+                        date
+                );
+            } else if (eventType.equals("결혼")) {
+                content = String.format(
+                        "[결혼]\n%s 부서 %s(%s)님의 결혼식 소식을 알려드립니다.\n" +
+                                "일시: %s\n장소: %s 예식장\n많은 축하 부탁드립니다.",
+                        user.getDepartment().getName(),
+                        user.getName(),
+                        user.getPosition().getName(),
+                        date,
+                        location
+                );
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return content;
     }
 }
