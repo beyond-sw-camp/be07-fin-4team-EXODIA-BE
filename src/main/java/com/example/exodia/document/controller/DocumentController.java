@@ -145,7 +145,7 @@ public class DocumentController {
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "문서 태그 조회 성공", tags));
 	}
 
-	// 타입 생성
+	// 태그 생성
 	@PostMapping("/tag/create")
 	public ResponseEntity<?> addDocumentType(@RequestBody DocTagReqDto docTagReqDto){
 		Long cnt = documentService.addTag(docTagReqDto);

@@ -8,4 +8,5 @@ import com.example.exodia.document.domain.Tag;
 @Repository
 public interface TagRepository extends JpaRepository<Tag, Long> {
 	Tag findByTagName(String name);
+	boolean existsByTagName(String tagName);
 }

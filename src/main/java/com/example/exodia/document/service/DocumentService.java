@@ -319,13 +319,17 @@ public class DocumentService {
 		documentRepository.save(document);
 	}
 
-	// 모든 타입 조회
+	// 모든 태그 조회
 	public List<String> getAllTypeNames() {
 		return null;
 	}
 
-	// 타입 추가
-	public Long addTag(DocTagReqDto docTagReqDto) {
+	// 태그 추가
+	public Long addTag(DocTagReqDto docTagReqDto) throws IOException {
+		if (tagRepository.existsByTagName(docTagReqDto.getTagName())) {
+			throw new IOException("이미 해당 이름의 태그가 존재합니다.");
+		}
+
 		tagRepository.save(
 				Tag.builder().tagName(docTagReqDto.getTagName()).build());
 		return tagRepository.count();
