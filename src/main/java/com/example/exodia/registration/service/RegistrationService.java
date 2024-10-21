@@ -96,7 +96,6 @@ public class RegistrationService {
         return course.getMaxParticipants();
     }
 
-
     // 강좌 등록
     @Transactional
     public void confirmRegistration(Long courseId, String userNum) {
@@ -141,5 +140,37 @@ public class RegistrationService {
         }
 
         return currentParticipants;
+    }
+
+    @Transactional
+    public void deleteRegistration(Long registrationId) {
+        Registration registration = registrationRepository.findById(registrationId)
+                .orElseThrow(() -> new EntityNotFoundException("등록된 신청자를 찾을 수 없습니다."));
+
+        String redisKey = "course:" + registration.getCourse().getId() + ":participants";
+
+        // 데이터베이스에서 등록을 삭제
+        registrationRepository.deleteById(registrationId);
+
+        // Redis에서 참가자 수를 감소시킴
+        redisTemplate.opsForValue().decrement(redisKey);
+    }
+
+
+    // 강좌 전송 로직 트리거 메서드
+    @Transactional
+    public void triggerCourseTransmission(Long courseId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new EntityNotFoundException("강좌를 찾을 수 없습니다."));
+
+        // 강좌 상태를 '전송됨'으로 업데이트
+        course.setTransmitted(true);
+        courseRepository.save(course);
+
+        // Kafka 이벤트 전송
+        String message = "강좌 " + course.getCourseName() + " 배정이 완료되었습니다. ";
+        kafkaProducer.sendCourseTransmissionEvent(courseId.toString(), message);
+
+        System.out.println("강좌 전송 완료: " + course.getCourseName());
     }
 }
