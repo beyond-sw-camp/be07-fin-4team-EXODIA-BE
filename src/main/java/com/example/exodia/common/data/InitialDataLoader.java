@@ -143,7 +143,7 @@ public class InitialDataLoader implements CommandLineRunner {
                 "123456-1234567",
                 HireType.정규직,
                 NowStatus.출근,
-                15,
+                15,0,0,
                 hrDepartment,
                 teamLeader,
                 0
@@ -163,7 +163,7 @@ public class InitialDataLoader implements CommandLineRunner {
                 "123456-2345678",
                 HireType.계약직,
                 NowStatus.회의,
-                15,
+                15,0,0,
                 hrDepartment,
                 test1,
                 0
@@ -183,7 +183,7 @@ public class InitialDataLoader implements CommandLineRunner {
                 "123456-3456789",
                 HireType.정규직,
                 NowStatus.회의,
-                10,
+                10,0,0,
                 managementTeam1,
                 assistantManager,
                 0
@@ -311,7 +311,7 @@ public class InitialDataLoader implements CommandLineRunner {
             "123456-1234567",
             HireType.정규직,
             NowStatus.출근,
-            15,
+            15,0,0,
             hrDepartment,
             test,
             0
@@ -331,7 +331,7 @@ public class InitialDataLoader implements CommandLineRunner {
             "123456-1234567",
             HireType.정규직,
             NowStatus.출근,
-            15,
+            15,0,0,
             hrDepartment,
             teamLeader,
             0
@@ -354,7 +354,7 @@ public class InitialDataLoader implements CommandLineRunner {
             "123456-1234567",
             HireType.정규직,
             NowStatus.출근,
-            15,
+            15,0,0,
             salesHQ,
             teamLeader,
             0

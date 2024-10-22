@@ -62,6 +62,12 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false)
     private double annualLeave;
 
+    @Column(nullable = false)
+    private double sickDay = 0; // 사용 병가
+
+    @Column(nullable = false)
+    private double absentDay = 0; // 결근
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id", nullable = false)
     private Department department;
@@ -131,5 +137,9 @@ public class User extends BaseTimeEntity {
 
     public void updateAnnualLeave(double vacationDate) {
         this.annualLeave -= vacationDate;
+    }
+
+    public void updateSickDay(double vacationDate) {
+        this.sickDay += vacationDate;
     }
 }

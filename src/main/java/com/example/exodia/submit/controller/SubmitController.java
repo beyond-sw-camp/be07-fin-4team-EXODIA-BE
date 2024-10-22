@@ -108,6 +108,7 @@ public class SubmitController {
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "결재 취소 성공", null ));
 	}
 
+	// 결재 라인 조회
 	@GetMapping("/list/submitLine/{id}")
 	public ResponseEntity<?> getSubmitLine(@PathVariable Long id){
 		submitService.getSubmitLines(id);
