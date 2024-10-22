@@ -40,8 +40,5 @@ public class DocumentTag {
 	@Column(name = "del_yn", nullable = false)
 	private DelYN delYn = DelYN.N;
 
-	public DocumentTag(Document document, String tagName) {
-		this.document = document;
-		this.tagName = tagName;
-	}
+
 }

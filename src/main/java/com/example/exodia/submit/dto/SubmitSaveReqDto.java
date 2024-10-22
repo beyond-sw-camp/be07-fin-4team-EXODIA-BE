@@ -45,7 +45,6 @@ public class SubmitSaveReqDto {
 			.submitLines(new ArrayList<>())
 			.department_id(user.getDepartment().getId())
 			.uploadBoard(this.uploadBoard)
-			.delYn(DelYN.N)
 			.build();
 	}
 

@@ -33,6 +33,7 @@ import com.example.exodia.document.dto.DocTagListReqDto;
 import com.example.exodia.document.dto.DocTagReqDto;
 import com.example.exodia.document.dto.DocUpdateReqDto;
 // import com.example.exodia.document.service.DocumentSearchService;
+import com.example.exodia.document.dto.TagListResDto;
 import com.example.exodia.document.service.DocumentSearchService;
 import com.example.exodia.document.service.DocumentService;
 
@@ -138,16 +139,16 @@ public class DocumentController {
 		}
 	}
 
-	// 모든 타입 조회
+	// 모든 태그 조회
 	@GetMapping("/list/tags")
 	public ResponseEntity<?> getAllDocumentTags() {
-		List<String> tags = documentService.getAllTags();
+		List<TagListResDto> tags = documentService.getAllTags();
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "문서 태그 조회 성공", tags));
 	}
 
-	// 타입 생성
+	// 태그 생성
 	@PostMapping("/tag/create")
-	public ResponseEntity<?> addDocumentType(@RequestBody DocTagReqDto docTagReqDto){
+	public ResponseEntity<?> addDocumentType(@RequestBody DocTagReqDto docTagReqDto) throws IOException {
 		Long cnt = documentService.addTag(docTagReqDto);
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "타입 추가 성공", cnt));
 	}
