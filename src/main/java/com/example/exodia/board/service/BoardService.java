@@ -242,6 +242,7 @@ public class BoardService {
     /**
      * 게시물 업데이트 메서드
      */
+    
     @Transactional
     public void updateBoard(Long id, BoardUpdateDto dto, List<MultipartFile> files, List<Long> tagIds, String userNum) {
         Board board = boardRepository.findById(id)
@@ -273,6 +274,8 @@ public class BoardService {
     /**
      * 게시물 삭제 메서드
      */
+
+
     @Transactional
     public void deleteBoard(Long id) {
         Board board = boardRepository.findById(id)
@@ -287,6 +290,8 @@ public class BoardService {
     /**
      * 게시물 상단 고정 메서드
      */
+
+
     @Transactional
     public void pinBoard(Long boardId, boolean isPinned) {
         Board board = boardRepository.findById(boardId)
