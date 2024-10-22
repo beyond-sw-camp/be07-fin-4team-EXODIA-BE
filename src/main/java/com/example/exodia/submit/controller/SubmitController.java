@@ -113,4 +113,5 @@ public class SubmitController {
 		submitService.getSubmitLines(id);
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "결재라인 조회 성공", submitService.getSubmitLines(id) ));
 	}
+
 }

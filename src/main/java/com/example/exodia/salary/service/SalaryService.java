@@ -1,8 +1,6 @@
 package com.example.exodia.salary.service;
 
-import com.example.exodia.salary.domain.PositionSalary;
 import com.example.exodia.salary.domain.Salary;
-import com.example.exodia.salary.repository.PositionSalaryRepository;
 import com.example.exodia.salary.repository.SalaryRepository;
 import com.example.exodia.user.domain.User;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +17,18 @@ import java.util.Optional;
 public class SalaryService {
 
     private final SalaryRepository salaryRepository;
-    private final PositionSalaryRepository positionSalaryRepository;
 
+    // 보험 요율
     private final double NATIONAL_PENSION_RATE = 0.045;
     private final double HEALTH_INSURANCE_RATE = 0.03545;
     private final double LONG_TERM_CARE_INSURANCE_RATE = 0.004591;
     private final double EMPLOYMENT_INSURANCE_RATE = 0.009;
+    private final double LOCAL_INCOME_TAX_RATE = 0.1; // 지방소득세
+
+    // 소득세 과세표준 구간과 세율, 누진 공제액
+    private final double[] INCOME_TAX_BASES = {14000000, 50000000, 88000000, 150000000, 300000000, 500000000, 1000000000};
+    private final double[] INCOME_TAX_RATES = {0.06, 0.15, 0.24, 0.35, 0.38, 0.40, 0.42, 0.45};
+    private final double[] INCOME_TAX_FIXED_AMOUNTS = {0, 1260000, 5670000, 14900000, 34200000, 62200000, 112200000};
 
     @Transactional(readOnly = true)
     public Salary getSalarySlip(User user) {
@@ -41,19 +45,53 @@ public class SalaryService {
 
     // 세금 항목 계산 및 Salary 객체에 적용
     private void calculateTaxes(Salary salary) {
-        double nationalPension = salary.getBaseSalary() * NATIONAL_PENSION_RATE;
-        double healthInsurance = salary.getBaseSalary() * HEALTH_INSURANCE_RATE;
-        double longTermCare = salary.getBaseSalary() * LONG_TERM_CARE_INSURANCE_RATE;
-        double employmentInsurance = salary.getBaseSalary() * EMPLOYMENT_INSURANCE_RATE;
-        double totalTax = nationalPension + healthInsurance + longTermCare + employmentInsurance;
+        double baseSalary = salary.getBaseSalary();
 
+        // 국민연금 계산
+        double nationalPension = baseSalary * NATIONAL_PENSION_RATE;
+
+        // 건강보험 계산
+        double healthInsurance = baseSalary * HEALTH_INSURANCE_RATE;
+
+        // 장기요양보험 계산
+        double longTermCare = healthInsurance * LONG_TERM_CARE_INSURANCE_RATE;
+
+        // 고용보험 계산
+        double employmentInsurance = baseSalary * EMPLOYMENT_INSURANCE_RATE;
+
+        // 종합소득세 계산 (소득에 따른 누진세율 적용)
+        double taxableIncome = baseSalary - (nationalPension + healthInsurance + longTermCare + employmentInsurance);
+        double incomeTax = calculateIncomeTax(taxableIncome);
+
+        // 지방소득세 계산 (소득세의 10%)
+        double localIncomeTax = incomeTax * LOCAL_INCOME_TAX_RATE;
+
+        // 세금 총합
+        double totalTax = nationalPension + healthInsurance + longTermCare + employmentInsurance + incomeTax + localIncomeTax;
+
+        // 세금 항목들 Salary 객체에 저장
         salary.getTaxAmount().setNationalPension(nationalPension);
         salary.getTaxAmount().setHealthInsurance(healthInsurance);
         salary.getTaxAmount().setLongTermCare(longTermCare);
         salary.getTaxAmount().setEmploymentInsurance(employmentInsurance);
         salary.getTaxAmount().setTotalTax(totalTax);
 
-        salary.setFinalSalary(salary.getBaseSalary() - totalTax);
+        // 최종 실수령액
+        salary.setFinalSalary(baseSalary - totalTax);
+    }
+
+    // 소득세 계산 로직
+    private double calculateIncomeTax(double taxableIncome) {
+        double tax = 0.0;
+
+        // 과세표준에 따른 세율 적용
+        for (int i = INCOME_TAX_BASES.length - 1; i >= 0; i--) {
+            if (taxableIncome > INCOME_TAX_BASES[i]) {
+                tax = INCOME_TAX_FIXED_AMOUNTS[i] + (taxableIncome - INCOME_TAX_BASES[i]) * INCOME_TAX_RATES[i + 1];
+                break;
+            }
+        }
+        return tax;
     }
 
     @Transactional(readOnly = true)
@@ -89,13 +127,4 @@ public class SalaryService {
         calculateTaxes(salary);
         return salaryRepository.save(salary);
     }
-
-
-
-    private double calculateFinalSalary(double baseSalary) {
-        // Implement your tax calculations here
-        return baseSalary * 0.9;  // Example tax calculation (10% deduction)
-    }
 }
-
-

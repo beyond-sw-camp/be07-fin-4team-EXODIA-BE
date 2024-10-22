@@ -28,6 +28,8 @@ public class BoardSaveReqDto {
     private Department department;
     private List<Long> tagIds;
 
+    private boolean uploadBoard;
+
     @Builder.Default
     @JsonIgnore
     private List<MultipartFile> files = Collections.emptyList();

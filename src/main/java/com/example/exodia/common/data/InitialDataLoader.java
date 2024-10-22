@@ -115,7 +115,7 @@ public class InitialDataLoader implements CommandLineRunner {
         Position assistantManager = new Position(null, "대리", 48000000.0);
         Position test = new Position(null, "주임", 42000000.0);
         Position test1 = new Position(null, "과장", 58000000.0);
-        Position basicPerson = new Position(null, "사원", 36000000.0); //
+        Position basicPerson = new Position(null, "사원", 36000000.0);
         positionRepository.save(teamLeader);
         positionRepository.save(director);
         positionRepository.save(assistantManager);
