@@ -7,6 +7,7 @@ import com.example.exodia.course.dto.CourseListDto;
 import com.example.exodia.course.dto.CourseUpdateDto;
 import com.example.exodia.course.repository.CourseRepository;
 import com.example.exodia.meetingRoom.domain.MeetingRoom;
+import com.example.exodia.registration.domain.Registration;
 import com.example.exodia.registration.dto.RegistrationDto;
 import com.example.exodia.registration.repository.RegistrationRepository;
 import com.example.exodia.user.domain.User;
@@ -108,6 +109,35 @@ public class CourseService {
         }
         course.softDelete();
         courseRepository.save(course);
+    }
+
+
+    public List<CourseListDto> getMyRegisteredCourses() {
+        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUserNum(userNum)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 회원입니다."));
+
+        // 사용자가 등록한 강좌 목록 조회
+        List<Registration> registrations = registrationRepository.findAllByUser(user);
+
+        return registrations.stream()
+                .map(registration -> {
+                    Course course = registration.getCourse();
+                    int currentParticipants = registrationRepository.countByCourse(course);
+                    return CourseListDto.fromEntity(course, currentParticipants);
+                })
+                .collect(Collectors.toList());
+    }
+
+    /* 강좌 신청자 조회 */
+    @Transactional
+    public List<RegistrationDto> getParticipantsByCourseId(Long courseId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new EntityNotFoundException("강좌를 찾을 수 없습니다."));
+
+        return registrationRepository.findAllByCourse(course).stream()
+                .map(registration -> new RegistrationDto(registration.getUser().getUserNum(), registration.getUser().getName()))
+                .collect(Collectors.toList());
     }
 
 }
