@@ -164,7 +164,7 @@ public class InitialDataLoader implements CommandLineRunner {
                 NowStatus.회의,
                 15,
                 hrDepartment,
-                director,
+                test1,
                 0
         );
 
@@ -291,9 +291,9 @@ public class InitialDataLoader implements CommandLineRunner {
         chatUserRepository.save(chatUser1);
         chatUserRepository.save(chatUser2);
 
-        tagRepository.save(new Tag(1L, "회의록"));
-        tagRepository.save(new Tag(2L, "프로젝트 계획서"));
-        tagRepository.save(new Tag(3L, "성과 보고서"));
-        tagRepository.save(new Tag(4L, "EXODIA-POT"));
+        tagRepository.save(new Tag(1L, "회의록", hrDepartment));
+        tagRepository.save(new Tag(2L, "프로젝트 계획서", hrDepartment));
+        tagRepository.save(new Tag(3L, "성과 보고서",hrDepartment));
+        tagRepository.save(new Tag(4L, "EXODIA-POT",hrDepartment));
     }
 }
