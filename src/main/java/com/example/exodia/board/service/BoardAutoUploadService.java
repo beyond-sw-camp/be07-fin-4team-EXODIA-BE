@@ -47,7 +47,7 @@ public class BoardAutoUploadService {
         Submit submit = submitRepository.findById(submitId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 결재 문서를 찾을 수 없습니다."));
 
-        if (submit.getSubmitStatus() == SubmitStatus.ACCEPT && submit.isUploadBoard()) {
+        if (submit.getSubmitStatus() == SubmitStatus.승인 && submit.isUploadBoard()) {
             User user = userRepository.findByUserNum(submit.getUserNum())
                     .orElseThrow(() -> new EntityNotFoundException("해당 사용자를 찾을 수 없습니다."));
 
