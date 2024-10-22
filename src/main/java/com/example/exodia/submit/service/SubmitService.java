@@ -35,6 +35,7 @@ import com.example.exodia.submit.repository.SubmitRepository;
 import com.example.exodia.submit.repository.SubmitTypeRepository;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -173,20 +174,21 @@ public class SubmitService {
 		List<SubmitLine> submitLines = submitLineRepository.findBySubmitIdOrderByUserPositionId(dto.getSubmitId());
 
 		SubmitLine mySubmitLine = submitLineRepository.findBySubmitIdAndUserNum(dto.getSubmitId(), userNum);
-		if (mySubmitLine.getSubmitStatus() != SubmitStatus.WAITING) {
-			throw new IOException("이미 처리된 결재입니다.");
+		if (mySubmitLine.getSubmitStatus() != SubmitStatus.대기중) {
+			throw new IOException("이미 처리 된 결재입니다.");
 		}
 
 		for (int i = 0; i < submitLines.size(); i++) {
 			SubmitLine submitLine = submitLines.get(i);
 
 			if (!submitLine.getUserNum().equals(userNum)) {
-				if (submitLine.getSubmitStatus() == SubmitStatus.WAITING) {
+				// 2. 이전 결재자의 결재가 필요한 경우
+				if (submitLine.getSubmitStatus() == SubmitStatus.대기중) {
 					throw new IOException("이전 결재자의 결재가 필요합니다.");
 				}
 			} else {
 				// REJECT
-				if (dto.getStatus() == SubmitStatus.REJECT) {
+				if (dto.getStatus() == SubmitStatus.반려) {
 					if (dto.getReason() == null) {
 						throw new IOException("반려 사유를 입력해주세요.");
 					} else {
@@ -195,12 +197,12 @@ public class SubmitService {
 						break;
 					}
 				} else {
-					// 	ACCEPT
+					// 	승인
 					// 	subLine상태 바꾸기
 					// 	내가 최상단 결재자라면 submit상태도 바꾸기
-					submitLine.updateStatus(SubmitStatus.ACCEPT);
+					submitLine.updateStatus(SubmitStatus.승인);
 					if (i == submitLines.size() - 1) {
-						submit.updateStatus(SubmitStatus.ACCEPT, null);
+						submit.updateStatus(SubmitStatus.승인, null);
 						ifVacationSubmit(submit);
 						if ("경조사 신청서".equals(submit.getSubmitType()) && submit.isUploadBoard()) {
 							boardAutoUploadService.checkAndUploadFamilyEvent(submit.getId());
@@ -234,11 +236,11 @@ public class SubmitService {
 		// 히스토리 모든 문서들 REJECT
 		List<SubmitLine> submitLines = submitLineRepository.findBySubmitIdOrderByUserNumDesc(submitId);
 		for (SubmitLine line : submitLines) {
-			line.updateStatus(SubmitStatus.REJECT);
+			line.updateStatus(SubmitStatus.반려);
 		}
 		Submit submit = submitRepository.findById(submitId)
 			.orElseThrow(() -> new EntityNotFoundException("결재 정보가 존재하지 않습니다."));
-		submit.updateStatus(SubmitStatus.REJECT, reason);
+		submit.updateStatus(SubmitStatus.반려, reason);
 	}
 
 	// 결재 타입 리스트 전체 조회
@@ -307,8 +309,8 @@ public class SubmitService {
 		Submit submit = submitRepository.findById(id)
 			.orElseThrow(() -> new EntityNotFoundException("결재 정보가 존재하지 않습니다."));
 
-		// WAITING 상태 일 때만 삭제 가능
-		if (submit.getSubmitStatus() == SubmitStatus.WAITING) {
+		// 대기중 상태 일 때만 삭제 가능
+		if (submit.getSubmitStatus() == SubmitStatus.대기중) {
 			submit.softDelete();
 		}
 	}
@@ -334,31 +336,47 @@ public class SubmitService {
 
 
 	// 휴가 신청서면 휴가 차감
+	// 신청서 종류에 따라 처리
 	@Transactional
-	public void ifVacationSubmit(Submit submit) {
-		if(submit.getSubmitType().equals("휴가 신청서")){
-			String userNum = submit.getUser().getUserNum();
-			User user = userRepository.findByUserNum(userNum)
-				.orElseThrow(() -> new EntityNotFoundException("회원 정보가 존재하지 않습니다."));
+	public void checkVacationType(Submit submit) throws JsonProcessingException {
+		String userNum = submit.getUser().getUserNum();
+		User user = userRepository.findByUserNum(userNum)
+			.orElseThrow(() -> new EntityNotFoundException("회원 정보가 존재하지 않습니다."));
 
+		if(submit.getSubmitType().equals("휴가 신청서")){
+			ObjectMapper objectMapper = new ObjectMapper();
+			JsonNode rootNode = objectMapper.readTree(submit.getContents());
+
+			String vacationType = "";
+			vacationType = rootNode.get("휴가종류").asText();
+			// 병가면 병가 일수에서 차감
+			if(vacationType.equals("병가")){
+
+			}
+			else {
+				double totalVacationDays = rootNode.get("총휴가일수").asDouble();
+				user.updateAnnualLeave(totalVacationDays);
+			}
 			user.updateAnnualLeave(getVacationDate(submit));
 		}
 	}
 
+	// 총휴가일 수 계산
 	public double getVacationDate(Submit submit){
 		double totalVacationDays = 0;
 		try {
 			ObjectMapper objectMapper = new ObjectMapper();
 			JsonNode rootNode = objectMapper.readTree(submit.getContents());
 			totalVacationDays = rootNode.get("총휴가일수").asDouble();
-
-			System.out.println("총 휴가 일수: " + totalVacationDays);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return totalVacationDays;
 	}
 
+
+
+	// 결재 라인 조회
 	public List<SubmitLineResDto> getSubmitLines(Long submitId){
 		Submit submit = submitRepository.findById(submitId)
 			.orElseThrow(() -> new EntityNotFoundException("결재 정보가 존재하지 않습니다."));
