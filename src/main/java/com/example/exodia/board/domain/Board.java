@@ -59,7 +59,7 @@ public class Board extends BaseTimeEntity {
     private Boolean isPinned = false;
 
     @Builder.Default
-    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<BoardTag> boardTags = new ArrayList<>();
 
     /**

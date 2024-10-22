@@ -44,7 +44,6 @@ public class DepartmentService {
 
         return hierarchy;
     }
-
     public List<Department> getAllDepartments() {
         return departmentRepository.findAll();
     }
