@@ -239,4 +239,17 @@ public class UserService {
         }
         return userRepository.save(newUser);
     }
+
+
+
+
+
+    public List<User> searchUsersInDepartment(Long departmentId, String searchQuery) {
+        if (searchQuery == null || searchQuery.isEmpty()) {
+            return userRepository.findByDepartmentId(departmentId);
+        } else {
+            return userRepository.findByDepartmentIdAndNameContaining(departmentId, searchQuery);
+        }
+    }
+
 }
