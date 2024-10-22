@@ -133,7 +133,7 @@ public class ChatRoomService {
 
 
       // 채팅방 list에서 검색. 채팅방명, 채팅user이름
-    // ⭐ 검색어 치면서 검색 결과가 나오면 참 좋을텐데 ㅎㅎ
+    // ⭐ 검색어 치면서 검색 결과가 나오면 참 좋을텐데
     public List<ChatRoomResponse> searchChatRoom(String userNum, String searchValue){
         // 채팅방 목록 조회하는 유저 확인
         User user = userRepository.findByUserNum(userNum).orElseThrow(()->new EntityNotFoundException("없는 사원입니다."));
