@@ -159,7 +159,7 @@ public class UserService {
         deleteHistoryRepository.save(deleteHistory);
     }
 
-
+    @Transactional(readOnly = true)
     public UserProfileDto getUserProfile(String userNum) {
         User user = userRepository.findByUserNumAndDelYn(userNum, DelYN.N)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
