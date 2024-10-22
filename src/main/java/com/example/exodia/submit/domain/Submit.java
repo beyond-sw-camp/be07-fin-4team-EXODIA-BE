@@ -86,6 +86,7 @@ public class Submit extends BaseTimeEntity {
 			.submitUserDtos(dtos)
 			.rejectReason(this.getReason())
 			.submitTime(this.getCreatedAt())
+			.uploadBoard(this.uploadBoard)
 			.build();
 	}
 
