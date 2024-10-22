@@ -53,19 +53,17 @@ public class BoardAutoUploadService {
 
             String randomLocation = getRandomElement(locations);
 
-            // 경조종류를 정확하게 추출 (부고 또는 결혼 여부 확인)
             ObjectMapper objectMapper = new ObjectMapper();
             Map<String, String> parsedContents;
             String eventType;
             try {
                 parsedContents = objectMapper.readValue(submit.getContents(), Map.class);
-                eventType = parsedContents.get("경조종류").split(" ")[0];  // 경조사 종류 추출 (예: 부고, 결혼)
+                eventType = parsedContents.get("경조종류").split(" ")[0];
             } catch (Exception e) {
                 e.printStackTrace();
-                return;  // 파싱 실패 시 중단
+                return;
             }
 
-            // 결혼, 부고에 따라 다른 날짜 생성
             String randomDate = eventType.equals("결혼") ? getRandomDate(4, ChronoUnit.MONTHS) : getRandomDate(2, ChronoUnit.WEEKS);
 
             String title = generateTitle(submit.getContents(), user, randomDate);
@@ -96,7 +94,7 @@ public class BoardAutoUploadService {
 
             String eventTypeAndRelation = parsedContents.get("경조종류");
             if (eventTypeAndRelation == null) {
-                System.out.println("경조종류 값이 null입니다."); // 파싱 실패 확인
+                System.out.println("경조종류 값이 null입니다.");
                 return title;
             }
 
@@ -225,7 +223,6 @@ public class BoardAutoUploadService {
             }
 
             System.out.println("Generated Content: " + content);  // 생성된 content 확인
-
         } catch (Exception e) {
             e.printStackTrace();
         }
