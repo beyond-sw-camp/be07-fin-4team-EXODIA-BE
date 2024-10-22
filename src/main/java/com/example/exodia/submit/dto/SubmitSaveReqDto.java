@@ -38,7 +38,7 @@ public class SubmitSaveReqDto {
 
 	public Submit toEntity(User user) {
 		return Submit.builder()
-			.submitStatus(SubmitStatus.WAITING)
+			.submitStatus(SubmitStatus.대기중)
 			.submitType(this.getSubmitType())
 			.contents(this.getContents())
 			.user(user)
@@ -50,7 +50,7 @@ public class SubmitSaveReqDto {
 
 	public SubmitLine toLineEntity(User user) {
 		return SubmitLine.builder()
-			.submitStatus(SubmitStatus.WAITING)
+			.submitStatus(SubmitStatus.대기중)
 			.userNum(user.getUserNum())
 			.department_id(user.getDepartment().getId())
 			.delYn(DelYN.N)
