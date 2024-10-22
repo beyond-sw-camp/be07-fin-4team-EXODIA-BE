@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +23,8 @@ public class ChatRoomRequest { // 받아오는 값
         return ChatRoom.builder()
                 .roomName(this.getRoomName())
                 .chatUsers(new ArrayList<>())
+                .recentChat("")
+                .recentChatTime(LocalDateTime.now())
                 .build();
     }
 }

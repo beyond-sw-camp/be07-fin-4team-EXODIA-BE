@@ -60,7 +60,7 @@ public class User extends BaseTimeEntity {
     private NowStatus n_status;
 
     @Column(nullable = false)
-    private int annualLeave;
+    private double annualLeave;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id", nullable = false)
@@ -127,5 +127,9 @@ public class User extends BaseTimeEntity {
     public User(String name, Department department) {
         this.name = name;
         this.department = department;
+    }
+
+    public void updateAnnualLeave(double vacationDate) {
+        this.annualLeave -= vacationDate;
     }
 }

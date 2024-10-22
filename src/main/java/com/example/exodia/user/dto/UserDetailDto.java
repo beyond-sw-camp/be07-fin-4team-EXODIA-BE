@@ -21,7 +21,7 @@ public class UserDetailDto {
     private String phone;
     private LocalDate joinDate;
     private HireType hireType;
-    private int annualLeave;
+    private double annualLeave;
     private String email;
     private String name;
     private String profileImage;

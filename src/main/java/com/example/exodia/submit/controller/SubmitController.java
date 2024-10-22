@@ -6,9 +6,11 @@ import java.util.stream.Collectors;
 
 import jakarta.persistence.EntityNotFoundException;
 
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -100,14 +102,16 @@ public class SubmitController {
 	}
 
 	// 결재 취소 -> 자신의 글에 대해서만
-	@DeleteMapping("/delete/{id}")
+	@GetMapping("/delete/{id}")
 	public ResponseEntity<?> deleteSubmit(@PathVariable Long id) {
 		submitService.deleteSubmit(id);
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "결재 취소 성공", null ));
 	}
 
-
-
-
+	@GetMapping("/list/submitLine/{id}")
+	public ResponseEntity<?> getSubmitLine(@PathVariable Long id){
+		submitService.getSubmitLines(id);
+		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "결재라인 조회 성공", submitService.getSubmitLines(id) ));
+	}
 
 }

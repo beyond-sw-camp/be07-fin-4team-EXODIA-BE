@@ -59,6 +59,9 @@ public class Document extends BaseTimeEntity {
 	@Column(nullable = true)
 	private String status;
 
+	@Column(nullable = true)
+	private Long departmentId;
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_num", nullable = false)
 	private User user;

@@ -28,6 +28,6 @@ public class UserRegisterDto {
     private NowStatus nowStatus;
     private Long departmentId;
     private Long positionId;
-    private int annualLeave;
+    private double annualLeave;
     private MultipartFile profileImage;
 }

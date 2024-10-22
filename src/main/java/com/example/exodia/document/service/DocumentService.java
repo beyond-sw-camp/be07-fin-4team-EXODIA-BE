@@ -25,6 +25,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.common.service.RedisService;
 import com.example.exodia.common.service.UploadAwsFileService;
+import com.example.exodia.department.domain.Department;
+import com.example.exodia.department.repository.DepartmentRepository;
 import com.example.exodia.document.domain.Document;
 import com.example.exodia.document.domain.DocumentTag;
 import com.example.exodia.document.domain.DocumentVersion;
@@ -37,6 +39,7 @@ import com.example.exodia.document.dto.DocSaveReqDto;
 import com.example.exodia.document.dto.DocTagListReqDto;
 import com.example.exodia.document.dto.DocTagReqDto;
 import com.example.exodia.document.dto.DocUpdateReqDto;
+import com.example.exodia.document.dto.TagListResDto;
 import com.example.exodia.document.repository.DocumentRepository;
 import com.example.exodia.document.repository.DocumentTagRepository;
 import com.example.exodia.document.repository.DocumentVersionRepository;
@@ -62,6 +65,7 @@ public class DocumentService {
 	private final DocumentSearchService documentSearchService;
 	private final DocumentTagRepository documentTagRepository;
 	private final TagRepository tagRepository;
+	private final DepartmentRepository departmentRepository;
 	private S3Client s3Client;
 	private KafkaProducer kafkaProducer;
 
@@ -69,7 +73,8 @@ public class DocumentService {
 	public DocumentService(DocumentRepository documentRepository, DocumentVersionRepository documentVersionRepository,
 						   UserRepository userRepository, RedisService redisService,
 						   UploadAwsFileService uploadAwsFileService, DocumentSearchService documentSearchService, S3Client s3Client, KafkaProducer kafkaProducer,
-						   DocumentTagRepository documentTagRepository, TagRepository tagRepository) {
+						   DocumentTagRepository documentTagRepository, TagRepository tagRepository,
+		DepartmentRepository departmentRepository) {
 		this.documentRepository = documentRepository;
 		this.documentVersionRepository = documentVersionRepository;
 		this.userRepository = userRepository;
@@ -80,6 +85,7 @@ public class DocumentService {
 		this.kafkaProducer = kafkaProducer;
 		this.documentTagRepository = documentTagRepository;
 		this.tagRepository = tagRepository;
+		this.departmentRepository = departmentRepository;
 	}
 
 	@Transactional
@@ -147,8 +153,11 @@ public class DocumentService {
 	public Page<DocListResDto> getDocList(Pageable pageable) {
 		// 생성시간 == 수정시간 doc만 조회 -> 수정되지 않은 모든 데이터
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+		User user = userRepository.findByUserNum(userNum)
+			.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
 
-		Page<Document> docs = documentRepository.findAllByStatus("now", pageable);
+
+		Page<Document> docs = documentRepository.findAllByStatusAndDepartmentId("now", user.getDepartment().getId(), pageable);
 		return docs.map(Document::fromEntityList);
 	}
 
@@ -240,7 +249,7 @@ public class DocumentService {
 		List<String> fileDownloadUrl = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files, "document");
 
 		// 새로운 문서 저장
-		Document newDocument = docUpdateReqDto.toEntity(docUpdateReqDto, document, fileName, fileDownloadUrl.get(0));
+		Document newDocument = docUpdateReqDto.toEntity(docUpdateReqDto, user, document, fileName, fileDownloadUrl.get(0));
 		documentRepository.save(newDocument);
 
 		// 태그 추가
@@ -319,35 +328,27 @@ public class DocumentService {
 		documentRepository.save(document);
 	}
 
-	// 모든 타입 조회
-	public List<String> getAllTypeNames() {
-		return null;
-	}
+	// 태그 추가
+	public Long addTag(DocTagReqDto docTagReqDto) throws IOException {
+		if (tagRepository.existsByTagName(docTagReqDto.getTagName())) {
+			throw new IOException("이미 해당 이름의 태그가 존재합니다.");
+		}
+		Department department = departmentRepository.findById(docTagReqDto.getDepartmentId())
+			.orElseThrow(() -> new EntityNotFoundException("부서가 존재하지 않습니다."));
 
-	// 타입 추가
-	public Long addTag(DocTagReqDto docTagReqDto) {
-		tagRepository.save(
-				Tag.builder().tagName(docTagReqDto.getTagName()).build());
+		tagRepository.save(docTagReqDto.toEntity(department));
 		return tagRepository.count();
 	}
 
-	// 타입별 리스트 조회 -> 부서별
-	// public List<DocListResDto> getDocByType(Long id) {
-	// 	// DocumentType documentType = documentTypeRepository.findByTypeName(docTypeListReqDto.getTypeName())
-	// 	// 	.orElseThrow(() -> new RuntimeException("존재하지 않는 타입입니다."));
-	// 	DocumentTag documentTag = documentTagRepository.findById(id)
-	// 		.orElseThrow(() -> new RuntimeException("존재하지 않는 타입입니다."));
-	// 	List<Document> documents = documentRepository.findAllByDocumentTypeAndStatus(documentType, "now");
-	//
-	// 	return documents.stream()
-	// 		.map(Document::fromEntityList)
-	// 		.collect(Collectors.toList());
-	// }
+	// 부서별 모든 태그 조회
+	public List<TagListResDto> getAllTags() {
+		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+		User user = userRepository.findByUserNum(userNum)
+			.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
 
-	public List<String> getAllTags() {
-		List<Tag> tags = tagRepository.findAll();
+		List<Tag> tags = tagRepository.findAllByDepartment(user.getDepartment());
 		return tags.stream()
-				.map(Tag::getTagName)
-				.collect(Collectors.toList());
+			.map(Tag::fromEntity)
+			.collect(Collectors.toList());
 	}
 }
