@@ -28,10 +28,10 @@ public class Board extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(length = 100,nullable = false)
     private String title;
 
-    @Column(length = 3000, nullable = false)
+    @Column(length = 5000, nullable = false)
     private String content;
 
     @Enumerated(EnumType.STRING)
