@@ -145,7 +145,7 @@ public class DocumentService {
 					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + doc.getFileName() + "\"")
 					.body(resource);
 		} else {
-			throw new IOException("파일을 읽어올 수 없음: " + doc.getFileName());
+			throw new IOException(doc.getFileName() + " - 파일 내용을 읽어오는데 오류가 발생했습니다. : ");
 		}
 	}
 

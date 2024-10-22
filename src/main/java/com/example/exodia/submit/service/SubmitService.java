@@ -72,11 +72,15 @@ public class SubmitService {
 
 	// 	결재라인 등록
 	@Transactional
-	public Submit createSubmit(SubmitSaveReqDto dto) {
+	public Submit createSubmit(SubmitSaveReqDto dto) throws IOException {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 
 		User submitUser = userRepository.findByUserNum(userNum)
 			.orElseThrow(() -> new EntityNotFoundException("회원정보가 존재하지 않습니다."));
+
+		if(dto.getSubmitUserDtos() == null){
+			throw new IOException("결재 라인을 등록하십시오.");
+		}
 
 		Submit submit = dto.toEntity(submitUser);
 		SubmitLine submitLine = SubmitLine.builder().build();

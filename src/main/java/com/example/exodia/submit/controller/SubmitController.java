@@ -50,9 +50,9 @@ public class SubmitController {
 		try {
 			Submit submit = submitService.createSubmit(submitSaveReqDto);
 			return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "결재 요청 성공", submit.getId()));
-		} catch (EntityNotFoundException e) {
-			e.printStackTrace();
-			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()), HttpStatus.BAD_REQUEST);
+		} catch (EntityNotFoundException | IOException e) {
+			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()),
+				HttpStatus.BAD_REQUEST);
 		}
 	}
 
