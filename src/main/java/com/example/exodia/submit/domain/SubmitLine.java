@@ -6,6 +6,10 @@ import org.hibernate.annotations.Where;
 
 import com.example.exodia.common.domain.BaseTimeEntity;
 import com.example.exodia.common.domain.DelYN;
+import com.example.exodia.position.domain.Position;
+import com.example.exodia.submit.dto.SubmitLineResDto;
+import com.example.exodia.submit.dto.SubmitListResDto;
+import com.example.exodia.user.domain.User;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -60,5 +64,13 @@ public class SubmitLine extends BaseTimeEntity {
 	public void updateStatus(SubmitStatus status) {
 		this.submitStatus = status;
 		this.setUpdatedAt(LocalDateTime.now());
+	}
+
+	public SubmitLineResDto fromEntity(User user, Position position) {
+		return SubmitLineResDto.builder()
+			.userName(user.getName())
+			.positionName(position.getName())
+			.submitStatus(this.submitStatus)
+			.build();
 	}
 }

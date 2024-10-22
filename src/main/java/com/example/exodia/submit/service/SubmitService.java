@@ -3,10 +3,10 @@ package com.example.exodia.submit.service;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.example.exodia.board.domain.Category;
 import com.example.exodia.board.domain.Board;
 import com.example.exodia.board.dto.BoardSaveReqDto;
 import com.example.exodia.board.repository.BoardRepository;
@@ -26,6 +26,7 @@ import com.example.exodia.submit.domain.SubmitLine;
 import com.example.exodia.submit.domain.SubmitStatus;
 import com.example.exodia.submit.domain.SubmitType;
 import com.example.exodia.submit.dto.SubmitDetResDto;
+import com.example.exodia.submit.dto.SubmitLineResDto;
 import com.example.exodia.submit.dto.SubmitListResDto;
 import com.example.exodia.submit.dto.SubmitSaveReqDto;
 import com.example.exodia.submit.dto.SubmitStatusUpdateDto;
@@ -34,6 +35,8 @@ import com.example.exodia.submit.repository.SubmitRepository;
 import com.example.exodia.submit.repository.SubmitTypeRepository;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -71,35 +74,31 @@ public class SubmitService {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 
 		User submitUser = userRepository.findByUserNum(userNum)
-				.orElseThrow(() -> new EntityNotFoundException("회원정보가 존재하지 않습니다."));
+			.orElseThrow(() -> new EntityNotFoundException("회원정보가 존재하지 않습니다."));
 
 		Submit submit = dto.toEntity(submitUser);
 		SubmitLine submitLine = SubmitLine.builder().build();
 
-		// 결재라인
 		for (SubmitSaveReqDto.SubmitUserDto userDto : dto.getSubmitUserDtos()) {
 			Position position = positionRepository.findById(userDto.getPosition())
-					.orElseThrow(() -> new EntityNotFoundException("직급 정보가 존재하지 않습니다."));
+				.orElseThrow(() -> new EntityNotFoundException("직급 정보가 존재하지 않습니다."));
 
 			User user = userRepository.findByNameAndPosition(userDto.getUserName(), position)
-					.orElseThrow(() -> new EntityNotFoundException("회원정보가 존재하지 않습니다."));
+				.orElseThrow(() -> new EntityNotFoundException("회원정보가 존재하지 않습니다."));
 
 			submitLine = dto.toLineEntity(user);
 
 			submit.getSubmitLines().add(submitLine);
 			submitLine.updateSubmit(submit);
-
-
 		}
 
 		submitRepository.save(submit);
 		submitLineRepository.save(submitLine);
 
-
 		for (SubmitLine line : submit.getSubmitLines()) {
 			String approverName = line.getUserNum();
 			kafkaProducer.sendSubmitNotification("submit-events", approverName, line.getUserNum(),
-					LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM.dd")));
+				LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM.dd")));
 		}
 
 		return submit;
@@ -162,7 +161,12 @@ public class SubmitService {
 
 	@Transactional
 	public List<SubmitLine> updateSubmit(SubmitStatusUpdateDto dto) throws IOException, EntityNotFoundException {
+
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+    		// 이전 결재자들의 결재 상태를 확인하기 위해 필요
+   // 직급 순서대로 가져오는걸로
+    List<SubmitLine> submitLines = submitLineRepository.findBySubmitIdOrderByUserPositionId(
+      dto.getSubmitId()); 
 		Submit submit = submitRepository.findById(dto.getSubmitId())
 				.orElseThrow(() -> new EntityNotFoundException("결재 정보를 찾을 수 없습니다."));
 
@@ -173,28 +177,52 @@ public class SubmitService {
 			throw new IOException("이미 처리된 결재입니다.");
 		}
 
-		int idx = 0;
-		for (SubmitLine submitLine : submitLines) {
+		for (int i = 0; i < submitLines.size(); i++) {
+			SubmitLine submitLine = submitLines.get(i);
+
 			if (!submitLine.getUserNum().equals(userNum)) {
 				if (submitLine.getSubmitStatus() == SubmitStatus.WAITING) {
 					throw new IOException("이전 결재자의 결재가 필요합니다.");
 				}
 			} else {
-				if (dto.getStatus() == SubmitStatus.ACCEPT) {
+				// REJECT
+				if (dto.getStatus() == SubmitStatus.REJECT) {
+					if (dto.getReason() == null) {
+						throw new IOException("반려 사유를 입력해주세요.");
+					} else {
+						// 	submitLine, submit 모든걸 reject로
+						changeToReject(dto.getSubmitId(), dto.getReason());
+						break;
+					}
+				} else {
+					// 	ACCEPT
+					// 	subLine상태 바꾸기
+					// 	내가 최상단 결재자라면 submit상태도 바꾸기
 					submitLine.updateStatus(SubmitStatus.ACCEPT);
-					if (idx == submitLines.size() - 1) {
+					if (i == submitLines.size() - 1) {
 						submit.updateStatus(SubmitStatus.ACCEPT, null);
-
+						ifVacationSubmit(submit);
 						if ("경조사 신청서".equals(submit.getSubmitType()) && submit.isUploadBoard()) {
 							boardAutoUploadService.checkAndUploadFamilyEvent(submit.getId());
 						}
+						break;
+					} else {
+						String nextUserNum = submitLines.get(i + 1).getUserNum();
+						User nextUser = userRepository.findByUserNum(nextUserNum)
+							.orElseThrow(() -> new EntityNotFoundException("회원 정보가 존재하지 않습니다."));
+
+						kafkaProducer.sendSubmitNotification("submit-events", nextUser.getName(),
+							nextUser.getUserNum(),
+							LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM.dd")));
+						break;
+
 					}
 				} else if (dto.getStatus() == SubmitStatus.REJECT) {
 					submitLine.updateStatus(SubmitStatus.REJECT);
 					submit.updateStatus(SubmitStatus.REJECT, dto.getReason());
 				}
+
 			}
-			idx++;
 		}
 		return submitLines;
 	}
@@ -209,7 +237,7 @@ public class SubmitService {
 			line.updateStatus(SubmitStatus.REJECT);
 		}
 		Submit submit = submitRepository.findById(submitId)
-				.orElseThrow(() -> new EntityNotFoundException("결재 정보가 존재하지 않습니다."));
+			.orElseThrow(() -> new EntityNotFoundException("결재 정보가 존재하지 않습니다."));
 		submit.updateStatus(SubmitStatus.REJECT, reason);
 	}
 
@@ -217,8 +245,8 @@ public class SubmitService {
 	public List<?> getTypeList() {
 		List<SubmitType> types = submitTypeRepository.findAll();
 		return types.stream()
-				.map(SubmitType::getTypeName)
-				.collect(Collectors.toList());
+			.map(SubmitType::getTypeName)
+			.collect(Collectors.toList());
 	}
 
 	// 나에게 요청 들어온 결재 리스트 조회
@@ -227,11 +255,11 @@ public class SubmitService {
 
 		List<SubmitLine> submitLines = submitLineRepository.findAllByUserNumOrderByCreatedAtDesc(userNum);
 		List<SubmitListResDto> mySubmitList = submitLines.stream()
-				.map(submitLine -> {
-					User user = submitLine.getSubmit().getUser();
-					return new SubmitListResDto().fromLineEntity(user, submitLine);
-				})
-				.collect(Collectors.toList());
+			.map(submitLine -> {
+				User user = submitLine.getSubmit().getUser();
+				return new SubmitListResDto().fromLineEntity(user, submitLine);
+			})
+			.collect(Collectors.toList());
 		return mySubmitList;
 	}
 
@@ -239,49 +267,51 @@ public class SubmitService {
 	public List<?> getMySubmitList() {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 		User user = userRepository.findByUserNum(userNum)
-				.orElseThrow(() -> new EntityNotFoundException("회원 정보가 존재하지 않습니다."));
+			.orElseThrow(() -> new EntityNotFoundException("회원 정보가 존재하지 않습니다."));
 
 		List<Submit> submits = submitRepository.findAllByUserOrderByCreatedAtDesc(user);
 
 		List<SubmitListResDto> mySubmitList = submits.stream()
-				.map(submit -> {
-					return new SubmitListResDto().fromEntity(submit);
-				})
-				.collect(Collectors.toList());
+			.map(submit -> {
+				return new SubmitListResDto().fromEntity(submit);
+			})
+			.collect(Collectors.toList());
 		return mySubmitList;
 	}
 
 	// 결재 상세 조회
 	public SubmitDetResDto getSubmitDetail(Long id) {
 		Submit submit = submitRepository.findById(id)
-				.orElseThrow(() -> new EntityNotFoundException("결재 정보가 존재하지 않습니다."));
+			.orElseThrow(() -> new EntityNotFoundException("결재 정보가 존재하지 않습니다."));
 
 		Department department = departmentRepository.findById(submit.getDepartment_id())
-				.orElseThrow(() -> new EntityNotFoundException("부서 정보가 존재하지 않습니다."));
+			.orElseThrow(() -> new EntityNotFoundException("부서 정보가 존재하지 않습니다."));
 
-		return submit.fromEntity(department.getName());
+		List<SubmitLineResDto> dtos = new ArrayList<>();
+		for (SubmitLine submitLine : submit.getSubmitLines()) {
+			User user = userRepository.findByUserNum(submitLine.getUserNum())
+				.orElseThrow(() -> new EntityNotFoundException("회원 정보가 존재하지 않습니다."));
+
+			Position position = positionRepository.findById(user.getPosition().getId())
+				.orElseThrow(() -> new EntityNotFoundException("직급 정보가 존재하지 않습니다."));
+
+			dtos.add(SubmitLineResDto.builder().userName(user.getName()).positionName(position.getName()).build());
+		}
+
+		return submit.fromEntity(department.getName(), dtos);
 	}
 
 	// 결재 삭제
+	@Transactional
 	public void deleteSubmit(Long id) {
 		Submit submit = submitRepository.findById(id)
 			.orElseThrow(() -> new EntityNotFoundException("결재 정보가 존재하지 않습니다."));
 
 		// WAITING 상태 일 때만 삭제 가능
-		if(submit.getSubmitStatus() == SubmitStatus.WAITING) {
+		if (submit.getSubmitStatus() == SubmitStatus.WAITING) {
 			submit.softDelete();
 		}
 	}
-
-
-
-
-
-
-
-
-
-
 
 
 	private void uploadBoardAutomatically(Submit submit) {
@@ -300,6 +330,51 @@ public class SubmitService {
 
 		Board board = boardDto.toEntity(user);
 		boardRepository.save(board);
+	}
+
+
+	// 휴가 신청서면 휴가 차감
+	@Transactional
+	public void ifVacationSubmit(Submit submit) {
+		if(submit.getSubmitType().equals("휴가 신청서")){
+			String userNum = submit.getUser().getUserNum();
+			User user = userRepository.findByUserNum(userNum)
+				.orElseThrow(() -> new EntityNotFoundException("회원 정보가 존재하지 않습니다."));
+
+			user.updateAnnualLeave(getVacationDate(submit));
+		}
+	}
+
+	public double getVacationDate(Submit submit){
+		double totalVacationDays = 0;
+		try {
+			ObjectMapper objectMapper = new ObjectMapper();
+			JsonNode rootNode = objectMapper.readTree(submit.getContents());
+			totalVacationDays = rootNode.get("총휴가일수").asDouble();
+
+			System.out.println("총 휴가 일수: " + totalVacationDays);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return totalVacationDays;
+	}
+
+	public List<SubmitLineResDto> getSubmitLines(Long submitId){
+		Submit submit = submitRepository.findById(submitId)
+			.orElseThrow(() -> new EntityNotFoundException("결재 정보가 존재하지 않습니다."));
+
+		List<SubmitLineResDto> dtos = new ArrayList<>();
+		for(SubmitLine submitLine : submit.getSubmitLines()){
+			User user = userRepository.findByUserNum(submitLine.getUserNum())
+				.orElseThrow(() -> new EntityNotFoundException("회원정보가 존재하지 않습니다."));
+
+			Position position = positionRepository.findById(user.getPosition().getId())
+				.orElseThrow(() -> new EntityNotFoundException("직급 정보가 존재하지 않습니다."));
+			dtos.add(submitLine.fromEntity(user, position));
+
+		}
+
+		return dtos;
 	}
 
 }

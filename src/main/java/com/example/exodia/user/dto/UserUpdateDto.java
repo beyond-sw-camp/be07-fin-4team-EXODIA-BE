@@ -22,7 +22,7 @@ public class UserUpdateDto {
     private HireType hireType;
     private Long departmentId;
     private Long positionId;
-    private int annualLeave;
+    private double annualLeave;
     private String password;
     private String socialNum;
     private String gender;
