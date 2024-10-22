@@ -285,17 +285,27 @@ public class DocumentService {
 	}
 
 	// 문서 버전 rollback
+	@Transactional
 	public void rollbackDoc(Long id) {
 		Document document = documentRepository.findById(id)
 				.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
 		document.revertDoc();
 
+		DocumentVersion documentVersion = document.getDocumentVersion();
+		documentVersion.updateVersion(document);
+
 		List<Document> documents = documentRepository.findByDocumentVersionAndIdGreaterThan(document.getDocumentVersion(), id);
 		for (Document doc : documents) {
 			doc.softDelete();
 			doc.updateStatus();
-			documentRepository.save(doc);
+
+			// redis에서 제거
+			redisService.removeViewdListValue(document.getUser().getUserNum(), doc.getId());
+			redisService.removeUpdatedListValue(document.getUser().getUserNum(), doc.getId());
 		}
+
+		// documentVersion 롤백
+
 
 		// 문서 롤백 후 Kafka에 이벤트 전송
 		String departmentId = document.getUser().getDepartment().getId().toString();
