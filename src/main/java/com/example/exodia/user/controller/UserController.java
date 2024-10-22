@@ -153,4 +153,18 @@ public class UserController {
     public ResponseEntity<?> getUserName() {
           return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "이름 조회 성공", userService.getUserName()));
     }
+
+
+
+    @GetMapping("/department/{departmentId}/search")
+    public ResponseEntity<List<UserInfoDto>> searchUsersInDepartment(
+            @PathVariable Long departmentId,
+            @RequestParam(required = false) String searchQuery) {
+        List<User> users = userService.searchUsersInDepartment(departmentId, searchQuery);
+        List<UserInfoDto> userDtos = users.stream()
+                .map(UserInfoDto::fromEntity)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(userDtos);
+    }
+
 }
