@@ -34,6 +34,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -114,7 +115,7 @@ public class InitialDataLoader implements CommandLineRunner {
         Position assistantManager = new Position(null, "대리", 48000000.0);
         Position test = new Position(null, "주임", 42000000.0);
         Position test1 = new Position(null, "과장", 58000000.0);
-        Position basicPerson = new Position(null, "사원", 36000000.0); //
+        Position basicPerson = new Position(null, "사원", 36000000.0);
         positionRepository.save(teamLeader);
         positionRepository.save(director);
         positionRepository.save(assistantManager);
@@ -284,7 +285,7 @@ public class InitialDataLoader implements CommandLineRunner {
         submitTypeRepository.save( new SubmitType(2L, "휴가 신청서"));
         submitTypeRepository.save( new SubmitType(3L, "경조사 신청서"));
 
-        ChatRoom chatRoom = ChatRoom.builder().roomName("test").build();
+        ChatRoom chatRoom = ChatRoom.builder().roomName("test").chatUsers(new ArrayList<>()).recentChat("").recentChatTime(LocalDateTime.now()).build();
         chatRoomRepository.save(chatRoom);
         ChatUser chatUser1 = ChatUser.builder().chatRoom(chatRoom).user(user1).build();
         ChatUser chatUser2 = ChatUser.builder().chatRoom(chatRoom).user(user2).build();

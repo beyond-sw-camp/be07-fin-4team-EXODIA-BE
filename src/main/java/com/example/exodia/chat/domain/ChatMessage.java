@@ -46,8 +46,6 @@ public class ChatMessage extends BaseTimeEntity {
 
     @OneToMany(mappedBy = "chatMessage", cascade = CascadeType.ALL)
     private List<ChatFile> chatFiles;
-//    private List<ChatFile> chatFiles = new ArrayList<>();
-
 
     public ChatMessageResponse fromEntity(){ // 저장하고, 바로 보낼 때
         return ChatMessageResponse.builder()
@@ -63,9 +61,6 @@ public class ChatMessage extends BaseTimeEntity {
                 .build();
     }
 
-//    public void setChatFiles(List<ChatFile> chatFiles) {
-//        this.chatFiles = chatFiles;
-//    }
 
     public ChatMessageResponse fromEntityWithFile(){ // 저장하고, 바로 보낼 때
         return ChatMessageResponse.builder()

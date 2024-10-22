@@ -31,26 +31,32 @@ public class ChatRoom extends BaseTimeEntity {
     private String roomName;
 
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL)
-//    private List<ChatUser> chatUsers = new ArrayList<>();
     private List<ChatUser> chatUsers;
 
-//    private LocalDateTime recentChat;
-//
-//    public void updateRecentChat(){
-//
-//    }
+    private String recentChat;
+    private LocalDateTime recentChatTime;
+
+    public void updateRecentChat(ChatMessage chatMessage){
+        this.recentChat = chatMessage.getMessage();
+        this.recentChatTime = chatMessage.getCreatedAt();
+        if(chatMessage.getMessageType() == MessageType.FILE){
+            this.recentChat = "file 전송";
+        }
+    }
 
     public void setChatUsers(ChatUser chatUsers){
         this.chatUsers.add(chatUsers);
     }
 
-    public ChatRoomResponse fromEntity (){ // 단일 조회 , 목록 조회
+    public ChatRoomResponse fromEntity (int unreadChat){ // 단일 조회 , 목록 조회
         List<String> userNums = this.getChatUsers().stream().map(p->p.getUser().getUserNum()).collect(Collectors.toList());
 
         return ChatRoomResponse.builder()
                 .roomId(this.getId())
                 .roomName(this.getRoomName())
                 .userNums(userNums)
+                .recentChat(this.getRecentChat())
+                .unreadChatNum(unreadChat)
                 .build();
     }
 

@@ -1,5 +1,6 @@
 package com.example.exodia.common.service;
 
+import com.example.exodia.chat.dto.ChatAlarmResponse;
 import com.example.exodia.notification.domain.Notification;
 import com.example.exodia.notification.dto.NotificationDTO;
 import com.example.exodia.user.domain.User;
@@ -46,6 +47,11 @@ public class SseEmitters {
             e.printStackTrace();
         });
 
+//        try {
+//            emitter.send(SseEmitter.event().name("connect").data("connected!"));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
         return emitter;
     }
     // 모든 사용자
@@ -74,5 +80,22 @@ public class SseEmitters {
             System.out.println("SSE 연결 없음: " + userNum);
         }
     }
+
+    public void sendChatToUser(String userNum, ChatAlarmResponse dto){
+        SseEmitter emitter = emitters.get(userNum);
+        if (emitter != null) {
+            try {
+                emitter.send(SseEmitter.event().name("chatAlarm").data(dto));
+                System.out.println("알림 전송 성공: " + userNum);
+            } catch (IOException e) {
+                emitters.remove(userNum);
+                System.out.println("알림 전송 실패, SSE 연결 해제: " + userNum);
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("SSE 연결 없음: " + userNum);
+        }
+    }
+
 }
 
