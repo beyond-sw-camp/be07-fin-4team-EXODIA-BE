@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.example.exodia.board.domain.Board;
+import com.example.exodia.board.domain.Category;
 import com.example.exodia.board.dto.BoardSaveReqDto;
 import com.example.exodia.board.repository.BoardRepository;
 import com.example.exodia.board.service.BoardAutoUploadService;
@@ -164,70 +165,64 @@ public class SubmitService {
 	public List<SubmitLine> updateSubmit(SubmitStatusUpdateDto dto) throws IOException, EntityNotFoundException {
 
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
-    		// 이전 결재자들의 결재 상태를 확인하기 위해 필요
-   // 직급 순서대로 가져오는걸로
-    List<SubmitLine> submitLines = submitLineRepository.findBySubmitIdOrderByUserPositionId(
-      dto.getSubmitId()); 
+
+		// 직급 순서대로 결재 라인 가져오기
+		List<SubmitLine> submitLines = submitLineRepository.findBySubmitIdOrderByUserPositionId(dto.getSubmitId());
+
 		Submit submit = submitRepository.findById(dto.getSubmitId())
 				.orElseThrow(() -> new EntityNotFoundException("결재 정보를 찾을 수 없습니다."));
 
-		List<SubmitLine> submitLines = submitLineRepository.findBySubmitIdOrderByUserPositionId(dto.getSubmitId());
-
 		SubmitLine mySubmitLine = submitLineRepository.findBySubmitIdAndUserNum(dto.getSubmitId(), userNum);
 		if (mySubmitLine.getSubmitStatus() != SubmitStatus.대기중) {
-			throw new IOException("이미 처리 된 결재입니다.");
+			throw new IOException("이미 처리된 결재입니다.");
 		}
 
 		for (int i = 0; i < submitLines.size(); i++) {
 			SubmitLine submitLine = submitLines.get(i);
 
 			if (!submitLine.getUserNum().equals(userNum)) {
-				// 2. 이전 결재자의 결재가 필요한 경우
+				// 이전 결재자의 결재가 필요한 경우
 				if (submitLine.getSubmitStatus() == SubmitStatus.대기중) {
 					throw new IOException("이전 결재자의 결재가 필요합니다.");
 				}
 			} else {
-				// REJECT
+				// 결재 상태 처리
 				if (dto.getStatus() == SubmitStatus.반려) {
-					if (dto.getReason() == null) {
+					if (dto.getReason() == null || dto.getReason().isEmpty()) {
 						throw new IOException("반려 사유를 입력해주세요.");
-					} else {
-						// 	submitLine, submit 모든걸 reject로
-						changeToReject(dto.getSubmitId(), dto.getReason());
-						break;
 					}
-				} else {
-					// 	승인
-					// 	subLine상태 바꾸기
-					// 	내가 최상단 결재자라면 submit상태도 바꾸기
+					// 반려 처리
+					changeToReject(dto.getSubmitId(), dto.getReason());
+					break;
+				} else if (dto.getStatus() == SubmitStatus.승인) {
 					submitLine.updateStatus(SubmitStatus.승인);
+
+					// 최상단 결재자인 경우
 					if (i == submitLines.size() - 1) {
 						submit.updateStatus(SubmitStatus.승인, null);
-						ifVacationSubmit(submit);
+						checkVacationType(submit);
+						// 경조사 신청서인 경우 자동 게시판 업로드 처리
 						if ("경조사 신청서".equals(submit.getSubmitType()) && submit.isUploadBoard()) {
 							boardAutoUploadService.checkAndUploadFamilyEvent(submit.getId());
 						}
 						break;
 					} else {
+						// 다음 결재자에게 알림 전송
 						String nextUserNum = submitLines.get(i + 1).getUserNum();
 						User nextUser = userRepository.findByUserNum(nextUserNum)
-							.orElseThrow(() -> new EntityNotFoundException("회원 정보가 존재하지 않습니다."));
+								.orElseThrow(() -> new EntityNotFoundException("회원 정보가 존재하지 않습니다."));
 
 						kafkaProducer.sendSubmitNotification("submit-events", nextUser.getName(),
-							nextUser.getUserNum(),
-							LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM.dd")));
+								nextUser.getUserNum(),
+								LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM.dd")));
 						break;
-
 					}
-				} else if (dto.getStatus() == SubmitStatus.REJECT) {
-					submitLine.updateStatus(SubmitStatus.REJECT);
-					submit.updateStatus(SubmitStatus.REJECT, dto.getReason());
 				}
-
 			}
 		}
 		return submitLines;
 	}
+
 
 
 	// 반려로 상태 변경
