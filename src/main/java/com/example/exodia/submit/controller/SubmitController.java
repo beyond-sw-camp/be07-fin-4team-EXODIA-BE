@@ -50,9 +50,9 @@ public class SubmitController {
 		try {
 			Submit submit = submitService.createSubmit(submitSaveReqDto);
 			return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "결재 요청 성공", submit.getId()));
-		} catch (EntityNotFoundException e) {
-			e.printStackTrace();
-			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()), HttpStatus.BAD_REQUEST);
+		} catch (EntityNotFoundException | IOException e) {
+			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()),
+				HttpStatus.BAD_REQUEST);
 		}
 	}
 
@@ -108,6 +108,7 @@ public class SubmitController {
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "결재 취소 성공", null ));
 	}
 
+	// 결재 라인 조회
 	@GetMapping("/list/submitLine/{id}")
 	public ResponseEntity<?> getSubmitLine(@PathVariable Long id){
 		submitService.getSubmitLines(id);

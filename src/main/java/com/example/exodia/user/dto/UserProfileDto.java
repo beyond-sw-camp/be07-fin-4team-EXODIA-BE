@@ -20,6 +20,8 @@ public class UserProfileDto {
     private String name;
     private String profileImage;
     private double annualLeave;
+    private double sickDay;
+    private double absentDay;
 
     public static UserProfileDto fromProfileEntity(User user) {
         return new UserProfileDto(
@@ -30,7 +32,9 @@ public class UserProfileDto {
                 user.getCreatedAt().toLocalDate(),
                 user.getName(),
                 user.getProfileImage(),
-                user.getAnnualLeave()
+                user.getAnnualLeave(),
+                user.getSickDay(),
+                user.getAbsentDay()
         );
     }
 }

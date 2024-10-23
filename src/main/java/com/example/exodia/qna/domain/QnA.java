@@ -31,13 +31,13 @@ public class QnA extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = 100)
     private String title;
 
-    @Column(length = 3000, nullable = false)
+    @Column(length = 5000, nullable = false)
     private String questionText;
 
-    @Column(length = 3000)
+    @Column(length = 5000)
     private String answerText;
 
     @ManyToOne
