@@ -3,6 +3,7 @@ package com.example.exodia.reservationVehicle.service;
 import com.example.exodia.car.domain.Car;
 import com.example.exodia.car.repository.CarRepository;
 import com.example.exodia.common.auth.JwtTokenProvider;
+import com.example.exodia.common.service.KafkaProducer;
 import com.example.exodia.notification.service.NotificationService;
 import com.example.exodia.reservationVehicle.domain.Reservation;
 import com.example.exodia.reservationVehicle.domain.Status;
@@ -44,6 +45,8 @@ public class ReservationService {
     private UserService userService;
     @Autowired
     private NotificationService notificationService;
+    @Autowired
+    private KafkaProducer kafkaProducer;
 
 
     // 차량 예약 메서드
@@ -73,9 +76,13 @@ public class ReservationService {
                 reservation.setStatus(Status.WAITING);
                 Reservation savedReservation = reservationRepository.save(reservation);
 
-                String message = String.format("%s님이 %s부터 %s까지 차량 %s를 예약 요청하였습니다.",
-                        user.getName(), dto.getStartDate(), dto.getEndDate(), car.getCarNum());
-                notificationService.sendReservationReqToAdmins(message);
+                kafkaProducer.sendCarReservationNotification(
+                        "car-reservation-events",
+                        user.getUserNum(),
+                        car.getCarNum(),
+                        dto.getStartDate().toString(),
+                        dto.getEndDate().toString()
+                );
 
                 return ReservationDto.fromEntity(savedReservation);
             } else {
@@ -106,8 +113,11 @@ public class ReservationService {
         Reservation updatedReservation = reservationRepository.save(reservation);
 
         // 사용자에게 알림 전송 (예약 승인)
-        String message = String.format("차량 예약이 승인되었습니다: %s", reservation.getCar().getCarNum());
-        notificationService.sendReservationApproval(reservation.getUser(), message);
+        kafkaProducer.sendReservationApprovalNotification(
+                "car-reservation-approval-events",
+                reservation.getUser().getUserNum(),
+                reservation.getCar().getCarNum()
+        );
 
         return ReservationDto.fromEntity(updatedReservation);
     }
@@ -123,8 +133,11 @@ public class ReservationService {
         userService.checkHrAuthority(user.getDepartment().getId().toString());
 
         // 사용자에게 알림 전송 (예약 거절)
-        String message = String.format("차량 예약이 거절되었습니다: %s", reservation.getCar().getCarNum());
-        notificationService.sendReservationRejection(reservation.getUser(), message);
+        kafkaProducer.sendReservationRejectionNotification(
+                "car-reservation-rejection-events",
+                reservation.getUser().getUserNum(),
+                reservation.getCar().getCarNum()
+        );
 
         // 예약 삭제
         reservationRepository.delete(reservation);

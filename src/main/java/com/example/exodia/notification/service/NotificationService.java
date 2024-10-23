@@ -113,17 +113,17 @@ public class NotificationService {
     }
 
     // 관리자들에게 회의실 예약 요청 알림을 전송
-    public void sendMeetReservationReqToAdmins(String message) {
-        List<User> admins = userRepository.findAllByDepartmentName("인사팀");
-
-        for (User admin : admins) {
-            Notification notification = new Notification(admin, NotificationType.회의실예약, message);
-            notificationRepository.save(notification);
-
-            // SSE로 실시간 알림 전송
-//            sseEmitters.sendToUser(admin.getUserNum(), notification);
-            NotificationDTO dto = new NotificationDTO(notification);
-            sseEmitters.sendToUser(admin.getUserNum(), dto);
-        }
-    }
+//    public void sendMeetReservationReqToAdmins(String message) {
+//        List<User> admins = userRepository.findAllByDepartmentName("인사팀");
+//
+//        for (User admin : admins) {
+//            Notification notification = new Notification(admin, NotificationType.회의실예약, message);
+//            notificationRepository.save(notification);
+//
+//            // SSE로 실시간 알림 전송
+////            sseEmitters.sendToUser(admin.getUserNum(), notification);
+//            NotificationDTO dto = new NotificationDTO(notification);
+//            sseEmitters.sendToUser(admin.getUserNum(), dto);
+//        }
+//    }
 }

@@ -41,7 +41,13 @@ public class KafkaConsumer {
     }
 
     @Transactional
-    @KafkaListener(topics = {"notice-events", "document-events", "submit-events", "family-event-notices"}, groupId = "notification-group")
+    @KafkaListener(topics =
+            {
+                    "notice-events", "document-events", "submit-events",
+                    "family-event-notices", "meeting-room-reservations",
+                    "car-reservation-events", "car-reservation-approval-events",
+                    "car-reservation-rejection-events"
+            }, groupId = "notification-group")
     public void listen(@Header(KafkaHeaders.RECEIVED_TOPIC) String topic, String message) {
         System.out.println("Kafka 메시지 수신: " + message);
 
@@ -57,6 +63,18 @@ public class KafkaConsumer {
                 break;
             case "submit-events":
                 processSubmitNotification(message);
+                break;
+            case "meeting-room-reservations":
+                processMeetResNotification(message);
+                break;
+            case "car-reservation-events":
+                processCarReservationEvent(message);
+                break;
+            case "car-reservation-approval-events":
+                processCarReservationApproval(message);
+                break;
+            case "car-reservation-rejection-events":
+                processCarReservationRejection(message);
                 break;
             default:
                 System.out.println("알 수 없는 토픽이거나 메시지 형식이 맞지 않습니다.");
@@ -94,6 +112,143 @@ public class KafkaConsumer {
             }
         }
     }
+    // 회의실 알림 
+    public void processMeetResNotification(String message) {
+        // 메시지 형식: "userName|departmentId|meetingRoomName|startDate|endDate"
+        if (message.contains("|")) {
+            String[] splitMessage = message.split("\\|");
+
+            // 필드 개수가 정확한지 확인
+            if (splitMessage.length == 5) {
+                String userName = splitMessage[0];        // 예약자 이름
+                String departmentId = splitMessage[1];    // 부서 ID
+                String meetingRoomName = splitMessage[2]; // 회의실 이름
+                String startDate = splitMessage[3];       // 예약 시작 시간
+                String endDate = splitMessage[4];         // 예약 종료 시간
+
+                // 부서 ID로 해당 부서의 모든 사용자 조회
+                List<User> departmentUsers = userRepository.findAllByDepartmentId(Long.parseLong(departmentId));
+
+                for (User user : departmentUsers) {
+                    String notificationMessage = String.format("%s님이 %s 회의실을 %s ~ %s에 예약하였습니다.", userName, meetingRoomName, startDate, endDate);
+
+                    // 중복 알림 방지
+                    boolean exists = notificationRepository.existsByUserAndMessage(user, notificationMessage);
+                    if (!exists) {
+                        // 알림 저장 및 전송
+                        Notification notification = new Notification(user, NotificationType.예약, notificationMessage);
+                        notificationRepository.save(notification);
+
+                        // SSE로 실시간 알림 전송
+                        NotificationDTO dto = new NotificationDTO(notification);
+                        sseEmitters.sendToUser(user.getUserNum(), dto);  // SSE를 통한 실시간 알림
+                    } else {
+                        System.out.println("이미 동일한 알림이 존재합니다.");
+                    }
+                }
+            } else {
+                System.out.println("메시지 형식이 올바르지 않습니다: 필드 수가 잘못되었습니다.");
+            }
+        } else {
+            System.out.println("메시지 형식이 올바르지 않습니다: 구분자가 없습니다.");
+        }
+    }
+    // 차량 예약 요청 이벤트 처리
+    private void processCarReservationEvent(String message) {
+        if (message.contains("|")) {
+            String[] splitMessage = message.split("\\|", 4); // 4개 필드로 split
+            if (splitMessage.length == 4) {
+                String userNum = splitMessage[0]; // userNum으로 변경
+                String carNum = splitMessage[1];
+                String startDate = splitMessage[2];
+                String endDate = splitMessage[3];
+                String notificationMessage = String.format("%s님이 %s 차량을 %s부터 %s까지 예약 요청하였습니다.", userNum, carNum, startDate, endDate);
+
+                // 사용자 찾기 시 예외 처리
+                User user = userRepository.findByUserNum(userNum)
+                        .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + userNum));
+
+                // 중복 알림 방지
+                boolean exists = notificationRepository.existsByUserAndMessage(user, notificationMessage);
+                if (!exists) {
+                    // 알림 저장
+                    Notification notification = new Notification(user, NotificationType.예약, notificationMessage);
+                    notificationRepository.save(notification);
+
+                    // SSE로 실시간 알림 전송
+                    NotificationDTO dto = new NotificationDTO(notification);
+                    sseEmitters.sendToUser(user.getUserNum(), dto);
+                } else {
+                    System.out.println("이미 동일한 알림이 존재합니다.");
+                }
+            } else {
+                System.out.println("예약 요청 메시지의 형식이 올바르지 않습니다. 필드가 부족합니다.");
+            }
+        } else {
+            System.out.println("메시지 형식이 올바르지 않습니다: 구분자 '|'가 없습니다.");
+        }
+    }
+
+    // 차량 예약 승인 이벤트 처리
+    private void processCarReservationApproval(String message) {
+        if (message.contains("|")) {
+            String[] splitMessage = message.split("\\|", 3);
+            String userNum = splitMessage[0]; // userNum으로 변경
+            String carNum = splitMessage[1];
+            String submitMessage = splitMessage[2];
+
+            User user = userRepository.findByUserNum(userNum)
+                    .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+            // 중복 알림 방지
+            boolean exists = notificationRepository.existsByUserAndMessage(user, submitMessage);
+            if (!exists) {
+                // 알림 저장
+                Notification notification = new Notification(user, NotificationType.예약, submitMessage);
+                notificationRepository.save(notification);
+
+                // SSE로 실시간 알림 전송
+                NotificationDTO dto = new NotificationDTO(notification);
+                sseEmitters.sendToUser(user.getUserNum(), dto);
+            } else {
+                System.out.println("이미 동일한 알림이 존재합니다.");
+            }
+        } else {
+            System.out.println("메시지 형식이 올바르지 않습니다.");
+        }
+    }
+
+    // 차량 예약 거절 이벤트 처리
+    private void processCarReservationRejection(String message) {
+        if (message.contains("|")) {
+            String[] splitMessage = message.split("\\|", 3);
+            String userNum = splitMessage[0];
+            String carNum = splitMessage[1];
+            String submitMessage = splitMessage[2];
+
+            // 사용자 검색
+            User user = userRepository.findByUserNum(userNum)
+                    .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+
+            // 중복 알림 여부 확인
+            boolean exists = notificationRepository.existsByUserAndMessage(user, submitMessage);
+            if (!exists) {
+                // 알림 저장
+                Notification notification = new Notification(user, NotificationType.예약, submitMessage);
+                notificationRepository.save(notification);
+
+                // SSE로 실시간 알림 전송
+                NotificationDTO dto = new NotificationDTO(notification);
+                sseEmitters.sendToUser(userNum, dto);
+                System.out.println("결재 알림 전송 완료: " + submitMessage);
+            }
+        } else {
+            System.out.println("메시지 형식이 올바르지 않습니다.");
+        }
+    }
+
+
     // 결재 알림 처리
     private void processSubmitNotification(String message) {
         // 메시지 형식: "userNum|submitMessage"
@@ -147,8 +302,6 @@ public class KafkaConsumer {
             }
         }
     }
-
-
 
 
     @KafkaListener(topics = "course-registration", groupId = "course-registration-group")

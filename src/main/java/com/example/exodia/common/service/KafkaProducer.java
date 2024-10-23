@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 @Service
@@ -28,6 +30,33 @@ public class KafkaProducer {
         kafkaTemplate.send(topic, message);
         System.out.println("Kafka 이벤트 전송: " + message + " / 토픽: " + topic);
     }
+    // 회의실 예약 알림
+    public void sendMeetingReservationNotification(String topic, String userName, String meetingRoomName, String startDate, String endDate, String departmentId) {
+        // "|" 구분자를 사용하여 필드 구분
+        String message = String.format("%s|%s|%s|%s|%s", userName, departmentId, meetingRoomName, startDate, endDate);
+        kafkaTemplate.send(topic, message);
+        System.out.println("Kafka 회의실 예약 이벤트 전송: " + message + " / 토픽: " + topic);
+    }
+
+    // 차량 예약 요청 알림 전송
+    public void sendCarReservationNotification(String topic, String userNum, String carNum, String startDate, String endDate) {
+        String message = String.format("%s|%s|%s|%s", userNum, carNum, startDate, endDate);
+        kafkaTemplate.send(topic, message);
+        System.out.println("Kafka 차량 예약 요청 전송: " + message + " / 토픽: " + topic);
+    }
+    // 차량 예약 승인 알림 전송
+    public void sendReservationApprovalNotification(String topic, String userNum, String carNum) {
+        String message = String.format("%s님, 차량 %s 예약이 승인되었습니다.", userNum, carNum);
+        kafkaTemplate.send(topic, message);
+        System.out.println("Kafka 차량 예약 승인 전송: " + message + " / 토픽: " + topic);
+    }
+    // 차량 예약 거절 알림 전송
+    public void sendReservationRejectionNotification(String topic, String userNum, String carNum) {
+        String message = String.format("%s님, 차량 %s 예약이 거절되었습니다.", userNum, carNum);
+        kafkaTemplate.send(topic, message);
+        System.out.println("Kafka 차량 예약 거절 전송: " + message + " / 토픽: " + topic);
+    }
+
     // 결재 알림 전송
     public void sendSubmitNotification(String topic, String userName, String userNum, String date) {
         String message = String.format("%s 님이 %s일에 결제를 요청이 도착했습니다", userName, date);
