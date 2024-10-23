@@ -72,11 +72,15 @@ public class SubmitService {
 
 	// 	결재라인 등록
 	@Transactional
-	public Submit createSubmit(SubmitSaveReqDto dto) {
+	public Submit createSubmit(SubmitSaveReqDto dto) throws IOException {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 
 		User submitUser = userRepository.findByUserNum(userNum)
 			.orElseThrow(() -> new EntityNotFoundException("회원정보가 존재하지 않습니다."));
+
+		if(dto.getSubmitUserDtos() == null){
+			throw new IOException("결재 라인을 등록하십시오.");
+		}
 
 		Submit submit = dto.toEntity(submitUser);
 		SubmitLine submitLine = SubmitLine.builder().build();
@@ -344,12 +348,13 @@ public class SubmitService {
 
 			String vacationType = "";
 			vacationType = rootNode.get("휴가종류").asText();
+			double totalVacationDays = rootNode.get("총휴가일수").asDouble();
+
 			// 병가면 병가 일수에서 차감
 			if(vacationType.equals("병가")){
-
+				user.updateSickDay(totalVacationDays);
 			}
 			else {
-				double totalVacationDays = rootNode.get("총휴가일수").asDouble();
 				user.updateAnnualLeave(totalVacationDays);
 			}
 			user.updateAnnualLeave(getVacationDate(submit));
@@ -370,7 +375,6 @@ public class SubmitService {
 	}
 
 
-
 	// 결재 라인 조회
 	public List<SubmitLineResDto> getSubmitLines(Long submitId){
 		Submit submit = submitRepository.findById(submitId)
@@ -384,9 +388,7 @@ public class SubmitService {
 			Position position = positionRepository.findById(user.getPosition().getId())
 				.orElseThrow(() -> new EntityNotFoundException("직급 정보가 존재하지 않습니다."));
 			dtos.add(submitLine.fromEntity(user, position));
-
 		}
-
 		return dtos;
 	}
 

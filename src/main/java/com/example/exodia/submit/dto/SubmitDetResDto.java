@@ -22,4 +22,5 @@ public class SubmitDetResDto {
 	private List<SubmitLineResDto> submitUserDtos;
 	private String rejectReason;
 	private LocalDateTime submitTime;
+	private boolean uploadBoard;
 }

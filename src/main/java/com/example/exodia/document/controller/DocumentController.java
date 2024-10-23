@@ -56,7 +56,7 @@ public class DocumentController {
 		@RequestPart(value = "file", required = true) List<MultipartFile> files,
 		@RequestPart(value = "data") DocSaveReqDto docSaveReqDto) {
 		try {
-			return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "파일 저장 성공", documentService.saveDoc(files,
+			return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "파일이 성공적으로 업로드 되었습니다.", documentService.saveDoc(files,
 				docSaveReqDto).getId()));
 		} catch (IOException e) {
 			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage()), HttpStatus.NOT_FOUND);
@@ -66,7 +66,11 @@ public class DocumentController {
 	//	첨부파일 다운로드
 	@GetMapping("/downloadFile/{id}")
 	public ResponseEntity<?> downloadDocument(@PathVariable Long id) throws IOException {
-		return documentService.downloadFile(id);
+		try {
+			return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "파일 다운로드를 완료하였습니다.", documentService.downloadFile(id)));
+		} catch (IOException e) {
+			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage()), HttpStatus.NOT_FOUND);
+		}
 	}
 
 	// 	전체 문서 조회
@@ -142,15 +146,25 @@ public class DocumentController {
 	// 모든 태그 조회
 	@GetMapping("/list/tags")
 	public ResponseEntity<?> getAllDocumentTags() {
-		List<TagListResDto> tags = documentService.getAllTags();
-		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "문서 태그 조회 성공", tags));
+		try{
+			List<TagListResDto> tags = documentService.getAllTags();
+			return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "문서 태그 조회 성공", tags));
+		}catch(RuntimeException e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage()), HttpStatus.NOT_FOUND);
+		}
 	}
 
 	// 태그 생성
 	@PostMapping("/tag/create")
 	public ResponseEntity<?> addDocumentType(@RequestBody DocTagReqDto docTagReqDto) throws IOException {
-		Long cnt = documentService.addTag(docTagReqDto);
-		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "타입 추가 성공", cnt));
+		try{
+			Long cnt = documentService.addTag(docTagReqDto);
+			return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, docTagReqDto.getTagName() + " 태그가 성공적으로 생성되었습니다.", cnt));
+		}catch(IOException e){
+			e.printStackTrace();
+			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage()), HttpStatus.NOT_FOUND);
+		}
 	}
 
 	// 	타입별 문서 조회
