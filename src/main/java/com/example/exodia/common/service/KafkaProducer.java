@@ -46,13 +46,14 @@ public class KafkaProducer {
     }
     // 차량 예약 승인 알림 전송
     public void sendReservationApprovalNotification(String topic, String userNum, String carNum) {
-        String message = String.format("%s님, 차량 %s 예약이 승인되었습니다.", userNum, carNum);
+        String message = String.format("%s|%s|차량 %s 예약이 승인되었습니다.", userNum, carNum, carNum);
         kafkaTemplate.send(topic, message);
         System.out.println("Kafka 차량 예약 승인 전송: " + message + " / 토픽: " + topic);
     }
+
     // 차량 예약 거절 알림 전송
     public void sendReservationRejectionNotification(String topic, String userNum, String carNum) {
-        String message = String.format("%s님, 차량 %s 예약이 거절되었습니다.", userNum, carNum);
+        String message = String.format("%s|%s|차량 %s 예약이 거절되었습니다.", userNum, carNum, carNum);
         kafkaTemplate.send(topic, message);
         System.out.println("Kafka 차량 예약 거절 전송: " + message + " / 토픽: " + topic);
     }

@@ -19,6 +19,7 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -50,6 +51,7 @@ public class ReservationService {
 
 
     // 차량 예약 메서드
+    @Transactional
     public ReservationDto carReservation(ReservationCreateDto dto) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         RLock lock = redissonClient.getLock("carReservationLock:" + dto.getCarId() + ":" + dto.getStartDate());
@@ -97,7 +99,7 @@ public class ReservationService {
             }
         }
     }
-
+    @Transactional
     /* 예약 승인 */
     public ReservationDto approveReservation(Long reservationId) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -121,7 +123,7 @@ public class ReservationService {
 
         return ReservationDto.fromEntity(updatedReservation);
     }
-
+    @Transactional
     /* 예약 거절 */
     public void rejectReservation(Long reservationId) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -143,7 +145,7 @@ public class ReservationService {
         reservationRepository.delete(reservation);
     }
 
-
+    @Transactional
     // 특정 날짜에 차량이 예약 가능한지 확인 메서드
     public boolean isCarAvailableForDate(Long carId, LocalDate date) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -167,7 +169,7 @@ public class ReservationService {
         return reservationRepository.findByStartTimeBetween(date, date.plusDays(1))
                 .stream().map(ReservationDto::fromEntity).collect(Collectors.toList());
     }
-
+    @Transactional
     // 모든 예약 조회 메서드
     public List<ReservationDto> getAllReservations() {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -180,7 +182,7 @@ public class ReservationService {
                 .map(ReservationDto::fromEntity)
                 .collect(Collectors.toList());
     }
-
+    @Transactional
     public List<CarReservationStatusDto> getAllCarsWithReservationStatusForDay(LocalDateTime date) {
         List<Car> cars = carRepository.findAll();
         List<CarReservationStatusDto> carReservationStatusList = new ArrayList<>();
