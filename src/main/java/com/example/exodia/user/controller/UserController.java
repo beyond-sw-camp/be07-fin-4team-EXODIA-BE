@@ -70,22 +70,19 @@ public class UserController {
     @PutMapping("/list/{userNum}")
     public ResponseEntity<?> updateUser(
             @PathVariable String userNum,
-            @ModelAttribute UserUpdateDto updateDto,
+            @ModelAttribute UserUpdateDto updateDto, 
             @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
             @RequestHeader("Authorization") String token) {
 
         String departmentId = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
+        String uploadedFilePath = updateDto.getProfileImageUrl();
 
-        String uploadedFilePath = null;
         if (profileImage != null && !profileImage.isEmpty()) {
             uploadedFilePath = uploadAwsFileService.uploadFileAndReturnPath(profileImage, "profile");
         }
-
         User updatedUser = userService.updateUser(userNum, updateDto, departmentId, uploadedFilePath);
         return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 정보 수정 완료", updatedUser));
     }
-
-
 
 
 

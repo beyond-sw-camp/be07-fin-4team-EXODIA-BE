@@ -118,6 +118,7 @@ public class UserService {
         if (uploadedFilePath != null) {
             user.setProfileImage(uploadedFilePath);
         }
+
         user.updateFromDto(updateDto, department, position);
         return userRepository.save(user);
     }
