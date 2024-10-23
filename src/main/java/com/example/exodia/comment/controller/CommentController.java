@@ -156,7 +156,7 @@ public class CommentController {
     public ResponseEntity<?> createDocComment(@RequestBody CommentDocSaveReqDto commentDocSaveReqDto) {
         try {
             CommentDoc commentDoc = commentService.createDocComment(commentDocSaveReqDto);
-            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "문서 댓글 작성 성공", commentDoc.getId()));
+            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "댓글이 성공적으로 작성되었습니다.", commentDoc.getId()));
         } catch (EntityNotFoundException e) {
             e.printStackTrace();
             return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()), HttpStatus.BAD_REQUEST);
@@ -168,7 +168,7 @@ public class CommentController {
     public ResponseEntity<?> deleteDocComment(@PathVariable Long id) {
         try {
             commentService.deleteDocComment(id);
-            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "문서 댓글 삭제 성공", ""));
+            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "댓글이 성공적으로 삭제되었습니다.", ""));
         } catch (EntityNotFoundException e) {
             e.printStackTrace();
             return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()), HttpStatus.BAD_REQUEST);
@@ -180,7 +180,7 @@ public class CommentController {
     public ResponseEntity<?> getDocCommentList(@PathVariable Long id) {
         try {
             List<CommentDocListResDto> commentDocListResDtos = commentService.getDocCommentList(id);
-            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "문서 댓글 조회 성공", commentDocListResDtos));
+            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "파일 댓글 조회 성공", commentDocListResDtos));
         } catch (EntityNotFoundException e) {
             e.printStackTrace();
             return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()), HttpStatus.BAD_REQUEST);

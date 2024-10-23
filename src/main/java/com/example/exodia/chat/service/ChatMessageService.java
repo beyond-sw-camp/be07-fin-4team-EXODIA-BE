@@ -9,7 +9,7 @@ import com.example.exodia.chat.repository.ChatMessageRepository;
 import com.example.exodia.chat.repository.ChatRoomRepository;
 import com.example.exodia.chat.repository.ChatUserRepository;
 import com.example.exodia.common.domain.DelYN;
-import com.example.exodia.common.service.SseEmitters;
+import com.example.exodia.common.service.KafkaProducer;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -44,13 +43,13 @@ public class ChatMessageService {
     private final FileUploadService fileUploadService;
     private final ChatUserRepository chatUserRepository;
 
-    private final SseEmitters sseEmitters;
+    private final KafkaProducer kafkaProducer;
 
     @Autowired
     public ChatMessageService(ChatRoomManage chatRoomManage, @Qualifier("chat") RedisTemplate<String, Object> chatredisTemplate, @Qualifier("chat") ChannelTopic channelTopic,
                               ChatMessageRepository chatMessageRepository, ChatRoomRepository chatRoomRepository,
                               UserRepository userRepository, FileUploadService fileUploadService,
-                              ChatUserRepository chatUserRepository, SseEmitters sseEmitters) {
+                              ChatUserRepository chatUserRepository, KafkaProducer kafkaProducer) {
         this.chatRoomManage = chatRoomManage;
         this.chatredisTemplate = chatredisTemplate;
         this.channelTopic = channelTopic;
@@ -59,7 +58,7 @@ public class ChatMessageService {
         this.userRepository = userRepository;
         this.fileUploadService = fileUploadService;
         this.chatUserRepository = chatUserRepository;
-        this.sseEmitters = sseEmitters;
+        this.kafkaProducer = kafkaProducer;
     }
 
     // 채팅방에 메세지 발송
@@ -85,34 +84,25 @@ public class ChatMessageService {
             }
             String receiverChatRoomId = chatRoomManage.getChatroomIdByUser(receiverNum);
             String unreadKey = "chatRoom_" + chatRoom.getId() + "_" + receiverNum;
-//            String alarmKey = "user_alarm_" + receiverNum;
             if(receiverChatRoomId != null && receiverChatRoomId.equals(Long.toString(chatRoom.getId()))){ // receiver 채팅방에 있다면
                 System.out.println("채팅방에 있다.");
             }else { // receiver 채팅방에 없다면
-                // ⭐⭐⭐ 알림
-                // 1-1 header sse : 어느방의 누가 무엇을 보냈나. chatAlarm 개수 + 1 // 1-2 그 외 해당 채팅방 unread + 1 // 1-3 해당 채팅방 recent 관련 업데이트(위에서)
+                // 알림 // ⭐⭐⭐ 접속이 끊겨 있을 때에도 모여야한다. => chatUser(user-chatRoom)에 unread값을 기록. chatAlarm은 unread값들의 합.
+                // 1-1 (redis)chatAlarm 개수 + 1 / header kafka-sse : 어느방의 누가 무엇을 보냈나.
+                // 1-2 그 외 해당 채팅방 (redis)unread + 1 // 1-3 해당 채팅방 (db)recent 관련 업데이트(위에서)
                 // 2. 해당 유저 chatList sse : 채팅방 리스트 reload
 
                 // 1-1
-//                if(chatMessageRequest.getMessageType() == MessageType.FILE){
-//                    sseEmitters.sendChatToUser(receiverNum, ChatAlarmResponse.builder()
-//                            .senderName(user.getName())
-//                            .roomName(chatRoom.getRoomName())
-//                            .message("FILE 전송")
-//                            .build());
-//                }else{
-//                    sseEmitters.sendChatToUser(receiverNum, ChatAlarmResponse.builder()
-//                            .senderName(user.getName())
-//                            .roomName(chatRoom.getRoomName())
-//                            .message(chatMessageRequest.getMessage())
-//                            .build());
-//                }
-//                String temp = chatRoomManage.getChatAlarm(receiverNum);
-//                int alarm = 0;
-//                if(temp != null){
-//                    alarm = Integer.parseInt(temp);
-//                }
-//                chatRoomManage.updateChatAlarm(receiverNum, alarm+1);
+                String alarmNum = chatRoomManage.getChatAlarm(receiverNum);
+                int alarm = 0;
+                if(alarmNum != null){
+                    alarm = Integer.parseInt(alarmNum);
+                }
+                alarm+=1;
+                chatRoomManage.updateChatAlarm(receiverNum, alarm);
+                // Kafka 이벤트 전송 // 일단은 알람개수만 쓴다.
+                String message = user.getName() + "|" + chatRoom.getRoomName() + "|" + savedChatMessage.getMessageType().toString() + "|" + savedChatMessage.getMessage() + "|" + alarm;
+                kafkaProducer.sendChatAlarmEvent(receiverNum, message);
 
                 // 1-2
                 Object obj = chatredisTemplate.opsForValue().get(unreadKey);
@@ -128,8 +118,9 @@ public class ChatMessageService {
                     chatredisTemplate.opsForValue().set(unreadKey, "1");
                 }
 
-                // 2
-
+                // 2 // ⭐ 채팅방이 켜있든, 켜있지 않든?
+                String temp = "1" + "|" + "2" + "|" + "3" + "|" + "4" + "|" + "5";
+                kafkaProducer.chatRoomListUpdateEvent(receiverNum, temp);
 
             }
         }

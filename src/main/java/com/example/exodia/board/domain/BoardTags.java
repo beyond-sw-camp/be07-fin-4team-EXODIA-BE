@@ -3,6 +3,7 @@ package com.example.exodia.board.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.checkerframework.common.aliasing.qual.Unique;
 
 @Getter
 @Setter
@@ -17,7 +18,7 @@ public class BoardTags {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String tag;
 
 }

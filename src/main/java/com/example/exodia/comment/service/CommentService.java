@@ -167,7 +167,7 @@ public class CommentService {
 	// 문서별 댓글 조회
 	public List<CommentDocListResDto> getDocCommentList(Long id) {
 		Document document = documentRepository.findById(id)
-			.orElseThrow(() -> new EntityNotFoundException("문서 정보가 존재하지 않습니다."));
+			.orElseThrow(() -> new EntityNotFoundException("파일 정보가 존재하지 않습니다."));
 
 		List<CommentDoc> commentDocs =  commentDocRepository.findByDocumentOrderByCreatedAtDesc(document);
 		return commentDocs.stream()

@@ -143,7 +143,7 @@ public class InitialDataLoader implements CommandLineRunner {
                 "123456-1234567",
                 HireType.정규직,
                 NowStatus.출근,
-                15,
+                15,0,0,
                 hrDepartment,
                 teamLeader,
                 0
@@ -163,7 +163,7 @@ public class InitialDataLoader implements CommandLineRunner {
                 "123456-2345678",
                 HireType.계약직,
                 NowStatus.회의,
-                15,
+                15,0,0,
                 hrDepartment,
                 test1,
                 0
@@ -183,7 +183,7 @@ public class InitialDataLoader implements CommandLineRunner {
                 "123456-3456789",
                 HireType.정규직,
                 NowStatus.회의,
-                10,
+                10,0,0,
                 managementTeam1,
                 assistantManager,
                 0
@@ -296,5 +296,71 @@ public class InitialDataLoader implements CommandLineRunner {
         tagRepository.save(new Tag(2L, "프로젝트 계획서", hrDepartment));
         tagRepository.save(new Tag(3L, "성과 보고서",hrDepartment));
         tagRepository.save(new Tag(4L, "EXODIA-POT",hrDepartment));
+
+        User user4 = new User(
+            null,
+            "20240901004",
+            "https://exodia-file.s3.ap-northeast-2.amazonaws.com/profile/%E1%84%82%E1%85%A6%E1%84%8B%E1%85%B5%E1%87%81%E1%84%8E%E1%85%A9%E1%84%85%E1%85%A9%E1%86%BC.png",
+            "김철수",
+            Gender.M,
+            Status.재직,
+            password1,
+            "test12@test",
+            "어양동",
+            "01012345678",
+            "123456-1234567",
+            HireType.정규직,
+            NowStatus.출근,
+            15,0,0,
+            hrDepartment,
+            test,
+            0
+        );
+
+        User user5 = new User(
+            null,
+            "20240901005",
+            "https://exodia-file.s3.ap-northeast-2.amazonaws.com/profile/%E1%84%8B%E1%85%B3%E1%84%8B%E1%85%A1%E1%86%BC%E1%84%83%E1%85%B3%E1%86%AE%E1%84%80%E1%85%B5%E1%84%89%E1%85%B5%E1%86%B6%E1%84%8B%E1%85%A5%E1%84%8B%E1%85%B5%E1%86%BC.jpg",
+            "김미미",
+            Gender.M,
+            Status.재직,
+            password1,
+            "test133@test",
+            "어양동",
+            "01012345678",
+            "123456-1234567",
+            HireType.정규직,
+            NowStatus.출근,
+            15,0,0,
+            hrDepartment,
+            teamLeader,
+            0
+        );
+
+        userRepository.save(user4);
+        userRepository.save(user5);
+
+        User user6 = new User(
+            null,
+            "20241001001",
+            "https://exodia-file.s3.ap-northeast-2.amazonaws.com/profile/%E1%84%8B%E1%85%B3%E1%84%8B%E1%85%A1%E1%86%BC%E1%84%83%E1%85%B3%E1%86%AE%E1%84%80%E1%85%B5%E1%84%89%E1%85%B5%E1%86%B6%E1%84%8B%E1%85%A5%E1%84%8B%E1%85%B5%E1%86%BC.jpg",
+            "박수현",
+            Gender.M,
+            Status.재직,
+            password1,
+            "test2345@test",
+            "어양동",
+            "01012345678",
+            "123456-1234567",
+            HireType.정규직,
+            NowStatus.출근,
+            15,0,0,
+            salesHQ,
+            teamLeader,
+            0
+        );
+        userRepository.save(user6);
+
+
     }
 }
