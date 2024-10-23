@@ -35,7 +35,7 @@ public class ChatUser extends BaseTimeEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user; // 사번
 
-//    private int unreadChat;
+    private int unreadChatNum;
 
     public static ChatUser toEntity(ChatRoom chatRoom, User user){ // chatRoom 생성시 사용
         return ChatUser.builder()

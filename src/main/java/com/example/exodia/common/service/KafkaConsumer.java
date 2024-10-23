@@ -1,5 +1,7 @@
 package com.example.exodia.common.service;
 
+import com.example.exodia.chat.domain.MessageType;
+import com.example.exodia.chat.dto.ChatAlarmResponse;
 import com.example.exodia.notification.domain.Notification;
 import com.example.exodia.notification.domain.NotificationType;
 import com.example.exodia.notification.dto.NotificationDTO;
@@ -184,6 +186,87 @@ public class KafkaConsumer {
             }
 
             System.out.println("강좌 전송 알림 처리 완료: " + transmissionMessage);
+        }
+    }
+
+    // chat-header-alarm-num-update (send(+) + roomEnter(-))
+    // chat-list-unread-update (send)
+    @Transactional
+    @KafkaListener(topics = {"sendChatAlarm-events", "enterChatAlarm-events", "chatRoomList-events"}, groupId = "chat-group")
+    public void listenChatEvents(@Header(KafkaHeaders.RECEIVED_TOPIC) String topic, String message) {
+        System.out.println("Kafka 메시지 수신: " + message);
+
+        switch (topic) {
+            case "sendChatAlarm-events":
+                processSendChatHeaderAlarmUpdateMessage(message);
+                break;
+            case "enterChatAlarm-events":
+                processEnterChatHeaderAlarmUpdateMessage(message);
+                break;
+            case "chatRoomList-events":
+                processChatRoomListUnreadUpdateMessage(message);
+                break;
+            default:
+                System.out.println("알 수 없는 토픽이거나 메시지 형식이 맞지 않습니다.");
+        }
+
+    }
+
+    // chat-header-alarm-num-update (send(+))
+    private void processSendChatHeaderAlarmUpdateMessage(String message) {
+        // 메시지 형식: "0userNum(receiverNum)|1senderName|2roomName|3messageType|4message|5alarmNum"
+
+        if(message.contains("|")){
+            String[] messages = message.split("\\|");
+            System.out.println(messages);
+
+            if(messages[3].equals("FILE")){
+                sseEmitters.sendChatToUser(messages[0], ChatAlarmResponse.builder()
+                        .type("채팅알림")
+                        .senderName(messages[1])
+                        .roomName(messages[2])
+                        .message("FILE 전송")
+                        .alarmNum(Integer.parseInt(messages[5]))
+                        .build());
+            }else{
+                sseEmitters.sendChatToUser(messages[0], ChatAlarmResponse.builder()
+                        .type("채팅알림")
+                        .senderName(messages[1])
+                        .roomName(messages[2])
+                        .message(messages[4])
+                        .alarmNum(Integer.parseInt(messages[5]))
+                        .build());
+            }
+        }
+    }
+
+    // chat-header-alarm-num-update (roomEnter(-))
+    private void processEnterChatHeaderAlarmUpdateMessage(String message) {
+        // 메시지 형식: "0userNum(receiverNum)|1|2|3|4|alarmNum"
+        if(message.contains("|")){
+            String[] messages = message.split("\\|");
+            sseEmitters.sendChatToUser(messages[0], ChatAlarmResponse.builder()
+                    .type("채팅입장")
+                    .senderName(messages[1])
+                    .roomName(messages[2])
+                    .message(messages[4])
+                    .alarmNum(Integer.parseInt(messages[5]))
+                    .build());
+        }
+    }
+
+    // chat-list-unread-update (send)
+    private void processChatRoomListUnreadUpdateMessage(String message) {
+        // 메시지 형식: "0userNum(receiverNum)|1|2|3|4|5"
+        if(message.contains("|")){
+            String[] messages = message.split("\\|");
+            sseEmitters.sendChatToUser(messages[0], ChatAlarmResponse.builder()
+                    .type("채팅목록")
+                    .senderName(messages[1])
+                    .roomName(messages[2])
+                    .message(messages[4])
+                    .alarmNum(Integer.parseInt(messages[5]))
+                    .build());
         }
     }
 }

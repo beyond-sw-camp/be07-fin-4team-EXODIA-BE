@@ -3,12 +3,10 @@ package com.example.exodia.common.service;
 import com.example.exodia.chat.dto.ChatAlarmResponse;
 import com.example.exodia.notification.domain.Notification;
 import com.example.exodia.notification.dto.NotificationDTO;
-import com.example.exodia.user.domain.User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -54,6 +52,7 @@ public class SseEmitters {
 //        }
         return emitter;
     }
+
     // 모든 사용자
     public void sendToAll(Notification notification) {
         emitters.forEach((userNum, emitter) -> {
@@ -85,7 +84,7 @@ public class SseEmitters {
         SseEmitter emitter = emitters.get(userNum);
         if (emitter != null) {
             try {
-                emitter.send(SseEmitter.event().name("chatAlarm").data(dto));
+                emitter.send(SseEmitter.event().data(dto));
                 System.out.println("알림 전송 성공: " + userNum);
             } catch (IOException e) {
                 emitters.remove(userNum);
