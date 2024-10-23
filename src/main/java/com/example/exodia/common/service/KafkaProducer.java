@@ -59,6 +59,25 @@ public class KafkaProducer {
         kafkaTemplate.send("course-transmission", courseId, message);
         System.out.println("Kafka 강좌 전송 이벤트 전송: " + message + " / 코스 ID: " + courseId);
     }
+
+    // chat-header-alarm-num-update (send(+))
+    // ⭐⭐ 따로 아래로 알림표시가 안되고 숫자만 올라간다. 뭔가 따로 알림이 갔으면 좋겠는데...
+    public void sendChatAlarmEvent(String userNum, String message){
+        kafkaTemplate.send("sendChatAlarm-events", userNum+ "|" +message);
+        System.out.println("Kafka 채팅 알림 이벤트 전송: " + message);
+    }
+
+    // chat-header-alarm-num-update (roomEnter(-))
+    public void enterChatAlarmEvent(String userNum, String message){
+        kafkaTemplate.send("enterChatAlarm-events", userNum+ "|" +message);
+        System.out.println("Kafka 채팅 알림 이벤트 전송: " + message);
+    }
+
+    // chat-list-unread-update (send)
+    public void chatRoomListUpdateEvent(String userNum, String message){
+        kafkaTemplate.send("chatRoomList-events", userNum+ "|" +message);
+        System.out.println("Kafka 채팅 목록 이벤트 전송: " + message);
+    }
 }
 
 

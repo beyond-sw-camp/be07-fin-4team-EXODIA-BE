@@ -8,6 +8,7 @@ import com.example.exodia.chat.repository.ChatMessageRepository;
 import com.example.exodia.chat.repository.ChatRoomRepository;
 import com.example.exodia.chat.repository.ChatUserRepository;
 import com.example.exodia.common.domain.DelYN;
+import com.example.exodia.common.service.KafkaProducer;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -32,27 +33,29 @@ public class ChatRoomService {
     // stateKey "user_" + userNum , chatRommId
     // alarmKey "user_alarm_" + userNum , chatUnreadTotal(alarm)
 
+    @Qualifier("chat") // 메세지 pubsub // 각 chatRoom + user의 unread 메세지 개수 관리
+    private final RedisTemplate<String, Object> chatredisTemplate;
+    // unreadKey "chatRoom_" + chatRoom.getId() + "_" + userNum , unread 개수
+
     private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatUserRepository chatUserRepository;
     private final UserRepository userRepository;
 
-    @Qualifier("chat") // 메세지 pubsub // 각 chatRoom + user의 unread 메세지 개수 관리
-    private final RedisTemplate<String, Object> chatredisTemplate;
-    // unreadKey "chatRoom_" + chatRoom.getId() + "_" + userNum , unread 개수
+    private final KafkaProducer kafkaProducer;
 
     @Autowired
     public ChatRoomService(ChatRoomManage chatRoomManage, ChatMessageRepository chatMessageRepository, ChatRoomRepository chatRoomRepository,
                            ChatUserRepository chatUserRepository, UserRepository userRepository,
-                           @Qualifier("chat") RedisTemplate<String, Object> chatredisTemplate) {
+                           @Qualifier("chat") RedisTemplate<String, Object> chatredisTemplate, KafkaProducer kafkaProducer) {
         this.chatRoomManage = chatRoomManage;
         this.chatMessageRepository = chatMessageRepository;
         this.chatRoomRepository = chatRoomRepository;
         this.chatUserRepository = chatUserRepository;
         this.userRepository = userRepository;
         this.chatredisTemplate = chatredisTemplate;
+        this.kafkaProducer = kafkaProducer;
     }
-
 
     // 인원 중복 채팅방 조회
     public Long findExistChatRoom(Set<String> requestUserNums, List<ChatRoom> existChatRooms){
@@ -76,13 +79,10 @@ public class ChatRoomService {
         for(String userNum : chatRoomRequest.getUserNums()){
             participants.add(userRepository.findByUserNumAndDelYn(userNum, DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다.")));
         }
-
         // 채팅방 있는지 확인 // 인원 중복 단체채팅방 생성 불가능
         Set<String> requestUserNums = new HashSet<>(chatRoomRequest.getUserNums());
         requestUserNums.add(chatRoomRequest.getUserNum()); // 채팅방 구성원의 사번을 모은 set
-
         List<ChatUser> chatUsers = chatUserRepository.findAllByUser(participants.get(0)); // 채팅방 생성 유저로 chatUser(user-chatRoom) 찾기
-
         if(!chatUsers.isEmpty()){ // chatUser 있다 == 채팅방 생성 유저가 속한 채팅방이 있다
             List<ChatRoom> existChatRooms = chatUsers.stream().map(ChatUser::getChatRoom).toList(); // 채팅방을 조회할 때 채팅방 생성유저가 속한 채팅방만 가져간다. // List<ChatRoom> existChatRooms = chatRoomRepository.findAll();
             Long checkRoomId = findExistChatRoom(requestUserNums, existChatRooms); // 중복 체크
@@ -92,7 +92,6 @@ public class ChatRoomService {
                 return existedRoom.fromEntityExistChatRoom(true);
             }
         }
-
         // 채팅방을 만드려는 유저가 속한 채팅방이 없거나 // 있는데 중복 채팅방 없으면 신규 생성
         // 새로운 채팅방 생성- 1. 채팅방저장
         ChatRoom savedChatRoom = chatRoomRequest.toEntity();
@@ -115,9 +114,7 @@ public class ChatRoomService {
         List<ChatRoom> chatRooms = chatUsers.stream().map(ChatUser::getChatRoom).toList();
         // 최신 메세지 순서대로 (내림차순: 큰값->작은값) 정렬
         chatRooms = chatRooms.stream().sorted(Comparator.comparing(ChatRoom::getRecentChatTime).reversed()).toList();
-
         List<ChatRoomResponse> chatRoomResponses = new ArrayList<>();
-
         for(ChatRoom chatRoom : chatRooms){
             String unreadKey = "chatRoom_" + chatRoom.getId() + "_" + userNum;
             String unread = (String)chatredisTemplate.opsForValue().get(unreadKey);
@@ -127,7 +124,6 @@ public class ChatRoomService {
             }
             chatRoomResponses.add(chatRoom.fromEntity(unreadChat));
         }
-
         return chatRoomResponses; // id, name, usernums, unreadchatnum, recentChat + ⭐ recentchatTime
     }
 
@@ -143,29 +139,23 @@ public class ChatRoomService {
         List<ChatUser> chatUsers = chatUserRepository.findAllByUser(user);
         List<ChatRoom> chatRooms = chatUsers.stream().map(ChatUser::getChatRoom).toList();
         chatRooms = chatRooms.stream().sorted(Comparator.comparing(ChatRoom::getRecentChatTime).reversed()).toList();
-
         List<ChatRoomResponse> chatRoomResponseList = new ArrayList<>();
-
         for(ChatRoom chatRoom : chatRooms){
             String unreadKey = "chatRoom_" + chatRoom.getId() + "_" + userNum;
-            String unread = (String)chatredisTemplate.opsForValue().get(unreadKey);
+            String unreadNum = (String)chatredisTemplate.opsForValue().get(unreadKey);
             int unreadChat = 0;
-            if(unread != null){
-                unreadChat = Integer.parseInt(unread);
+            if(unreadNum != null){
+                unreadChat = Integer.parseInt(unreadNum);
             }
-
             if(chatRoom.getRoomName().equals(searchValue)){
                 chatRoomResponseList.add(chatRoom.fromEntity(unreadChat));
             }
-
             for(ChatUser chatUser : chatRoom.getChatUsers()){
                 if(chatUser.getUser().getName().equals(searchValue)){
                     chatRoomResponseList.add(chatRoom.fromEntity(unreadChat));
                 }
             }
-
         }
-
         return chatRoomResponseList;
     }
 
@@ -178,13 +168,21 @@ public class ChatRoomService {
         // 1
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         chatRoomManage.updateChatRoomId(userNum, roomId);
-        // 2 ⭐⭐⭐
+        // 2 ⭐⭐⭐ header sse : 뭔가 이상
         String unreadKey = "chatRoom_" + roomId + "_" + userNum;
-//        String unread = (String) chatredisTemplate.opsForValue().get(key);
-//        String alarm = chatRoomManage.getChatAlarm(userNum);
-//        if(unread!=null && alarm!=null){
-//            chatRoomManage.updateChatAlarm(userNum, Integer.parseInt(alarm) - Integer.parseInt(unread));
-//        }
+        String unreadNum = (String) chatredisTemplate.opsForValue().get(unreadKey);
+        String alarmNum = chatRoomManage.getChatAlarm(userNum);
+        int alarm = 0; // ⭐⭐⭐
+        if(alarmNum!=null){
+            alarm = Integer.parseInt(alarmNum);
+        }
+        if(unreadNum!=null && alarmNum!=null){
+            alarm = Integer.parseInt(alarmNum) - Integer.parseInt(unreadNum);
+            chatRoomManage.updateChatAlarm(userNum, alarm);
+        }
+        // Kafka 이벤트 전송
+        String message = "1" + "|" + "2" + "|" + "3" + "|" + "4" + "|" + alarm;
+        kafkaProducer.enterChatAlarmEvent(userNum,message);
         // 3
         chatredisTemplate.delete(unreadKey);
         return chatMessageRepository.findAllByChatRoomId(roomId)
@@ -238,7 +236,7 @@ public class ChatRoomService {
         ChatUser chatUser = ChatUser.toEntity(chatRoom, user);
         chatUserRepository.save(chatUser);
         chatRoom.setChatUsers(chatUser);
-        // ⭐⭐ 초대된 유저에게도 알림
+        // ⭐⭐ 초대된 유저에게 알림?
         return chatUser.getUser().getUserNum();
     }
 
