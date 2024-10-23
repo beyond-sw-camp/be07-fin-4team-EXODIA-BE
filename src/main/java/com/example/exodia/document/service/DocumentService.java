@@ -160,7 +160,6 @@ public class DocumentService {
 		Page<Document> docs = documentRepository.findAllByStatusAndDepartmentId("now", user.getDepartment().getId(), pageable);
 		return docs.map(Document::fromEntityList);
 	}
-
 	// 최근 열람 문서 조회
 	public Page<DocListResDto> getDocListByViewedAt(Pageable pageable) {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -183,7 +182,6 @@ public class DocumentService {
 		int end = Math.min((start + pageable.getPageSize()), docListResDtos.size());
 		return new PageImpl<>(docListResDtos.subList(start, end), pageable, docListResDtos.size());
 	}
-
 	// 최근 수정 문서 조회
 	public Page<DocListResDto> getDocListByUpdatedAt(Pageable pageable) {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -206,7 +204,6 @@ public class DocumentService {
 		int end = Math.min((start + pageable.getPageSize()), docListResDtos.size());
 		return new PageImpl<>(docListResDtos.subList(start, end), pageable, docListResDtos.size());
 	}
-
 	// 	문서 상세조회
 	public DocDetailResDto getDocDetail(Long id) {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -230,7 +227,6 @@ public class DocumentService {
 
 		return document.fromEntity(docTagName);
 	}
-
 	// 문서 업데이트
 	public Document updateDoc(List<MultipartFile> files, DocUpdateReqDto docUpdateReqDto) throws IOException {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -283,7 +279,6 @@ public class DocumentService {
 
 		return newDocument;
 	}
-
 	// 문서 버전 rollback
 	@Transactional
 	public void rollbackDoc(Long id) {
@@ -313,7 +308,6 @@ public class DocumentService {
 		kafkaProducer.sendDocumentRollBackEvent("document-events", document.getFileName(), userName, departmentId, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")));
 
 	}
-
 	// 	문서 히스토리 조회
 	public List<DocHistoryResDto> getDocumentVersions(Long id) {
 		Document document = documentRepository.findById(id)
@@ -328,7 +322,6 @@ public class DocumentService {
 		}
 		return versions;
 	}
-
 	// 문서 삭제 -> 해당 문서만 삭제
 	public void deleteDocument(Long id) {
 		Document document = documentRepository.findById(id)
@@ -337,7 +330,6 @@ public class DocumentService {
 		documentSearchService.deleteDocument(id.toString());
 		documentRepository.save(document);
 	}
-
 	// 태그 추가
 	public Long addTag(DocTagReqDto docTagReqDto) throws IOException {
 		if (tagRepository.existsByTagName(docTagReqDto.getTagName())) {
@@ -349,7 +341,6 @@ public class DocumentService {
 		tagRepository.save(docTagReqDto.toEntity(department));
 		return tagRepository.count();
 	}
-
 	// 부서별 모든 태그 조회
 	public List<TagListResDto> getAllTags() {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();

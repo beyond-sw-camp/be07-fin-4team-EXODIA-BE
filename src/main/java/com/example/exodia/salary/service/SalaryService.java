@@ -115,7 +115,6 @@ public class SalaryService {
         LocalDate currentDate = LocalDate.now();
         return Period.between(joinDate, currentDate).getYears();
     }
-
     public Salary createSalaryForUser(User user) {
         double baseSalary = user.getPosition().getBaseSalary();
 

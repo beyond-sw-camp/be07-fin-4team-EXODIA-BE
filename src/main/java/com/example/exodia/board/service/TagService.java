@@ -41,6 +41,7 @@ public class TagService {
      * 모든 태그 조회 메서드
      * @return 태그 리스트
      */
+    @Transactional
     public List<TagDto> getAllTags() {
         List<BoardTags> boardTagsList = boardTagsRepository.findAll();
         return boardTagsList.stream()

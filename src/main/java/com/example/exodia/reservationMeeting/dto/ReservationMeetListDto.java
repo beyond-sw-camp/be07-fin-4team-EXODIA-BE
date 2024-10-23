@@ -17,6 +17,9 @@ public class ReservationMeetListDto {
     private Long id;
     private Long meetingRoomId;
     private Long userId;
+    private String userProfileImage;//
+    private String userName;//
+    private String userNum;//
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private Status status;
@@ -26,6 +29,9 @@ public class ReservationMeetListDto {
                 .id(reservationMeet.getId())
                 .meetingRoomId(reservationMeet.getMeetingRoom().getId())
                 .userId(reservationMeet.getUser().getId())
+                .userName(reservationMeet.getUser().getName())
+                .userNum(reservationMeet.getUser().getUserNum())
+                .userProfileImage(reservationMeet.getUser().getProfileImage())
                 .startTime(reservationMeet.getStartTime())
                 .endTime(reservationMeet.getEndTime())
                 .status(reservationMeet.getStatus())
