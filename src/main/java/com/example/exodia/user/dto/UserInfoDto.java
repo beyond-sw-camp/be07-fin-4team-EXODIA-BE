@@ -15,6 +15,8 @@ public class UserInfoDto {
     private Long departmentId;
     private Long positionId;
     private String name;
+    private String phone;
+    private String positionName;
     private LocalDate joinDate;
     private String profileImage;
 
@@ -24,6 +26,8 @@ public class UserInfoDto {
                 user.getDepartment().getId(),
                 user.getPosition().getId(),
                 user.getName(),
+                user.getPhone(),
+                user.getPosition().getName(),
                 user.getCreatedAt().toLocalDate(),
                 user.getProfileImage()
         );

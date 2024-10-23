@@ -70,7 +70,7 @@ public class UserController {
     @PutMapping("/list/{userNum}")
     public ResponseEntity<?> updateUser(
             @PathVariable String userNum,
-            @ModelAttribute UserUpdateDto updateDto, 
+            @ModelAttribute UserUpdateDto updateDto,
             @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
             @RequestHeader("Authorization") String token) {
 

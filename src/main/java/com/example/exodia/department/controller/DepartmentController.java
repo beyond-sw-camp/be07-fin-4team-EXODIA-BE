@@ -89,6 +89,7 @@ public class DepartmentController {
         return ResponseEntity.ok(users);
     }
 
+
     // 부서 설명 업데이트 (POST 메서드)
     @PostMapping("/update")
     public ResponseEntity<String> updateDepartmentDescription(

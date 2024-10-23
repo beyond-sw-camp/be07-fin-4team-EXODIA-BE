@@ -184,6 +184,7 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
+
     public List<User> searchUsers(String search, String searchType, Pageable pageable) {
         if (search == null || search.isEmpty()) {
             return userRepository.findByDelYn(DelYN.N, pageable).getContent();
