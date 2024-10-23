@@ -28,7 +28,7 @@ public class Board extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(length = 100,nullable = false)
+    @Column(length = 100, nullable = false)
     private String title;
 
     @Column(length = 5000, nullable = false)
@@ -62,14 +62,9 @@ public class Board extends BaseTimeEntity {
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BoardTag> boardTags = new ArrayList<>();
 
-    /**
-     * 게시물 목록 DTO로 변환
-     * @return BoardListResDto
-     */
     public BoardListResDto listFromEntity() {
-        // BoardTag 엔티티에서 태그 ID 추출
         List<Long> tagIds = this.boardTags.stream()
-                .map(boardTag -> boardTag.getBoardTags().getId()) // 태그 ID 추출
+                .map(boardTag -> boardTag.getBoardTags().getId())
                 .collect(Collectors.toList());
 
         return BoardListResDto.builder()
@@ -81,18 +76,13 @@ public class Board extends BaseTimeEntity {
                 .updatedAt(this.getUpdatedAt())
                 .isPinned(this.isPinned)
                 .user_num(user.getUserNum())
-                .tagIds(tagIds) // 태그 ID 리스트 추가
+                .tagIds(tagIds)
                 .build();
     }
 
-    /**
-     * 게시물 상세 DTO로 변환
-     * @return BoardDetailDto
-     */
     public BoardDetailDto detailFromEntity(List<BoardFile> files) {
-        // BoardTag 엔티티에서 태그 이름 추출
         List<String> tagNames = this.boardTags.stream()
-                .map(boardTag -> boardTag.getBoardTags().getTag()) // 태그 이름 추출
+                .map(boardTag -> boardTag.getBoardTags().getTag())
                 .collect(Collectors.toList());
 
         return BoardDetailDto.builder()
@@ -102,18 +92,14 @@ public class Board extends BaseTimeEntity {
                 .category(category)
                 .createdAt(this.getCreatedAt())
                 .updatedAt(this.getUpdatedAt())
-                .files(files) // Board 객체에 포함된 파일 리스트 사용
+                .files(files)
                 .hits(this.hits)
                 .user_num(user.getUserNum())
-                .tags(tagNames) // 태그 이름 리스트 추가
+                .tags(tagNames)
                 .build();
     }
 
 
-    /**
-     * 조회수를 업데이트하는 메서드
-     * @param hits Redis에서 조회된 조회수
-     */
     public void updateBoardHitsFromRedis(Long hits) {
         this.hits = hits;
     }

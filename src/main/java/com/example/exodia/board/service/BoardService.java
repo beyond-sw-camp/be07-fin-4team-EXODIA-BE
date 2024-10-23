@@ -25,7 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -58,20 +58,12 @@ public class BoardService {
         this.kafkaProducer = kafkaProducer;
     }
 
-    /**
-     * 새로운 게시물을 생성하는 메서드
-     * @param dto - 사용자가 작성한 게시물 정보 객체 (제목, 내용, 카테고리 등)
-     * @param files - 사용자가 업로드한 파일 리스트
-     * @param tagIds - 사용자가 추가한 태그 리스트
-     * @return 생성된 게시물 객체
-     */
     @Transactional
     public Board createBoard(BoardSaveReqDto dto, List<MultipartFile> files, List<Long> tagIds) {
         User user = validateUserAndCategory(dto.getUserNum(), dto.getCategory());
         Board board = dto.toEntity(user);
         board = boardRepository.save(board);
 
-        // 태그와 연결 (BoardTag)
         if (tagIds != null && !tagIds.isEmpty()) {
             addTagsToBoard(board, tagIds);
         }
@@ -80,42 +72,35 @@ public class BoardService {
         boardHitsService.resetBoardHits(board.getId());
 
 
-        // Kafka 이벤트 전송
 
-        // 공지사항 또는 경조사 게시물일 경우 모든 사용자에게 알림 전송
         String message = user.getDepartment().getName() + " 에서 " + dto.getTitle() + "를 작성했습니다";
         if (board.getCategory() == Category.NOTICE) {
-            kafkaProducer.sendBoardEvent("notice-events", message); // 공지사항 토픽
+            kafkaProducer.sendBoardEvent("notice-events", message);
         } else if (board.getCategory() == Category.FAMILY_EVENT) {
-            kafkaProducer.sendBoardEvent("family-event-notices", message); // 경조사 토픽
+            kafkaProducer.sendBoardEvent("family-event-notices", message);
         }
 
 
 
-        return board;  // 기존 dto 대신 저장된 board 반환
+        return board;
     }
 
 
-    /**
-     * 태그를 게시판에 연결하는 메서드
-     */
+
     private void addTagsToBoard(Board board, List<Long> tagIds) {
-        // 태그 ID를 사용하여 태그 리스트를 조회합니다.
         List<BoardTags> tags = boardTagsRepository.findAllById(tagIds);
 
-        // 각 태그와 게시물 간의 연결을 설정합니다.
+
         for (BoardTags tag : tags) {
             BoardTag boardTag = BoardTag.builder()
                     .board(board)
                     .boardTags(tag)
                     .build();
-            boardTagRepository.save(boardTag);  // BoardTag 테이블에 저장
+            boardTagRepository.save(boardTag);
         }
     }
 
-    /**
-     * 파일 처리 로직
-     */
+
     private void processFiles(List<MultipartFile> files, Board board) {
         List<MultipartFile> validFiles = files != null ? files.stream()
                 .filter(file -> !file.isEmpty())
@@ -144,9 +129,7 @@ public class BoardService {
         }
     }
 
-    /**
-     * 사용자와 카테고리 유효성 검증 로직
-     */
+
     private User validateUserAndCategory(String userNum, Category category) {
         User user = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사번을 가진 유저가 없습니다."));
@@ -159,9 +142,6 @@ public class BoardService {
         return user;
     }
 
-    /**
-     * 게시물 목록 조회
-     */
     public Page<BoardListResDto> BoardListWithSearch(Pageable pageable, String searchType, String searchQuery, Category category, List<Long> tagIds) {
         Page<Board> boards;
 
@@ -199,26 +179,23 @@ public class BoardService {
     }
 
 
-    /**
-     * 특정 게시물 상세 조회
-     */
     public BoardDetailDto BoardDetail(Long id, String userNum) {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("게시물을 찾을 수 없습니다."));
 
-        // 조회수 증가
+
         Long updatedHits = boardHitsService.incrementBoardHits(id, userNum);
         board.updateBoardHitsFromRedis(updatedHits);
         boardRepository.save(board);
 
-        // 파일 및 댓글 조회
+
         List<BoardFile> boardFiles = boardFileRepository.findByBoardId(id);
         List<Comment> comments = commentRepository.findByBoardId(id);
         List<CommentResDto> commentResDto = comments.stream()
                 .map(CommentResDto::fromEntity)
                 .collect(Collectors.toList());
 
-        // 태그 조회 (tagIds로 태그 이름 가져오기)
+
         List<BoardTags> tags = boardTagRepository.findByBoardId(id)
                 .stream()
                 .map(boardTag -> boardTag.getBoardTags())
@@ -228,52 +205,46 @@ public class BoardService {
                 .map(BoardTags::getTag)
                 .collect(Collectors.toList());
 
-        // BoardDetailDto 생성 및 설정
+
         BoardDetailDto boardDetailDto = board.detailFromEntity(boardFiles);
         boardDetailDto.setComments(commentResDto);
         boardDetailDto.setHits(updatedHits);
         boardDetailDto.setUser_num(board.getUser().getUserNum());
-        boardDetailDto.setTags(tagNames);  // 태그 이름 설정
+        boardDetailDto.setTags(tagNames);
 
         return boardDetailDto;
     }
 
 
-    /**
-     * 게시물 업데이트 메서드
-     */
-    
     @Transactional
     public void updateBoard(Long id, BoardUpdateDto dto, List<MultipartFile> files, List<Long> tagIds, String userNum) {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다."));
 
-        // 작성자 확인
+
         if (!board.getUser().getUserNum().equals(userNum)) {
             throw new IllegalArgumentException("작성자 본인만 수정할 수 있습니다.");
         }
 
-        // 게시물 정보 업데이트
+
         board.setTitle(dto.getTitle());
         board.setContent(dto.getContent());
         board.setCategory(dto.getCategory());
-        board.setUpdatedAt(LocalDateTime.now());
 
-        // 기존 태그 삭제 후 새로운 태그 추가
+
+        board.updateTimestamp();
+
+
         boardTagRepository.deleteByBoardId(board.getId());
         if (tagIds != null && !tagIds.isEmpty()) {
             addTagsToBoard(board, tagIds);
         }
 
-        // 파일 처리
+
         processFiles(files, board);
 
         boardRepository.save(board);
     }
-
-    /**
-     * 게시물 삭제 메서드
-     */
 
 
     @Transactional
@@ -281,15 +252,13 @@ public class BoardService {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("게시물을 찾을 수 없습니다."));
 
-        // 게시글과 관련된 태그 삭제
+
         boardTagRepository.deleteByBoardId(id);
 
-        boardRepository.delete(board);
-    }
 
-    /**
-     * 게시물 상단 고정 메서드
-     */
+        board.softDelete();
+        boardRepository.save(board);
+    }
 
 
     @Transactional

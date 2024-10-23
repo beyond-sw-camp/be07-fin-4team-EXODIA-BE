@@ -51,12 +51,6 @@ public class CommentService {
 		this.documentRepository = documentRepository;
 	}
 
-	/**
-	 * 새로운 댓글을 저장하는 메서드
-	 *
-	 * @param dto - 클라이언트에서 전달된 댓글 정보를 담고 있는 객체
-	 * @return 저장된 댓글 객체(Comment)를 반환
-	 */
 	@Transactional
 	public Comment saveComment(CommentSaveReqDto dto) {
 
@@ -95,12 +89,7 @@ public class CommentService {
 		return savedComment;
 	}
 
-	/**
-	 * 특정 게시물에 달린 댓글 리스트를 조회하는 메서드
-	 *
-	 * @param BoardId - 댓글을 조회할 게시물 ID
-	 * @return 댓글 목록을 반환
-	 */
+
 	public List<CommentDetailDto> getCommentsByBoardId(Long BoardId) {
 		// 해당 게시물 ID와 삭제 여부(N) 조건으로 댓글 목록을 조회합니다.
 		List<Comment> comments = commentRepository.findByBoardIdAndDelYn(BoardId, DelYN.N);
@@ -117,18 +106,12 @@ public class CommentService {
 			.collect(Collectors.toList()); // DTO 리스트로 변환하여 반환
 	}
 
-	/**
-	 * 특정 댓글을 수정하는 메서드
-	 *
-	 * @param id  - 수정할 댓글 ID
-	 * @param dto - 수정할 내용이 담긴 DTO 객체
-	 * @return 수정된 댓글 객체를 반환
-	 */
+
 	@Transactional
 	public Comment commentUpdate(Long id, CommentUpdateDto dto) {
 		// 수정할 댓글을 ID로 조회
 		Comment comment = commentRepository.findById(id)
-			.orElseThrow(() -> new EntityNotFoundException("존재하지 않는 댓글입니다.")); // 댓글이 없을 경우 예외 발생
+				.orElseThrow(() -> new EntityNotFoundException("존재하지 않는 댓글입니다.")); // 댓글이 없을 경우 예외 발생
 
 		// 요청에서 받은 userNum을 사용하여 권한 확인
 		if (!comment.getUser().getUserNum().equals(dto.getUserNum())) {
@@ -137,31 +120,26 @@ public class CommentService {
 
 		// 댓글 내용 업데이트
 		comment.setContent(dto.getContent());
-		comment.setUpdatedAt(dto.getUpdatedAt());
+		comment.updateTimestamp(); // updatedAt 수동 갱신
 
 		// 업데이트된 댓글 객체 반환
 		return commentRepository.save(comment);
 	}
 
-	/**
-	 * 특정 댓글을 삭제하는 메서드
-	 *
-	 * @param id - 삭제할 댓글 ID
-	 * @return 삭제된 댓글 객체를 반환
-	 */
 	@Transactional
 	public void commentDelete(Long id, String userNum) {
 		// 삭제할 댓글을 ID로 조회
 		Comment comment = commentRepository.findById(id)
-			.orElseThrow(() -> new EntityNotFoundException("존재하지 않는 댓글입니다.")); // 댓글이 없을 경우 예외 발생
+				.orElseThrow(() -> new EntityNotFoundException("존재하지 않는 댓글입니다.")); // 댓글이 없을 경우 예외 발생
 
 		// 요청에서 받은 userNum을 사용하여 권한 확인
 		if (!comment.getUser().getUserNum().equals(userNum)) {
 			throw new SecurityException("작성자 본인만 댓글을 삭제할 수 있습니다.");
 		}
 
-		// 댓글 삭제 처리
-		commentRepository.delete(comment);
+		// 댓글 논리 삭제 처리 (delYn과 deletedAt 설정)
+		comment.softDelete();
+		commentRepository.save(comment);
 	}
 
 	// 문서 댓글 작성
@@ -180,10 +158,12 @@ public class CommentService {
 	@Transactional
 	public void deleteDocComment(Long id) {
 		CommentDoc commentDoc = commentDocRepository.findById(id)
-			.orElseThrow(() -> new EntityNotFoundException("문서/댓글 정보가 존재하지 않습니다."));
-		commentDoc.softDelete();
-	}
+				.orElseThrow(() -> new EntityNotFoundException("문서/댓글 정보가 존재하지 않습니다."));
 
+		// 댓글 논리 삭제 처리 (deletedAt과 delYn 설정)
+		commentDoc.softDelete();
+		commentDocRepository.save(commentDoc);
+	}
 	// 문서별 댓글 조회
 	public List<CommentDocListResDto> getDocCommentList(Long id) {
 		Document document = documentRepository.findById(id)
