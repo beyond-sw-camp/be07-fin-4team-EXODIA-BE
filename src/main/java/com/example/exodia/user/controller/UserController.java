@@ -4,6 +4,7 @@ import com.example.exodia.common.auth.JwtTokenProvider;
 import com.example.exodia.common.dto.CommonErrorDto;
 import com.example.exodia.common.dto.CommonResDto;
 import com.example.exodia.common.service.UploadAwsFileService;
+import com.example.exodia.submit.dto.PasswordChangeDto;
 import com.example.exodia.user.dto.*;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
@@ -165,6 +166,18 @@ public class UserController {
                 .map(UserInfoDto::fromEntity)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(userDtos);
+    }
+
+
+    @PutMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody PasswordChangeDto passwordChangeDto, @RequestHeader("Authorization") String token) {
+        try {
+            String userNum = jwtTokenProvider.getUserNumFromToken(token.substring(7));
+            userService.changePassword(userNum, passwordChangeDto);
+            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "비밀번호 변경 성공", null));
+        } catch (Exception e) {
+            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.UNAUTHORIZED, e.getMessage()), HttpStatus.UNAUTHORIZED);
+        }
     }
 
 }
