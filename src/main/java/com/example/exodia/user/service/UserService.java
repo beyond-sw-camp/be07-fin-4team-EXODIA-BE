@@ -142,6 +142,7 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
+
     public UserDetailDto getUserDetail(String userNum) {
         User user = userRepository.findByUserNumAndDelYn(userNum, DelYN.N)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
@@ -181,7 +182,6 @@ public class UserService {
                 .map(UserInfoDto::fromEntity)
                 .collect(Collectors.toList());
     }
-
 
     public List<User> searchUsers(String search, String searchType, Pageable pageable) {
         if (search == null || search.isEmpty()) {
@@ -246,7 +246,7 @@ public class UserService {
 
 
 
-
+    @Transactional
     public List<User> searchUsersInDepartment(Long departmentId, String searchQuery) {
         if (searchQuery == null || searchQuery.isEmpty()) {
             return userRepository.findByDepartmentId(departmentId);

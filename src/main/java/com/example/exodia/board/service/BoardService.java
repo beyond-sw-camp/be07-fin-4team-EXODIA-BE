@@ -99,6 +99,7 @@ public class BoardService {
     /**
      * 태그를 게시판에 연결하는 메서드
      */
+    
     private void addTagsToBoard(Board board, List<Long> tagIds) {
         // 태그 ID를 사용하여 태그 리스트를 조회합니다.
         List<BoardTags> tags = boardTagsRepository.findAllById(tagIds);
@@ -116,6 +117,7 @@ public class BoardService {
     /**
      * 파일 처리 로직
      */
+
     private void processFiles(List<MultipartFile> files, Board board) {
         List<MultipartFile> validFiles = files != null ? files.stream()
                 .filter(file -> !file.isEmpty())
@@ -147,6 +149,7 @@ public class BoardService {
     /**
      * 사용자와 카테고리 유효성 검증 로직
      */
+
     private User validateUserAndCategory(String userNum, Category category) {
         User user = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사번을 가진 유저가 없습니다."));
@@ -162,6 +165,7 @@ public class BoardService {
     /**
      * 게시물 목록 조회
      */
+    @Transactional
     public Page<BoardListResDto> BoardListWithSearch(Pageable pageable, String searchType, String searchQuery, Category category, List<Long> tagIds) {
         Page<Board> boards;
 
@@ -202,6 +206,7 @@ public class BoardService {
     /**
      * 특정 게시물 상세 조회
      */
+    @Transactional
     public BoardDetailDto BoardDetail(Long id, String userNum) {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("게시물을 찾을 수 없습니다."));
@@ -237,7 +242,6 @@ public class BoardService {
 
         return boardDetailDto;
     }
-
 
     /**
      * 게시물 업데이트 메서드

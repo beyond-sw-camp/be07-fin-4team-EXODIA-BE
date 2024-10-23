@@ -42,7 +42,7 @@ public class ChatRoomController {
         return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
-    // ⭐⭐⭐ 채팅방 검색
+    // 채팅방 검색
     @GetMapping("/search")
     public ResponseEntity<?> chatRoomSearchList(@RequestParam(required = false) String userNum,
                                                 @RequestParam(required = false) String searchValue){
