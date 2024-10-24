@@ -28,6 +28,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.*;
 
@@ -277,4 +279,18 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(passwordChangeDto.getNewPassword()));
         userRepository.save(user);
     }
+
+    public String generateUserNum(String date) {
+        String lastUserNum = userRepository.findLastUserNum(date);
+        if (lastUserNum == null) {
+            return date + "001";
+        }
+        int lastNum = Integer.parseInt(lastUserNum.substring(8));
+        String newUserNum = String.format("%03d", lastNum + 1);
+        return date + newUserNum;
+    }
+
+
+
+
 }

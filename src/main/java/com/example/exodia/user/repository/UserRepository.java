@@ -7,6 +7,8 @@ import com.example.exodia.user.domain.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.*;
 
@@ -35,4 +37,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByDepartmentIdAndNameContaining(Long departmentId, String name);
 
     long countByDepartmentId(Long departmentId);
+
+    @Query("SELECT u.userNum FROM User u WHERE u.userNum LIKE CONCAT(:date, '%') ORDER BY u.userNum DESC LIMIT 1")
+    String findLastUserNum(@Param("date") String date);
 }
