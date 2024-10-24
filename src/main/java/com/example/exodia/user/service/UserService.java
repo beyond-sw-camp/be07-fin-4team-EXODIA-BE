@@ -15,6 +15,8 @@ import com.example.exodia.user.dto.*;
 import com.example.exodia.user.repository.UserRepository;
 import com.example.exodia.userDelete.domain.DeleteHistory;
 import com.example.exodia.userDelete.repository.DeleteHistoryRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -135,12 +137,9 @@ public class UserService {
         }
     }
 
-
-    public List<UserInfoDto> getAllUsers() {
-        List<User> users = userRepository.findAllByDelYn(DelYN.N);
-        return users.stream()
-                .map(UserInfoDto::fromEntity)
-                .collect(Collectors.toList());
+    public Page<User> getAllUsers(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return userRepository.findAllByDelYn(DelYN.N, pageable);
     }
 
 
