@@ -87,6 +87,16 @@ public class UserService {
         Position position = positionRepository.findById(registerDto.getPositionId())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 직급입니다."));
 
+        if (registerDto.getPassword() == null || registerDto.getPassword().isEmpty()) {
+            throw new IllegalArgumentException("비밀번호를 입력해야 합니다.");
+        }
+        if (registerDto.getAddress() == null || registerDto.getAddress().isEmpty()) {
+            throw new IllegalArgumentException("주소를 입력해야 합니다.");
+        }
+        if (registerDto.getSocialNum() == null || registerDto.getSocialNum().isEmpty()) {
+            throw new IllegalArgumentException("주민등록번호를 입력해야 합니다.");
+        }
+
         String encodedPassword = passwordEncoder.encode(registerDto.getPassword());
 
         Status status = Status.valueOf(registerDto.getStatus());
