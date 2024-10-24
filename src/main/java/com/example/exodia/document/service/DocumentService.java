@@ -94,6 +94,9 @@ public class DocumentService {
 		User user = userRepository.findByUserNum(userNum)
 				.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
 
+		if (files.get(0).getOriginalFilename().equals("")) {
+			throw new IOException("파일을 선택해주세요.");
+		}
 		// s3에 업로드
 		String fileName = files.get(0).getOriginalFilename();
 		List<String> fileDownloadUrl = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files, "document");
@@ -232,6 +235,10 @@ public class DocumentService {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 		User user = userRepository.findByUserNum(userNum)
 				.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
+
+		if (files.get(0).getOriginalFilename().equals("")) {
+			throw new IOException("파일을 선택해주세요.");
+		}
 
 		// 현재 문서 상태 변경
 		Document document = documentRepository.findById(docUpdateReqDto.getId())
