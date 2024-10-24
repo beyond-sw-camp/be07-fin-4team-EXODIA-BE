@@ -29,4 +29,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByDepartmentId(Long departmentId);
     List<User> findByDepartmentIdAndNameContaining(Long departmentId, String name);
 
+    long countByDepartmentId(Long departmentId);
 }

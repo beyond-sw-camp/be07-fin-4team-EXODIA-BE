@@ -29,6 +29,8 @@ public class DepartmentController {
         return new ResponseEntity<>(hierarchy, HttpStatus.OK);
     }
 
+
+
     @PostMapping
     public ResponseEntity<Department> createDepartment(@RequestBody Map<String, Object> request) {
         String name = (String) request.get("name");
