@@ -19,7 +19,7 @@ public class SseEmitters {
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
 
     public SseEmitter addEmitter(String userNum) {
-        SseEmitter emitter = new SseEmitter(360_000L);
+        SseEmitter emitter = new SseEmitter(600_000L);
         emitters.put(userNum, emitter);
         System.out.println("SSE Emitter 추가: " + userNum);
 
@@ -42,7 +42,7 @@ public class SseEmitters {
         emitter.onError(e -> {
             emitters.remove(userNum);
             System.out.println("SSE 연결 오류 발생: " + userNum);
-            e.printStackTrace();
+
         });
 
 //        try {
@@ -95,6 +95,5 @@ public class SseEmitters {
             System.out.println("SSE 연결 없음: " + userNum);
         }
     }
-
 }
 
