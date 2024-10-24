@@ -64,8 +64,14 @@ public class UserController {
             @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
             @RequestHeader("Authorization") String token) {
         String departmentId = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
-        User newUser = userService.registerUser(registerDto, profileImage, departmentId);
-        return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 등록 성공", newUser));
+        try {
+            User newUser = userService.registerUser(registerDto, profileImage, departmentId);
+            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 등록 성공", newUser));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new CommonResDto(HttpStatus.BAD_REQUEST, e.getMessage(), null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, "유저 등록 중 오류 발생", null));
+        }
     }
 
     @PutMapping("/list/{userNum}")

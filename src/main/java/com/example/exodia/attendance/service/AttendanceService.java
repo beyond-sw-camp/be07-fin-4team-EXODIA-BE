@@ -4,6 +4,7 @@ import com.example.exodia.attendance.domain.Attendance;
 import com.example.exodia.attendance.domain.DayStatus;
 import com.example.exodia.attendance.dto.*;
 import com.example.exodia.attendance.repository.AttendanceRepository;
+import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -240,7 +241,7 @@ public class AttendanceService {
 
         // 로그인한 유저의 부서 ID로 같은 부서에 속한 모든 유저 조회
         Long departmentId = loggedInUser.getDepartment().getId();
-        List<User> departmentUsers = userRepository.findAllByDepartmentId(departmentId);
+        List<User> departmentUsers = userRepository.findAllByDepartmentIdAndDelYn(departmentId, DelYN.N);
 
         // 오늘의 날짜 범위
         LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
