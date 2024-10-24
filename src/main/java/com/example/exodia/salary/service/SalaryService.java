@@ -1,6 +1,7 @@
 package com.example.exodia.salary.service;
 
 import com.example.exodia.salary.domain.Salary;
+import com.example.exodia.salary.dto.SalaryUpdateDto;
 import com.example.exodia.salary.repository.SalaryRepository;
 import com.example.exodia.user.domain.User;
 import lombok.RequiredArgsConstructor;
@@ -128,4 +129,35 @@ public class SalaryService {
         calculateTaxes(salary);
         return salaryRepository.save(salary);
     }
+
+    public void updateSalary(SalaryUpdateDto salaryUpdateDto) {
+        Salary salary = salaryRepository.findByUserUserNum(salaryUpdateDto.getUserNum())
+                .orElseThrow(() -> new RuntimeException("Salary not found for user: " + salaryUpdateDto.getUserNum()));
+        if (salaryUpdateDto.getBaseSalary() > 0) {
+            salary.setBaseSalary(salaryUpdateDto.getBaseSalary());
+        }
+        if (salaryUpdateDto.getPercentageAdjustment() != null) {
+            double adjustmentFactor = 1 + (salaryUpdateDto.getPercentageAdjustment() / 100);
+            salary.setBaseSalary(salary.getBaseSalary() * adjustmentFactor);
+        }
+        if (salaryUpdateDto.getNewFinalSalary() != null) {
+            salary.setFinalSalary(salaryUpdateDto.getNewFinalSalary());
+        }
+        salaryRepository.save(salary);
+    }
+
+    public void updateSalaryByPercentage(String userNum, double percentage) {
+        Salary salary = salaryRepository.findByUserUserNum(userNum)
+                .orElseThrow(() -> new IllegalArgumentException("Salary not found"));
+        double updatedBaseSalary = salary.getBaseSalary() + (salary.getBaseSalary() * (percentage / 100));
+        salary.setBaseSalary(updatedBaseSalary);
+        salary.setFinalSalary(calculateFinalSalary(salary));
+        salaryRepository.save(salary);
+    }
+
+    private double calculateFinalSalary(Salary salary) {
+        double totalTax = salary.getTaxAmount().getTotalTax();
+        return salary.getBaseSalary() - totalTax;
+    }
+
 }

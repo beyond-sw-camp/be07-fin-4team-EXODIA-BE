@@ -2,13 +2,17 @@
 
 package com.example.exodia.salary.controller;
 
+import com.example.exodia.common.dto.CommonErrorDto;
+import com.example.exodia.common.dto.CommonResDto;
 import com.example.exodia.salary.domain.Salary;
 import com.example.exodia.salary.dto.SalaryDto;
+import com.example.exodia.salary.dto.SalaryUpdateDto;
 import com.example.exodia.salary.service.SalaryService;
 import com.example.exodia.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Pageable;
@@ -85,5 +89,21 @@ public class SalaryController {
         response.put("totalPages", salaryPage.getTotalPages());
 
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/update")
+    public ResponseEntity<?> updateSalary(@RequestBody SalaryUpdateDto salaryUpdateDto) {
+        try {
+            salaryService.updateSalary(salaryUpdateDto);
+            return new ResponseEntity<>(new CommonResDto(HttpStatus.OK, "Salary updated successfully", null), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update salary: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping("/updateByPercentage/{userNum}")
+    public ResponseEntity<?> updateSalaryByPercentage(@PathVariable String userNum, @RequestParam double percentage) {
+        salaryService.updateSalaryByPercentage(userNum, percentage);
+        return new ResponseEntity<>(new CommonResDto(HttpStatus.OK, "Salary updated by percentage successfully", null), HttpStatus.OK);
     }
 }
