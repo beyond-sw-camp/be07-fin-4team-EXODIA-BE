@@ -11,7 +11,9 @@ import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 import com.example.exodia.user.service.UserService;
 import com.google.api.services.calendar.model.Event;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -236,13 +238,21 @@ public class CalendarService {
 
 
 
-
     public CalendarResponseDto findByTitle(String title) {
         Calendar calendar = calendarRepository.findByTitle(title);
         if (calendar != null) {
             return CalendarResponseDto.fromEntity(calendar);
         }
         return null;
+    }
+
+
+    @Transactional
+    public void deleteCalendarByTitle(String title) throws Exception {
+        CalendarResponseDto calendarEvent = findByTitle(title);
+        if (calendarEvent != null) {
+            calendarRepository.deleteById(calendarEvent.getId());
+        }
     }
 
     /* 사용자 별 캘린더 조회 */

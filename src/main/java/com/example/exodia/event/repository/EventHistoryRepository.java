@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface EventHistoryRepository extends JpaRepository<EventHistory, Long> {
     List<EventHistory> findByEventId(Long eventId);
+    void deleteByEventId(Long eventId);
 }
