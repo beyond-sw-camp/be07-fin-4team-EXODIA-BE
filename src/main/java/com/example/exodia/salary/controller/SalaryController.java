@@ -91,7 +91,7 @@ public class SalaryController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/update")
+    @PutMapping("/update/{userNum}")
     public ResponseEntity<?> updateSalary(@RequestBody SalaryUpdateDto salaryUpdateDto) {
         try {
             salaryService.updateSalary(salaryUpdateDto);
