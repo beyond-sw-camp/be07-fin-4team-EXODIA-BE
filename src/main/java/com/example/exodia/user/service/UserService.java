@@ -186,7 +186,7 @@ public class UserService {
         Department department = departmentRepository.findById(departmentId)
                 .orElseThrow(() -> new RuntimeException("해당 부서가 존재하지 않습니다."));
 
-        List<User> users = userRepository.findAllByDepartmentId(departmentId);
+        List<User> users = userRepository.findAllByDepartmentIdAndDelYn(departmentId, DelYN.N);
 
         return users.stream()
                 .map(UserInfoDto::fromEntity)
