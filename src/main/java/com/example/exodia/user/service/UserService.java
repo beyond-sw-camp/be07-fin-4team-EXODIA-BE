@@ -8,12 +8,15 @@ import com.example.exodia.department.repository.DepartmentRepository;
 import com.example.exodia.position.domain.Position;
 import com.example.exodia.position.repository.PositionRepository;
 import com.example.exodia.salary.service.SalaryService;
+import com.example.exodia.submit.dto.PasswordChangeDto;
 import com.example.exodia.user.domain.Status;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.dto.*;
 import com.example.exodia.user.repository.UserRepository;
 import com.example.exodia.userDelete.domain.DeleteHistory;
 import com.example.exodia.userDelete.repository.DeleteHistoryRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -61,12 +64,14 @@ public class UserService {
         }
         if (!passwordEncoder.matches(loginDto.getPassword(), user.getPassword())) {
             user.incrementLoginFailCount();
-            if (user.getLoginFailCount() >= 5) {
+            if (user.getLoginFailCount() > 5) {
                 user.softDelete();
             }
+            user.resetLoginFailCount();
             userRepository.save(user);
             throw new RuntimeException("잘못된 이메일/비밀번호 입니다.");
         }
+
         user.resetLoginFailCount();
         userRepository.save(user);
         return jwtTokenProvider.createToken(user.getUserNum(),
@@ -115,6 +120,7 @@ public class UserService {
         if (uploadedFilePath != null) {
             user.setProfileImage(uploadedFilePath);
         }
+
         user.updateFromDto(updateDto, department, position);
         return userRepository.save(user);
     }
@@ -131,12 +137,9 @@ public class UserService {
         }
     }
 
-
-    public List<UserInfoDto> getAllUsers() {
-        List<User> users = userRepository.findAllByDelYn(DelYN.N);
-        return users.stream()
-                .map(UserInfoDto::fromEntity)
-                .collect(Collectors.toList());
+    public Page<User> getAllUsers(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return userRepository.findAllByDelYn(DelYN.N, pageable);
     }
 
 
@@ -179,6 +182,7 @@ public class UserService {
                 .map(UserInfoDto::fromEntity)
                 .collect(Collectors.toList());
     }
+
 
     public List<User> searchUsers(String search, String searchType, Pageable pageable) {
         if (search == null || search.isEmpty()) {
@@ -252,4 +256,15 @@ public class UserService {
         }
     }
 
+    public void changePassword(String userNum, PasswordChangeDto passwordChangeDto) {
+        User user = userRepository.findByUserNum(userNum)
+                .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
+
+        if (!passwordEncoder.matches(passwordChangeDto.getCurrentPassword(), user.getPassword())) {
+            throw new RuntimeException("현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        user.setPassword(passwordEncoder.encode(passwordChangeDto.getNewPassword()));
+        userRepository.save(user);
+    }
 }

@@ -2,6 +2,8 @@ package com.example.exodia.department.service;
 
 import com.example.exodia.department.domain.Department;
 import com.example.exodia.department.repository.DepartmentRepository;
+import com.example.exodia.user.repository.UserRepository;
+import com.example.exodia.user.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -15,18 +17,19 @@ import java.util.*;
 public class DepartmentService {
 
     private final DepartmentRepository departmentRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     public List<Map<String, Object>> getDepartmentHierarchy() {
         List<Department> allDepartments = departmentRepository.findAll();
         List<Map<String, Object>> hierarchy = new ArrayList<>();
-
         Map<Long, Map<String, Object>> departmentMap = new HashMap<>();
 
         for (Department department : allDepartments) {
             Map<String, Object> departmentData = new HashMap<>();
             departmentData.put("id", department.getId());
             departmentData.put("name", department.getName());
+            departmentData.put("totalUsersCount", userRepository.countByDepartmentId(department.getId())); // 부서 사용자 수
             departmentData.put("parentId", department.getParentDepartment() != null ? department.getParentDepartment().getId() : null);
             departmentData.put("children", new ArrayList<Map<String, Object>>());
             departmentMap.put(department.getId(), departmentData);
@@ -44,6 +47,7 @@ public class DepartmentService {
 
         return hierarchy;
     }
+
     public List<Department> getAllDepartments() {
         return departmentRepository.findAll();
     }

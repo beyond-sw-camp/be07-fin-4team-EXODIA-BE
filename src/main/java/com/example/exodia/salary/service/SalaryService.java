@@ -4,6 +4,8 @@ import com.example.exodia.salary.domain.Salary;
 import com.example.exodia.salary.repository.SalaryRepository;
 import com.example.exodia.user.domain.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -95,8 +97,8 @@ public class SalaryService {
     }
 
     @Transactional(readOnly = true)
-    public List<Salary> getAllSalaries() {
-        return salaryRepository.findAll();
+    public Page<Salary> getAllSalaries(Pageable pageable) {
+        return salaryRepository.findAll(pageable);
     }
 
     @Transactional(readOnly = true)
@@ -105,8 +107,8 @@ public class SalaryService {
     }
 
     @Transactional(readOnly = true)
-    public List<Salary> getSalariesByPosition(Long positionId) {
-        return salaryRepository.findByUser_Position_Id(positionId);
+    public Page<Salary> getSalariesByPosition(Long positionId, Pageable pageable) {
+        return salaryRepository.findByUser_Position_Id(positionId, pageable);
     }
 
     // 입사일 기준으로 몇 년차인지 계산
