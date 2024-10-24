@@ -27,6 +27,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Page<User> findByNameContainingOrDepartmentNameContainingOrPositionNameContainingAndDelYn(
             String name, String departmentName, String positionName, DelYN delYN, Pageable pageable
     );
+    Page<User> findByDelYnAndNameContainingOrDelYnAndDepartmentNameContainingOrDelYnAndPositionNameContaining(
+            DelYN delYn1, String name, DelYN delYn2, String departmentName, DelYN delYn3, String positionName, Pageable pageable
+    );
+
     List<User> findByDepartmentId(Long departmentId);
     List<User> findByDepartmentIdAndNameContaining(Long departmentId, String name);
 

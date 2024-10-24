@@ -207,13 +207,13 @@ public class UserService {
             case "position":
                 return userRepository.findByPositionNameContainingAndDelYn(search, DelYN.N, pageable).getContent();
             case "all":
-                return userRepository.findByNameContainingOrDepartmentNameContainingOrPositionNameContainingAndDelYn(
-                        search, search, search, DelYN.N, pageable).getContent();
+                return userRepository.findByDelYnAndNameContainingOrDelYnAndDepartmentNameContainingOrDelYnAndPositionNameContaining(
+                        DelYN.N, search, DelYN.N, search, DelYN.N, search, pageable).getContent();
             default:
                 return userRepository.findByDelYn(DelYN.N, pageable).getContent();
         }
-
     }
+
 
     //  userNum으로 회원 이름 찾아오기
     public String getUserName() {
