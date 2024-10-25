@@ -159,6 +159,16 @@ public class ChatRoomService {
         return chatRoomResponseList;
     }
 
+    public int getChatAlarm(){
+        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+        String alarmNum = chatRoomManage.getChatAlarm(userNum);
+        int alarm = 0; // ⭐⭐⭐
+        if(alarmNum!=null){
+            alarm = Integer.parseInt(alarmNum);
+        }
+        return alarm;
+    }
+
 
     // 채팅방 메세지 조회 == 채팅방 입장
     public List<ChatMessageResponse> viewChatMessageList(Long roomId){

@@ -55,9 +55,9 @@ public class ChatRoom extends BaseTimeEntity {
                 .roomId(this.getId())
                 .roomName(this.getRoomName())
                 .userNums(userNums)
-                .recentChat(this.getRecentChat())
+                .recentChat(this.getRecentChat()!=null ? this.getRecentChat():"")
                 .unreadChatNum(unreadChat)
-                .recentChatTime(this.getRecentChatTime() != null ? this.getRecentChatTime().toString() : "")
+                .recentChatTime(this.getRecentChat()!= null ? this.getRecentChatTime().toString() : "")
                 .build();
     }
 

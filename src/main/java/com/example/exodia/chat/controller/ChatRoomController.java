@@ -50,6 +50,12 @@ public class ChatRoomController {
         return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 
+    @GetMapping("/alarm")
+    public ResponseEntity<?> getChatAlarm(){
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "채팅 알람개수가 조회되었습니다.", chatRoomService.getChatAlarm());
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+    }
+
     // 채팅방 메세지 조회 == 채팅방 입장
     @GetMapping("/{roomId}")
     public ResponseEntity<?> chatRoomView(@PathVariable("roomId") Long roomId){
