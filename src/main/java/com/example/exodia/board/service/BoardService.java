@@ -252,11 +252,8 @@ public class BoardService {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("게시물을 찾을 수 없습니다."));
 
-
         boardTagRepository.deleteByBoardId(id);
-
-
-        board.softDelete();
+        boardRepository.softDeleteById(id);
         boardRepository.save(board);
     }
 
