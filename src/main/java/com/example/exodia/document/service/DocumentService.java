@@ -1,6 +1,7 @@
 package com.example.exodia.document.service;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.NoSuchFileException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -94,6 +95,9 @@ public class DocumentService {
 		User user = userRepository.findByUserNum(userNum)
 				.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
 
+		if (files.get(0).getOriginalFilename().equals("")) {
+			throw new IOException("파일을 선택해주세요.");
+		}
 		// s3에 업로드
 		String fileName = files.get(0).getOriginalFilename();
 		List<String> fileDownloadUrl = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files, "document");
@@ -140,13 +144,9 @@ public class DocumentService {
 		ResponseInputStream<GetObjectResponse> s3Object = s3Client.getObject(getObjectRequest);
 		InputStreamResource resource = new InputStreamResource(s3Object);
 
-		if (resource.exists() && resource.isReadable()) {
-			return ResponseEntity.ok()
-					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + doc.getFileName() + "\"")
-					.body(resource);
-		} else {
-			throw new IOException(doc.getFileName() + " - 파일 내용을 읽어오는데 오류가 발생했습니다. : ");
-		}
+		return ResponseEntity.ok()
+			.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + doc.getFileName() + "\"")
+			.body(resource);
 	}
 
 	// 	전체 문서 조회
@@ -232,6 +232,10 @@ public class DocumentService {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 		User user = userRepository.findByUserNum(userNum)
 				.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
+
+		if (files.get(0).getOriginalFilename().equals("")) {
+			throw new IOException("파일을 선택해주세요.");
+		}
 
 		// 현재 문서 상태 변경
 		Document document = documentRepository.findById(docUpdateReqDto.getId())

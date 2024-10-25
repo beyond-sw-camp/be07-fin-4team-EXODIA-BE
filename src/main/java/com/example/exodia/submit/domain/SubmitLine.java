@@ -69,6 +69,7 @@ public class SubmitLine extends BaseTimeEntity {
 	public SubmitLineResDto fromEntity(User user, Position position) {
 		return SubmitLineResDto.builder()
 			.userName(user.getName())
+			.profileImage(user.getProfileImage())
 			.positionName(position.getName())
 			.submitStatus(this.submitStatus)
 			.build();

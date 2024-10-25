@@ -313,7 +313,7 @@ public class InitialDataLoader implements CommandLineRunner {
             NowStatus.출근,
             15,0,0,
             hrDepartment,
-            test,
+            director,
             0
         );
 
@@ -333,7 +333,7 @@ public class InitialDataLoader implements CommandLineRunner {
             NowStatus.출근,
             15,0,0,
             hrDepartment,
-            teamLeader,
+            test,
             0
         );
 
@@ -356,7 +356,7 @@ public class InitialDataLoader implements CommandLineRunner {
             NowStatus.출근,
             15,0,0,
             salesHQ,
-            teamLeader,
+            basicPerson,
             0
         );
         userRepository.save(user6);
