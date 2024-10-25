@@ -57,6 +57,7 @@ public class ChatRoom extends BaseTimeEntity {
                 .userNums(userNums)
                 .recentChat(this.getRecentChat())
                 .unreadChatNum(unreadChat)
+                .recentChatTime(this.getRecentChatTime() != null ? this.getRecentChatTime().toString() : "")
                 .build();
     }
 

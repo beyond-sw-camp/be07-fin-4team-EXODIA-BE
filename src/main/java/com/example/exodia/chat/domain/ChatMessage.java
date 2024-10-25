@@ -59,7 +59,7 @@ public class ChatMessage extends BaseTimeEntity {
                 .files(new ArrayList<>())
                 .createAt(this.getCreatedAt().toString())
                 .build();
-    }
+    } // () ? : "알수없음"
 
 
     public ChatMessageResponse fromEntityWithFile(){ // 저장하고, 바로 보낼 때

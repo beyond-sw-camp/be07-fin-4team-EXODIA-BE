@@ -24,7 +24,6 @@ public class ChatRoomRequest { // 받아오는 값
                 .roomName(this.getRoomName())
                 .chatUsers(new ArrayList<>())
                 .recentChat("")
-                .recentChatTime(LocalDateTime.now())
                 .build();
     }
 }

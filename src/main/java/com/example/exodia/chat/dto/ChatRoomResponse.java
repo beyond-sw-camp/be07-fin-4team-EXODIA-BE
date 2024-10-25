@@ -17,5 +17,5 @@ public class ChatRoomResponse { // 보여지는 것
     private List<String> userNums; // 채팅유저정보
     private int unreadChatNum;
     private String recentChat;
-//    private String recentChatTime;
+    private String recentChatTime;
 }

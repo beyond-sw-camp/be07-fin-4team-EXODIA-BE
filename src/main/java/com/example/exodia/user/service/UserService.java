@@ -149,7 +149,7 @@ public class UserService {
         return UserDetailDto.fromEntity(user);
     }
 
-
+    // user의 모든 chatUser에서 삭제, chatRoom마다 퇴장 메세지
     @Transactional
     public void deleteUser(UserDeleteDto deleteDto, String deletedBy) {
         // 삭제 대상자 찾기

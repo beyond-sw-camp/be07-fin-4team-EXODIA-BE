@@ -198,7 +198,7 @@ public class ChatRoomService {
     }
 
     // 채팅방 삭제 == 나가려는 chatRoomId(chatRoom)의 userNum(User)을 가진 chatUser 삭제.
-    public String  hardExitChatRoom(String userNum, Long roomId){
+    public ChatUserInfoResponse hardExitChatRoom(String userNum, Long roomId){
         User user = userRepository.findByUserNum(userNum).orElseThrow(()->new EntityNotFoundException("없는 사원입니다."));
         ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(()->new EntityNotFoundException("채팅방이 없습니다."));
         List<ChatUser> chatUsers = chatUserRepository.findAllByChatRoom(chatRoom);
@@ -209,6 +209,7 @@ public class ChatRoomService {
             if(!chatUser.isDeleted()){
 //                chatUserRepository.delete(chatUser); // 삭제
                 chatUser.softDelete();
+                System.out.println(chatUser.getId());
 
                 // chatRoom을 나올 때 chatRoomManage(redis로 관리) user의 현 채팅방id 기록 삭제
                 chatRoomManage.exitChatRoom(userNum);
@@ -217,7 +218,7 @@ public class ChatRoomService {
                 chatredisTemplate.delete(unreadKey);
             }
         }
-        return userNum;
+        return ChatUserInfoResponse.builder().senderName(user.getName()).senderNum(user.getUserNum()).build();
     }
 
     // 채팅방 구성원 조회
@@ -229,7 +230,7 @@ public class ChatRoomService {
     }
 
     // 채팅방 구성원 초대
-    public String inviteChatUser(String inviteUserNum, Long roomId){
+    public ChatUserInfoResponse inviteChatUser(String inviteUserNum, Long roomId){
         // chatRoomId(chatRoom)과 초대하려는 userNum(user)을 chatUser에 저장.
         User user = userRepository.findByUserNum(inviteUserNum).orElseThrow(()->new EntityNotFoundException("없는 사원입니다."));
         ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(()->new EntityNotFoundException("채팅방이 없습니다."));
@@ -237,7 +238,7 @@ public class ChatRoomService {
         chatUserRepository.save(chatUser);
         chatRoom.setChatUsers(chatUser);
         // ⭐⭐ 초대된 유저에게 알림?
-        return chatUser.getUser().getUserNum();
+        return ChatUserInfoResponse.builder().senderName(user.getName()).senderNum(user.getUserNum()).build();
     }
 
 }
