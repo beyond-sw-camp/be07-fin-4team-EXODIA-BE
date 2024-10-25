@@ -13,8 +13,8 @@ public interface SalaryRepository extends JpaRepository<Salary, Long> {
     Optional<Salary> findByUser(User user);
     Optional<Salary> findByUser_UserNum(String userNum);
     List<Salary> findByUser_Position_Id(Long positionId);
-
     Page<Salary> findByUser_Position_Id(Long positionId, Pageable pageable);
+    Optional<Salary> findByUserUserNum(String userNum);
 }
 
 

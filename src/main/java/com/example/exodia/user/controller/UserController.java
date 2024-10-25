@@ -197,4 +197,13 @@ public class UserController {
         }
     }
 
+    @GetMapping("/generateUserNum/{date}")
+    public ResponseEntity<Map<String, String>> generateUserNum(@PathVariable String date) {
+        String newUserNum = userService.generateUserNum(date);
+        Map<String, String> response = new HashMap<>();
+        response.put("userNum", newUserNum);
+        return ResponseEntity.ok(response);
+    }
+
+
 }

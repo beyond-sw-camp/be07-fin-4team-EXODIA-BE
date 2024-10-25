@@ -60,4 +60,15 @@ public class EventDateController {
         return ResponseEntity.ok(events);
     }
 
+    @DeleteMapping("/delete/{eventId}")
+    public ResponseEntity<?> deleteEventDate(@PathVariable Long eventId) {
+        try {
+            eventDateService.deleteEvent(eventId);
+            return new ResponseEntity<>(new CommonResDto(HttpStatus.OK, "Event deleted successfully", null), HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete event: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }
