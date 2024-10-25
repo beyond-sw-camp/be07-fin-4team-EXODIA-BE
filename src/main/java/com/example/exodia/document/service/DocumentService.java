@@ -1,6 +1,7 @@
 package com.example.exodia.document.service;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.NoSuchFileException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -143,13 +144,9 @@ public class DocumentService {
 		ResponseInputStream<GetObjectResponse> s3Object = s3Client.getObject(getObjectRequest);
 		InputStreamResource resource = new InputStreamResource(s3Object);
 
-		if (resource.exists() && resource.isReadable()) {
-			return ResponseEntity.ok()
-					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + doc.getFileName() + "\"")
-					.body(resource);
-		} else {
-			throw new IOException(doc.getFileName() + " - 파일 내용을 읽어오는데 오류가 발생했습니다. : ");
-		}
+		return ResponseEntity.ok()
+			.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + doc.getFileName() + "\"")
+			.body(resource);
 	}
 
 	// 	전체 문서 조회

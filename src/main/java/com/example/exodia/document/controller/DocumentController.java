@@ -66,11 +66,12 @@ public class DocumentController {
 	//	첨부파일 다운로드
 	@GetMapping("/downloadFile/{id}")
 	public ResponseEntity<?> downloadDocument(@PathVariable Long id) throws IOException {
-		try {
-			return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "파일 다운로드를 완료하였습니다.", documentService.downloadFile(id)));
-		} catch (IOException e) {
-			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage()), HttpStatus.NOT_FOUND);
-		}
+		return documentService.downloadFile(id);
+		// try {
+		// 	return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "파일 다운로드를 완료하였습니다.", ));
+		// } catch (IOException e) {
+		// 	return new ResponseEntity<>(new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage()), HttpStatus.NOT_FOUND);
+		// }
 	}
 
 	// 	전체 문서 조회
@@ -109,7 +110,7 @@ public class DocumentController {
 		@RequestPart(value = "data") DocUpdateReqDto docUpdateReqDto) {
 		try {
 			Document updatedDoc = documentService.updateDoc(files, docUpdateReqDto);
-			return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "파일 업데이트 성공", updatedDoc.getId()));
+			return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "파일이 성공적으로 업데이트 되었습니다.", updatedDoc.getId()));
 		} catch (IOException e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()), HttpStatus.BAD_REQUEST);
