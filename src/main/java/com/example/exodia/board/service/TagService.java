@@ -24,11 +24,7 @@ public class TagService {
         this.boardTagRepository = boardTagRepository;
     }
 
-    /**
-     * 태그 생성 메서드
-     * @param tagDto - 생성할 태그 정보
-     * @return 생성된 태그 엔티티
-     */
+
     @Transactional
     public BoardTags createTag(TagDto tagDto) {
         BoardTags newTag = BoardTags.builder()
@@ -37,11 +33,7 @@ public class TagService {
         return boardTagsRepository.save(newTag);
     }
 
-    /**
-     * 모든 태그 조회 메서드
-     * @return 태그 리스트
-     */
-    @Transactional
+
     public List<TagDto> getAllTags() {
         List<BoardTags> boardTagsList = boardTagsRepository.findAll();
         return boardTagsList.stream()
@@ -49,16 +41,11 @@ public class TagService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * 태그 삭제 메서드
-     * @param id - 삭제할 태그의 ID
-     */
+
     @Transactional
     public void deleteTag(Long id) {
-        // board_tag 테이블에서 해당 태그와 연결된 모든 레코드를 먼저 삭제
         boardTagRepository.deleteByTagId(id);
 
-        // 태그 삭제
         BoardTags tag = boardTagsRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("태그를 찾을 수 없습니다."));
 

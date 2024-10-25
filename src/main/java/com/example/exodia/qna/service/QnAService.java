@@ -11,7 +11,6 @@ import com.example.exodia.department.domain.Department;
 import com.example.exodia.department.repository.DepartmentRepository;
 import com.example.exodia.qna.domain.QnA;
 import com.example.exodia.qna.dto.*;
-//import com.example.exodia.qna.repository.ManagerRepository;
 import com.example.exodia.qna.repository.ManagerRepository;
 import com.example.exodia.qna.repository.QnARepository;
 import com.example.exodia.user.domain.User;
@@ -53,12 +52,11 @@ public class QnAService {
         this.userRepository = userRepository;
         this.boardFileRepository = boardFileRepository;
         this.departmentRepository = departmentRepository;
-
         this.managerRepository = managerRepository;
     }
 
     @Transactional
-    public QnA createQuestion(QnASaveReqDto dto, List<MultipartFile> files,String userNum) {
+    public QnA createQuestion(QnASaveReqDto dto, List<MultipartFile> files, String userNum) {
         User user = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사번을 가진 유저가 없습니다."));
 
@@ -94,8 +92,6 @@ public class QnAService {
         return qnARepository.save(qna);
     }
 
-
-
     public Page<QnAListResDto> qnaListByGroup(Long departmentId, Pageable pageable) {
         Department department = departmentRepository.findDepartmentById(departmentId);
         Page<QnA> qnAS = qnARepository.findAllByDepartmentIdAndDelYN(department.getId(), DelYN.N, pageable);
@@ -124,7 +120,6 @@ public class QnAService {
         return qnAS.map(QnA::listFromEntity);
     }
 
-
     public List<QnAListResDto> getUserQnAs(String userNum) {
         User user = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사번을 가진 유저가 없습니다."));
@@ -152,7 +147,7 @@ public class QnAService {
         User answerer = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사번을 가진 유저가 없습니다."));
 
-//         사용자가 매니저 테이블에 있는지 확인
+        // 사용자가 매니저 테이블에 있는지 확인
         boolean isManager = managerRepository.existsByUser(answerer);
         if (!isManager) {
             throw new SecurityException("매니저만 질문에 답변할 권한이 있습니다.");
@@ -175,7 +170,6 @@ public class QnAService {
             for (int i = 0; i < files.size(); i++) {
                 MultipartFile file = files.get(i);
                 if (file.isEmpty()) {
-                    System.out.println("빈 파일이므로 업로드를 건너뜁니다. 파일 이름: " + file.getOriginalFilename());
                     continue;
                 }
 
@@ -190,9 +184,8 @@ public class QnAService {
         return qnARepository.save(qna);
     }
 
-
     @Transactional
-    public void QnAQUpdate(Long id, QnAQtoUpdateDto dto, List<MultipartFile> files,String userNum) {
+    public void QnAQUpdate(Long id, QnAQtoUpdateDto dto, List<MultipartFile> files, String userNum) {
         QnA qna = qnARepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 게시글입니다."));
 
@@ -225,7 +218,7 @@ public class QnAService {
     }
 
     @Transactional
-    public void QnAAUpdate(Long id, QnAAtoUpdateDto dto, List<MultipartFile> files,String userNum) {
+    public void QnAAUpdate(Long id, QnAAtoUpdateDto dto, List<MultipartFile> files, String userNum) {
         QnA qna = qnARepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 게시글입니다."));
 
@@ -233,7 +226,7 @@ public class QnAService {
             throw new IllegalArgumentException("작성자 본인만 수정할 수 있습니다.");
         }
 
-        qna.QnAAUpdate(dto);
+        qna.QnAAUpdate(dto);  // updatedAt을 수동 갱신 (BaseTimeEntity의 메서드 사용)
 
         files = files == null ? Collections.emptyList() : files;
         if (!files.isEmpty()) {

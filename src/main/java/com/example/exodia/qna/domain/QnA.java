@@ -55,10 +55,8 @@ public class QnA extends BaseTimeEntity {
     @Builder.Default
     private DelYN delYN = DelYN.N;
 
-
     @OneToMany(mappedBy = "qna", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments;
-
 
     @Column(name = "anonymous", nullable = false)
     private Boolean anonymous = false;
@@ -90,8 +88,7 @@ public class QnA extends BaseTimeEntity {
                 .build();
     }
 
-
-    public void updateDelYN(DelYN delYN){
+    public void updateDelYN(DelYN delYN) {
         this.delYN = delYN;
     }
 
@@ -100,11 +97,9 @@ public class QnA extends BaseTimeEntity {
         this.title = dto.getTitle();
         this.questionText = dto.getQuestionText();
 
-
-        // 업데이트 시간을 현재 시간으로 설정
-        this.setUpdatedAt(LocalDateTime.now());
+        // updatedAt을 현재 시간으로 갱신
+        this.updateTimestamp();  // BaseTimeEntity의 메서드 사용
     }
-
 
     public void QnAAUpdate(QnAAtoUpdateDto dto) {
         // 답변 내용 업데이트
@@ -113,8 +108,7 @@ public class QnA extends BaseTimeEntity {
         // 답변 시간이 현재 시간으로 설정
         this.answeredAt = LocalDateTime.now();
 
-        // 업데이트 시간을 현재 시간으로 설정 (질문 또는 답변 수정 시)
-        this.setUpdatedAt(LocalDateTime.now());
+        // updatedAt을 현재 시간으로 갱신
+        this.updateTimestamp();  // BaseTimeEntity의 메서드 사용
     }
-
 }

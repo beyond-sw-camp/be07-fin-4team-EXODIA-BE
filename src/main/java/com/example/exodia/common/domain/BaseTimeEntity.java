@@ -22,7 +22,6 @@ public abstract class BaseTimeEntity {
     @Column(name = "created_at", updatable = false, nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    // @UpdateTimestamp
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
@@ -43,6 +42,8 @@ public abstract class BaseTimeEntity {
     public boolean isDeleted() {
         return this.delYn == DelYN.Y;
     }
+
+    public void updateTimestamp() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }
-
-

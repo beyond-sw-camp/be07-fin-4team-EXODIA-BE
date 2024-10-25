@@ -62,22 +62,13 @@ public class Comment extends BaseTimeEntity {
     @Column(nullable = false, length = 500)
     private String content;
 
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
-
-
-    private LocalDateTime updatedAt;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = false)
     private DelYN delYn = DelYN.N;
 
-
     @Column(name = "is_edited", nullable = false)
     private boolean isEdited = false;
 
-    public void updateDelYN(DelYN delYn){
-        this.delYn = delYn;
-    }
+
 
 }
