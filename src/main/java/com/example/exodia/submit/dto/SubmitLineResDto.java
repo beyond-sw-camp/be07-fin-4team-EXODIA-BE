@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class SubmitLineResDto {
 	private String userName;
+	private String profileImage;
 	private String positionName;
 	private SubmitStatus submitStatus;
 

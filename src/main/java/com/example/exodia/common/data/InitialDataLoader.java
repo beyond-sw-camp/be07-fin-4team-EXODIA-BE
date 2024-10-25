@@ -285,7 +285,7 @@ public class InitialDataLoader implements CommandLineRunner {
         submitTypeRepository.save( new SubmitType(2L, "휴가 신청서"));
         submitTypeRepository.save( new SubmitType(3L, "경조사 신청서"));
 
-        ChatRoom chatRoom = ChatRoom.builder().roomName("test").chatUsers(new ArrayList<>()).recentChat("").recentChatTime(LocalDateTime.now()).build();
+        ChatRoom chatRoom = ChatRoom.builder().roomName("test").chatUsers(new ArrayList<>()).recentChatTime(LocalDateTime.now()).build();
         chatRoomRepository.save(chatRoom);
         ChatUser chatUser1 = ChatUser.builder().chatRoom(chatRoom).user(user1).build();
         ChatUser chatUser2 = ChatUser.builder().chatRoom(chatRoom).user(user2).build();
@@ -313,7 +313,7 @@ public class InitialDataLoader implements CommandLineRunner {
             NowStatus.출근,
             15,0,0,
             hrDepartment,
-            test,
+            director,
             0
         );
 
@@ -333,7 +333,7 @@ public class InitialDataLoader implements CommandLineRunner {
             NowStatus.출근,
             15,0,0,
             hrDepartment,
-            teamLeader,
+            test,
             0
         );
 
@@ -356,7 +356,7 @@ public class InitialDataLoader implements CommandLineRunner {
             NowStatus.출근,
             15,0,0,
             salesHQ,
-            teamLeader,
+            basicPerson,
             0
         );
         userRepository.save(user6);

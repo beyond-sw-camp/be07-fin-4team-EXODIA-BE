@@ -29,6 +29,8 @@ public class DepartmentController {
         return new ResponseEntity<>(hierarchy, HttpStatus.OK);
     }
 
+
+
     @PostMapping
     public ResponseEntity<Department> createDepartment(@RequestBody Map<String, Object> request) {
         String name = (String) request.get("name");
@@ -88,6 +90,7 @@ public class DepartmentController {
         List<UserInfoDto> users = userService.getUsersByDepartment(departmentId);
         return ResponseEntity.ok(users);
     }
+
 
     // 부서 설명 업데이트 (POST 메서드)
     @PostMapping("/update")

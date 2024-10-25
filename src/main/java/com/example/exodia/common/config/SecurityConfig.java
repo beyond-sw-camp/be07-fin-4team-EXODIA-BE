@@ -70,7 +70,8 @@ public class SecurityConfig {
                 .sessionFixation().changeSessionId()
                 .maximumSessions(1)  // 한 사용자는 한 번에 하나의 세션만 유지 가능
                 .expiredSessionStrategy(customSessionExpiredStrategy)
-                .maxSessionsPreventsLogin(false)  // 중복 로그인 허용
+//                .maxSessionsPreventsLogin(false)  // 중복 로그인 허용
+                .maxSessionsPreventsLogin(true)  // 중복 로그인 차단
                 .sessionRegistry(sessionRegistry())
             );
 

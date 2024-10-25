@@ -8,12 +8,15 @@ import com.example.exodia.department.repository.DepartmentRepository;
 import com.example.exodia.position.domain.Position;
 import com.example.exodia.position.repository.PositionRepository;
 import com.example.exodia.salary.service.SalaryService;
+import com.example.exodia.submit.dto.PasswordChangeDto;
 import com.example.exodia.user.domain.Status;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.dto.*;
 import com.example.exodia.user.repository.UserRepository;
 import com.example.exodia.userDelete.domain.DeleteHistory;
 import com.example.exodia.userDelete.repository.DeleteHistoryRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,6 +28,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.*;
 
@@ -61,12 +66,14 @@ public class UserService {
         }
         if (!passwordEncoder.matches(loginDto.getPassword(), user.getPassword())) {
             user.incrementLoginFailCount();
-            if (user.getLoginFailCount() >= 5) {
+            if (user.getLoginFailCount() > 5) {
                 user.softDelete();
             }
+            user.resetLoginFailCount();
             userRepository.save(user);
             throw new RuntimeException("잘못된 이메일/비밀번호 입니다.");
         }
+
         user.resetLoginFailCount();
         userRepository.save(user);
         return jwtTokenProvider.createToken(user.getUserNum(),
@@ -81,6 +88,16 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 부서입니다."));
         Position position = positionRepository.findById(registerDto.getPositionId())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 직급입니다."));
+
+        if (registerDto.getPassword() == null || registerDto.getPassword().isEmpty()) {
+            throw new IllegalArgumentException("비밀번호를 입력해야 합니다.");
+        }
+        if (registerDto.getAddress() == null || registerDto.getAddress().isEmpty()) {
+            throw new IllegalArgumentException("주소를 입력해야 합니다.");
+        }
+        if (registerDto.getSocialNum() == null || registerDto.getSocialNum().isEmpty()) {
+            throw new IllegalArgumentException("주민등록번호를 입력해야 합니다.");
+        }
 
         String encodedPassword = passwordEncoder.encode(registerDto.getPassword());
 
@@ -115,6 +132,7 @@ public class UserService {
         if (uploadedFilePath != null) {
             user.setProfileImage(uploadedFilePath);
         }
+
         user.updateFromDto(updateDto, department, position);
         return userRepository.save(user);
     }
@@ -131,12 +149,9 @@ public class UserService {
         }
     }
 
-
-    public List<UserInfoDto> getAllUsers() {
-        List<User> users = userRepository.findAllByDelYn(DelYN.N);
-        return users.stream()
-                .map(UserInfoDto::fromEntity)
-                .collect(Collectors.toList());
+    public Page<User> getAllUsers(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return userRepository.findAllByDelYn(DelYN.N, pageable);
     }
 
 
@@ -146,7 +161,7 @@ public class UserService {
         return UserDetailDto.fromEntity(user);
     }
 
-
+    // user의 모든 chatUser에서 삭제, chatRoom마다 퇴장 메세지
     @Transactional
     public void deleteUser(UserDeleteDto deleteDto, String deletedBy) {
         // 삭제 대상자 찾기
@@ -173,12 +188,13 @@ public class UserService {
         Department department = departmentRepository.findById(departmentId)
                 .orElseThrow(() -> new RuntimeException("해당 부서가 존재하지 않습니다."));
 
-        List<User> users = userRepository.findAllByDepartmentId(departmentId);
+        List<User> users = userRepository.findAllByDepartmentIdAndDelYn(departmentId, DelYN.N);
 
         return users.stream()
                 .map(UserInfoDto::fromEntity)
                 .collect(Collectors.toList());
     }
+
 
     public List<User> searchUsers(String search, String searchType, Pageable pageable) {
         if (search == null || search.isEmpty()) {
@@ -193,13 +209,13 @@ public class UserService {
             case "position":
                 return userRepository.findByPositionNameContainingAndDelYn(search, DelYN.N, pageable).getContent();
             case "all":
-                return userRepository.findByNameContainingOrDepartmentNameContainingOrPositionNameContainingAndDelYn(
-                        search, search, search, DelYN.N, pageable).getContent();
+                return userRepository.findByDelYnAndNameContainingOrDelYnAndDepartmentNameContainingOrDelYnAndPositionNameContaining(
+                        DelYN.N, search, DelYN.N, search, DelYN.N, search, pageable).getContent();
             default:
                 return userRepository.findByDelYn(DelYN.N, pageable).getContent();
         }
-
     }
+
 
     //  userNum으로 회원 이름 찾아오기
     public String getUserName() {
@@ -251,5 +267,30 @@ public class UserService {
             return userRepository.findByDepartmentIdAndNameContaining(departmentId, searchQuery);
         }
     }
+
+    public void changePassword(String userNum, PasswordChangeDto passwordChangeDto) {
+        User user = userRepository.findByUserNum(userNum)
+                .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
+
+        if (!passwordEncoder.matches(passwordChangeDto.getCurrentPassword(), user.getPassword())) {
+            throw new RuntimeException("현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        user.setPassword(passwordEncoder.encode(passwordChangeDto.getNewPassword()));
+        userRepository.save(user);
+    }
+
+    public String generateUserNum(String date) {
+        String lastUserNum = userRepository.findLastUserNum(date);
+        if (lastUserNum == null) {
+            return date + "001";
+        }
+        int lastNum = Integer.parseInt(lastUserNum.substring(8));
+        String newUserNum = String.format("%03d", lastNum + 1);
+        return date + newUserNum;
+    }
+
+
+
 
 }

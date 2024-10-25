@@ -70,4 +70,8 @@ public class JwtTokenProvider {
 		}
 	}
 
+	public long getTokenExpiration() {
+		return tokenValidity;
+	}
+
 }

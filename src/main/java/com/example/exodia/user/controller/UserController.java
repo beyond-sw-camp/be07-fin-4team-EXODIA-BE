@@ -4,11 +4,13 @@ import com.example.exodia.common.auth.JwtTokenProvider;
 import com.example.exodia.common.dto.CommonErrorDto;
 import com.example.exodia.common.dto.CommonResDto;
 import com.example.exodia.common.service.UploadAwsFileService;
+import com.example.exodia.submit.dto.PasswordChangeDto;
 import com.example.exodia.user.dto.*;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 import com.example.exodia.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -62,8 +64,14 @@ public class UserController {
             @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
             @RequestHeader("Authorization") String token) {
         String departmentId = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
-        User newUser = userService.registerUser(registerDto, profileImage, departmentId);
-        return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 등록 성공", newUser));
+        try {
+            User newUser = userService.registerUser(registerDto, profileImage, departmentId);
+            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 등록 성공", newUser));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new CommonResDto(HttpStatus.BAD_REQUEST, e.getMessage(), null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new CommonResDto(HttpStatus.INTERNAL_SERVER_ERROR, "유저 등록 중 오류 발생", null));
+        }
     }
 
     @PutMapping("/list/{userNum}")
@@ -74,23 +82,33 @@ public class UserController {
             @RequestHeader("Authorization") String token) {
 
         String departmentId = jwtTokenProvider.getDepartmentIdFromToken(token.substring(7));
+        String uploadedFilePath = updateDto.getProfileImageUrl();
 
-        String uploadedFilePath = null;
         if (profileImage != null && !profileImage.isEmpty()) {
             uploadedFilePath = uploadAwsFileService.uploadFileAndReturnPath(profileImage, "profile");
         }
-
         User updatedUser = userService.updateUser(userNum, updateDto, departmentId, uploadedFilePath);
         return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 정보 수정 완료", updatedUser));
     }
 
-
-
-
-
     @GetMapping("/list")
-    public ResponseEntity<List<UserInfoDto>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+    public ResponseEntity<Map<String, Object>> getAllUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<User> userPage = userService.getAllUsers(page, size);
+
+        List<UserInfoDto> users = userPage.getContent().stream()
+                .map(UserInfoDto::fromEntity)
+                .collect(Collectors.toList());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("users", users);
+        response.put("currentPage", userPage.getNumber());
+        response.put("totalItems", userPage.getTotalElements());
+        response.put("totalPages", userPage.getTotalPages());
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/list/{userNum}")
@@ -166,5 +184,26 @@ public class UserController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(userDtos);
     }
+
+
+    @PutMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody PasswordChangeDto passwordChangeDto, @RequestHeader("Authorization") String token) {
+        try {
+            String userNum = jwtTokenProvider.getUserNumFromToken(token.substring(7));
+            userService.changePassword(userNum, passwordChangeDto);
+            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "비밀번호 변경 성공", null));
+        } catch (Exception e) {
+            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.UNAUTHORIZED, e.getMessage()), HttpStatus.UNAUTHORIZED);
+        }
+    }
+
+    @GetMapping("/generateUserNum/{date}")
+    public ResponseEntity<Map<String, String>> generateUserNum(@PathVariable String date) {
+        String newUserNum = userService.generateUserNum(date);
+        Map<String, String> response = new HashMap<>();
+        response.put("userNum", newUserNum);
+        return ResponseEntity.ok(response);
+    }
+
 
 }

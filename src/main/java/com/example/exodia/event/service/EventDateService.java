@@ -1,12 +1,15 @@
 package com.example.exodia.event.service;
 
+import com.example.exodia.calendar.service.CalendarService;
 import com.example.exodia.event.domain.EventDate;
 import com.example.exodia.event.domain.EventHistory;
 import com.example.exodia.event.dto.EventHistoryDto;
 import com.example.exodia.event.repository.EventDateRepository;
 import com.example.exodia.event.repository.EventHistoryRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -18,6 +21,7 @@ public class EventDateService {
 
     private final EventDateRepository eventDateRepository;
     private final EventHistoryRepository eventHistoryRepository;
+    private final CalendarService calendarService;
 
     public void setEventDate(String eventType, LocalDate startDate, LocalDate endDate, String userNum) {
         EventDate existingEventDate = eventDateRepository.findByEventType(eventType)
@@ -53,5 +57,19 @@ public class EventDateService {
 
     public List<EventDate> getAllEvents() {
         return eventDateRepository.findAll();
+    }
+
+    @Transactional
+    public void deleteEvent(Long eventId) {
+        EventDate eventDate = eventDateRepository.findById(eventId)
+                .orElseThrow(() -> new EntityNotFoundException("EventDate not found"));
+        try {
+            calendarService.deleteCalendarByTitle(eventDate.getEventType());
+        } catch (Exception e) {
+            System.out.println("캘린더 이벤트를 찾을 수 없습니다.");
+        }
+
+        eventHistoryRepository.deleteByEventId(eventId);
+        eventDateRepository.deleteById(eventId);
     }
 }
