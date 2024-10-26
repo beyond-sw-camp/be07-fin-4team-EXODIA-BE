@@ -73,7 +73,7 @@ public class SseEmitters {
             } catch (IOException e) {
                 emitters.remove(userNum);
                 System.out.println("알림 전송 실패, SSE 연결 해제: " + userNum);
-                e.printStackTrace();
+//                e.printStackTrace();
             }
         } else {
             System.out.println("SSE 연결 없음: " + userNum);
@@ -89,7 +89,7 @@ public class SseEmitters {
             } catch (IOException e) {
                 emitters.remove(userNum);
                 System.out.println("알림 전송 실패, SSE 연결 해제: " + userNum);
-                e.printStackTrace();
+//                e.printStackTrace();
             }
         } else {
             System.out.println("SSE 연결 없음: " + userNum);

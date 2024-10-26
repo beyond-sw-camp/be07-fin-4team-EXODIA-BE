@@ -52,4 +52,9 @@ public class ManagerService {
                 .map(ManagerListDto::fromEntity)
                 .collect(Collectors.toList());
     }
+
+    // 매니저 여부 확인 메서드
+    public boolean isManager(String userNum) {
+        return managerRepository.existsByUser_UserNum(userNum);
+    }
 }
