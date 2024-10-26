@@ -1,6 +1,6 @@
 package com.example.exodia.qna.controller;
 
-import com.example.exodia.qna.domain.Manager;
+
 import com.example.exodia.qna.dto.ManagerListDto;
 import com.example.exodia.qna.dto.ManagerSaveDto;
 import com.example.exodia.qna.service.ManagerService;
@@ -40,5 +40,11 @@ public class ManagerController {
     public ResponseEntity<List<ManagerListDto>> getAllManagers() {
         List<ManagerListDto> managers = managerService.getAllManagers();
         return ResponseEntity.ok(managers);
+    }
+
+    @GetMapping("/is-manager/{userNum}")
+    public ResponseEntity<Boolean> isManager(@PathVariable String userNum) {
+        boolean isManager = managerService.isManager(userNum);
+        return ResponseEntity.ok(isManager);
     }
 }
