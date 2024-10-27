@@ -24,9 +24,9 @@ public class SseEmitters {
         // Heartbeat 스케줄 설정
         ScheduledFuture<?> heartbeatTask = scheduler.scheduleAtFixedRate(() -> {
             try {
-                // 연결이 유지되어 있으면 heartbeat 전송
                 if (emitters.containsKey(userNum)) {
                     emitter.send(SseEmitter.event().comment("heartbeat"));
+                    System.out.println("Heartbeat 전송: " + userNum); // 로그 출력 감소
                 } else {
                     throw new IOException("연결이 종료되었습니다.");
                 }
@@ -34,7 +34,7 @@ public class SseEmitters {
                 emitters.remove(userNum);
                 System.out.println("SSE 연결 오류 발생 및 종료: " + userNum);
             }
-        }, 0, 30, TimeUnit.SECONDS);
+        }, 0, 2, TimeUnit.MINUTES);
 
         // SSE 종료 처리
         emitter.onCompletion(() -> {

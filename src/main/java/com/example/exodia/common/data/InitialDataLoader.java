@@ -137,7 +137,7 @@ public class InitialDataLoader implements CommandLineRunner {
                 Gender.M,
                 Status.재직,
                 password1,
-                "test1@test",
+                "leem5514@naver.com",
                 "어양동",
                 "01012345678",
                 "123456-1234567",
