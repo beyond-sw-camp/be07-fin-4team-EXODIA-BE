@@ -94,6 +94,20 @@ public class ReservationMeetController {
         reservationMeetService.cancelReservation(id);
         return new ResponseEntity<>(new CommonResDto(HttpStatus.OK, "예약이 취소되었습니다.", id), HttpStatus.OK);
     }
+
+    /* 예약된 회의에 유저 초대 */
+    @PreAuthorize("hasRole('USER')")
+    @PostMapping("/{reservationId}/invite")
+    public ResponseEntity<CommonResDto> inviteUsers(
+            @PathVariable Long reservationId,
+            @RequestBody List<String> invitedUserNums) {
+        try {
+            reservationMeetService.inviteUsersToMeeting(reservationId, invitedUserNums);
+            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "유저 초대 완료", null));
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(new CommonResDto(HttpStatus.FORBIDDEN, e.getMessage(), null), HttpStatus.FORBIDDEN);
+        }
+    }
 }
 //    @GetMapping("/room/{roomId}")
 //    public ResponseEntity<List<ReservationMeetListDto>> getReservationsForRoom(@PathVariable Long roomId) {

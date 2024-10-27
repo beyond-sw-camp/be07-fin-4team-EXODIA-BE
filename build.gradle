@@ -137,6 +137,9 @@ dependencies {
 	//sms
 //	compile group: 'net.nurigo', name: 'javaSDK', version: '2.2'
 	implementation group: 'net.nurigo', name: 'javaSDK', version: '2.2'
+
+
+
 }
 
 
