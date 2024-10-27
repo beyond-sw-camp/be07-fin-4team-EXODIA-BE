@@ -138,6 +138,8 @@ dependencies {
 //	compile group: 'net.nurigo', name: 'javaSDK', version: '2.2'
 	implementation group: 'net.nurigo', name: 'javaSDK', version: '2.2'
 
+	// stmp
+	implementation 'org.springframework.boot:spring-boot-starter-mail:3.2.2'
 
 
 }

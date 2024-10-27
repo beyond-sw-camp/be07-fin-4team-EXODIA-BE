@@ -122,7 +122,6 @@ public class ReservationMeetService {
     /* 로그인 한 유저의 예약 내역 조회 */
     @Transactional(readOnly = true)
     public List<ReservationMeetListDto> getUserReservations() {
-        // 현재 로그인된 사용자 정보 가져오기
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new IllegalArgumentException("로그인된 사용자를 찾을 수 없습니다."));
