@@ -139,7 +139,7 @@ dependencies {
 	implementation group: 'net.nurigo', name: 'javaSDK', version: '2.2'
 
 // openvidu
-	implementation 'io.openvidu:openvidu-java-client:2.29.0'
+	implementation 'io.openvidu:openvidu-java-client:2.23.0'
 }
 
 

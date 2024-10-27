@@ -21,7 +21,7 @@ public class SseEmitters {
     public SseEmitter addEmitter(String userNum) {
         SseEmitter emitter = new SseEmitter(600_000L);
         emitters.put(userNum, emitter);
-        System.out.println("SSE Emitter 추가: " + userNum);
+//        System.out.println("SSE Emitter 추가: " + userNum);
 
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(() -> {
@@ -29,7 +29,7 @@ public class SseEmitters {
                 emitter.send(SseEmitter.event().comment("heartbeat"));
             } catch (IOException e) {
                 emitters.remove(userNum);
-                System.out.println("SSE 연결 오류 발생: " + userNum);
+//                System.out.println("SSE 연결 오류 발생: " + userNum);
             }
         }, 0, 30, TimeUnit.SECONDS);
 
@@ -37,11 +37,11 @@ public class SseEmitters {
         emitter.onCompletion(() -> emitters.remove(userNum));
         emitter.onTimeout(() -> {
             emitters.remove(userNum);
-            System.out.println("SSE 연결 타임아웃 발생: " + userNum);
+//            System.out.println("SSE 연결 타임아웃 발생: " + userNum);
         });
         emitter.onError(e -> {
             emitters.remove(userNum);
-            System.out.println("SSE 연결 오류 발생: " + userNum);
+//            System.out.println("SSE 연결 오류 발생: " + userNum);
 
         });
 
@@ -72,11 +72,11 @@ public class SseEmitters {
                 System.out.println("알림 전송 성공: " + userNum);
             } catch (IOException e) {
                 emitters.remove(userNum);
-                System.out.println("알림 전송 실패, SSE 연결 해제: " + userNum);
+//                System.out.println("알림 전송 실패, SSE 연결 해제: " + userNum);
 //                e.printStackTrace();
             }
         } else {
-            System.out.println("SSE 연결 없음: " + userNum);
+//            System.out.println("SSE 연결 없음: " + userNum);
         }
     }
 
@@ -88,11 +88,11 @@ public class SseEmitters {
                 System.out.println("알림 전송 성공: " + userNum);
             } catch (IOException e) {
                 emitters.remove(userNum);
-                System.out.println("알림 전송 실패, SSE 연결 해제: " + userNum);
+//                System.out.println("알림 전송 실패, SSE 연결 해제: " + userNum);
 //                e.printStackTrace();
             }
         } else {
-            System.out.println("SSE 연결 없음: " + userNum);
+//            System.out.println("SSE 연결 없음: " + userNum);
         }
     }
 }
