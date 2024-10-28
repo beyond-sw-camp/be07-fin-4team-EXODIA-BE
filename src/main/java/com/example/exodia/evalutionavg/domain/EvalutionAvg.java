@@ -30,16 +30,12 @@ import java.time.LocalDate;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Where(clause = "del_yn = 'N'")
 public class EvalutionAvg extends BaseTimeEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "sub_evalution_id", nullable = false)
-    private SubEvalution subEvalution; // 소분류
 
     @Column(nullable = false)
     private double average; // 평균 점수
