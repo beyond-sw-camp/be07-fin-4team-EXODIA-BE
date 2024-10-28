@@ -48,6 +48,7 @@ public class CommentDoc extends BaseTimeEntity {
 			return CommentDocListResDto.builder()
 				.id(this.id)
 				.userName(this.user.getName())
+				.userProfileImage(this.user.getProfileImage())
 				.contents(this.contents)
 				.createdAt(this.getCreatedAt())
 				.build();

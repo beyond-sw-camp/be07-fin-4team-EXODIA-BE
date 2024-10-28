@@ -100,8 +100,9 @@ public class Document extends BaseTimeEntity {
 			.id(this.getId())
 			.fileName(this.getFileName())
 			.userName(this.getUser().getName())
+			.userProfileImage(this.getUser().getProfileImage())
 			.description(this.description)
-			.updatedAt(this.getUpdatedAt())
+			.updatedAt(this.getCreatedAt())
 			.build();
 	}
 
