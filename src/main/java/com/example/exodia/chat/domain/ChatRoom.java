@@ -53,7 +53,7 @@ public class ChatRoom extends BaseTimeEntity {
         return ChatRoomResponse.builder()
                 .roomId(this.getId())
                 .roomName(this.getRoomName())
-                .userNums(userNums)
+                .users(this.chatUsers.stream().map(ChatUser::fromEntityForRoomList).toList())
                 .recentChat(this.getRecentChat()!=null ? this.getRecentChat():"")
                 .unreadChatNum(unreadChat)
                 .recentChatTime(this.getRecentChat()!= null ? this.getRecentChatTime().toString() : "")
