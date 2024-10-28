@@ -19,7 +19,7 @@ public class SseEmitters {
     public SseEmitter addEmitter(String userNum) {
         SseEmitter emitter = new SseEmitter(600_000L);
         emitters.put(userNum, emitter);
-        System.out.println("SSE Emitter 추가: " + userNum);
+//        System.out.println("SSE Emitter 추가: " + userNum);
 
         // Heartbeat 스케줄 설정
         ScheduledFuture<?> heartbeatTask = scheduler.scheduleAtFixedRate(() -> {
@@ -53,8 +53,9 @@ public class SseEmitters {
         // SSE 오류 처리
         emitter.onError(e -> {
             emitters.remove(userNum);
+
             System.out.println("SSE 연결 오류 발생: " + userNum);
-            heartbeatTask.cancel(true); // heartbeat 스케줄 정리
+            heartbeatTask.cancel(true); // heartbeat 스케줄 정
         });
 
         return emitter;
@@ -94,6 +95,7 @@ public class SseEmitters {
             }
         } else {
             //System.out.println("SSE 연결 없음: " + userNum);
+
         }
     }
 
@@ -110,6 +112,7 @@ public class SseEmitters {
             }
         } else {
             //System.out.println("SSE 연결 없음: " + userNum);
+
         }
     }
 }

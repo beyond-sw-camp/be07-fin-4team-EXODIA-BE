@@ -17,6 +17,8 @@ public class WebConfig {
         config.addAllowedOrigin("http://localhost:8082");
         config.addAllowedOrigin("http://localhost:8088");
         config.addAllowedOrigin("http://localhost:8087");
+        config.addAllowedOrigin("http://localhost:4443");
+
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         source.registerCorsConfiguration("/**", config);

@@ -12,4 +12,5 @@ import java.util.Optional;
 public interface ManagerRepository extends JpaRepository<Manager, Long> {
     boolean existsByUser(User user);
     Optional<Manager> findByUser_UserNum(String userNum);
+    boolean existsByUser_UserNum(String userNum);
 }

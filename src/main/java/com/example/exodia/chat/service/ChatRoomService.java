@@ -251,4 +251,9 @@ public class ChatRoomService {
         return ChatUserInfoResponse.builder().senderName(user.getName()).senderNum(user.getUserNum()).build();
     }
 
+    // 채팅방 이름 변경.
+    public Long changeChatRoomName(){
+        return 0L;
+    }
+
 }
