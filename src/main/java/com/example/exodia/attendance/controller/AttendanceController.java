@@ -106,6 +106,12 @@ public class AttendanceController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+
+
+    @GetMapping("/department/list")
+    public ResponseEntity<?> test() {
+        return ResponseEntity.ok(attendanceService.getTodayRecords());
+    }
 }
 
 

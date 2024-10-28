@@ -35,9 +35,13 @@ public class Attendance {
 
     private LocalDateTime outTime; // 퇴근 시간
 
+    // @Enumerated(EnumType.STRING)
+    // @Column(nullable = false)
+    // private DayStatus dayStatus;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private DayStatus dayStatus;
+    private NowStatus nowStatus;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
