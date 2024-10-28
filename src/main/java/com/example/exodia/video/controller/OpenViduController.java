@@ -1,6 +1,6 @@
 package com.example.exodia.video.controller;
 
-import java.util.Map;
+import java.util.*;
 
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,13 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import io.openvidu.java.client.Connection;
-import io.openvidu.java.client.ConnectionProperties;
-import io.openvidu.java.client.OpenVidu;
-import io.openvidu.java.client.OpenViduHttpException;
-import io.openvidu.java.client.OpenViduJavaClientException;
-import io.openvidu.java.client.Session;
-import io.openvidu.java.client.SessionProperties;
+import io.openvidu.java.client.*;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -39,13 +33,11 @@ public class OpenViduController {
      * @param params Optional session properties
      * @return Session ID
      */
-// OpenViduController.java
     @PostMapping("/sessions")
     public ResponseEntity<String> initializeSession(@RequestBody(required = false) Map<String, Object> params) {
         try {
             if (params != null && params.containsKey("customSessionId")) {
                 String customSessionId = params.get("customSessionId").toString();
-                // 한글을 제거하고 허용된 문자만 남김
                 customSessionId = customSessionId.replaceAll("[^a-zA-Z0-9_-]", "");
                 params.put("customSessionId", customSessionId);
             }
@@ -99,6 +91,38 @@ public class OpenViduController {
         } catch (OpenViduJavaClientException | OpenViduHttpException e) {
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Retrieves a list of all active sessions with participant counts.
+     * @return Map of session IDs and their participant counts
+     */
+    @GetMapping("/sessions")
+    public ResponseEntity<Map<String, Integer>> getSessions() {
+        Map<String, Integer> sessions = new HashMap<>();
+        for (Session session : openvidu.getActiveSessions()) {
+            sessions.put(session.getSessionId(), session.getConnections().size());
+        }
+        return new ResponseEntity<>(sessions, HttpStatus.OK);
+    }
+
+    /**
+     * Retrieves the list of participants for a specific session.
+     * @param sessionId The session ID
+     * @return List of participant connection IDs in the session
+     */
+    @GetMapping("/sessions/{sessionId}/participants")
+    public ResponseEntity<List<String>> getSessionParticipants(@PathVariable("sessionId") String sessionId) {
+        Session session = openvidu.getActiveSession(sessionId);
+        if (session != null) {
+            List<String> participants = new ArrayList<>();
+            for (Connection connection : session.getConnections()) {
+                participants.add(connection.getConnectionId());
+            }
+            return new ResponseEntity<>(participants, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 }
