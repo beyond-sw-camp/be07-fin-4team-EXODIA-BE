@@ -8,51 +8,69 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 @Service
 public class SseEmitters {
 
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
 
     public SseEmitter addEmitter(String userNum) {
         SseEmitter emitter = new SseEmitter(600_000L);
         emitters.put(userNum, emitter);
 //        System.out.println("SSE Emitter 추가: " + userNum);
 
-        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-        scheduler.scheduleAtFixedRate(() -> {
+        // Heartbeat 스케줄 설정
+        ScheduledFuture<?> heartbeatTask = scheduler.scheduleAtFixedRate(() -> {
             try {
-                emitter.send(SseEmitter.event().comment("heartbeat"));
+                if (emitters.containsKey(userNum)) {
+                    emitter.send(SseEmitter.event().comment("heartbeat"));
+                    System.out.println("Heartbeat 전송: " + userNum); // 로그 출력 감소
+                } else {
+                    throw new IOException("연결이 종료되었습니다.");
+                }
             } catch (IOException e) {
                 emitters.remove(userNum);
-//                System.out.println("SSE 연결 오류 발생: " + userNum);
+                System.out.println("SSE 연결 오류 발생 및 종료: " + userNum);
             }
-        }, 0, 30, TimeUnit.SECONDS);
+        }, 0, 2, TimeUnit.MINUTES);
 
-        // SSE 종료/에러 -> 백업처리로직
-        emitter.onCompletion(() -> emitters.remove(userNum));
+        // SSE 종료 처리
+        emitter.onCompletion(() -> {
+            emitters.remove(userNum);
+            System.out.println("SSE 연결 완료: " + userNum);
+            heartbeatTask.cancel(true); // heartbeat 스케줄 정리
+        });
+
+        // SSE 타임아웃 처리
         emitter.onTimeout(() -> {
             emitters.remove(userNum);
-//            System.out.println("SSE 연결 타임아웃 발생: " + userNum);
+            System.out.println("SSE 연결 타임아웃 발생: " + userNum);
+            heartbeatTask.cancel(true); // heartbeat 스케줄 정리
         });
+
+        // SSE 오류 처리
         emitter.onError(e -> {
             emitters.remove(userNum);
-//            System.out.println("SSE 연결 오류 발생: " + userNum);
 
+            System.out.println("SSE 연결 오류 발생: " + userNum);
+            heartbeatTask.cancel(true); // heartbeat 스케줄 정
         });
 
-//        try {
-//            emitter.send(SseEmitter.event().name("connect").data("connected!"));
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
         return emitter;
     }
-
+    public void shutdownScheduler() {
+        scheduler.shutdown();
+        try {
+            if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
+                scheduler.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            scheduler.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+    }
     // 모든 사용자
     public void sendToAll(Notification notification) {
         emitters.forEach((userNum, emitter) -> {
@@ -72,11 +90,12 @@ public class SseEmitters {
                 System.out.println("알림 전송 성공: " + userNum);
             } catch (IOException e) {
                 emitters.remove(userNum);
-//                System.out.println("알림 전송 실패, SSE 연결 해제: " + userNum);
-//                e.printStackTrace();
+                System.out.println("알림 전송 실패, SSE 연결 해제: " + userNum);
+                //e.printStackTrace();
             }
         } else {
-//            System.out.println("SSE 연결 없음: " + userNum);
+            //System.out.println("SSE 연결 없음: " + userNum);
+
         }
     }
 
@@ -88,11 +107,12 @@ public class SseEmitters {
                 System.out.println("알림 전송 성공: " + userNum);
             } catch (IOException e) {
                 emitters.remove(userNum);
-//                System.out.println("알림 전송 실패, SSE 연결 해제: " + userNum);
-//                e.printStackTrace();
+                //System.out.println("알림 전송 실패, SSE 연결 해제: " + userNum);
+                //e.printStackTrace();
             }
         } else {
-//            System.out.println("SSE 연결 없음: " + userNum);
+            //System.out.println("SSE 연결 없음: " + userNum);
+
         }
     }
 }

@@ -137,7 +137,7 @@ public class InitialDataLoader implements CommandLineRunner {
                 Gender.M,
                 Status.재직,
                 password1,
-                "test1@test",
+                "leem5514@naver.com",
                 "어양동",
                 "01012345678",
                 "123456-1234567",
@@ -162,7 +162,7 @@ public class InitialDataLoader implements CommandLineRunner {
                 "01098765432",
                 "123456-2345678",
                 HireType.계약직,
-                NowStatus.회의,
+                NowStatus.출근,
                 15,0,0,
                 hrDepartment,
                 test1,
@@ -182,7 +182,7 @@ public class InitialDataLoader implements CommandLineRunner {
                 "01033333333",
                 "123456-3456789",
                 HireType.정규직,
-                NowStatus.회의,
+                NowStatus.출근,
                 10,0,0,
                 managementTeam1,
                 assistantManager,
@@ -272,13 +272,13 @@ public class InitialDataLoader implements CommandLineRunner {
 
 
         List<Car> cars = new ArrayList<>();
-        cars.add(new Car(null, "121가123", "스타랙스", 11, 2.5, "starrex.jpg"));
-        cars.add(new Car(null, "135나894", "밴츠", 5, 3.0, "benz.jpg"));
-        cars.add(new Car(null, "753호159", "SUV", 7, 2.0, "suv.jpg"));
-        cars.add(new Car(null, "143라3451", "람보르기니", 2, 5.2, "lamborghini.jpg"));
-        cars.add(new Car(null, "429호7318", "G70", 5, 3.3, "g70.jpg"));
-        cars.add(new Car(null, "14라 8222", "소나타", 5, 2.0, "sonata.jpg"));
-        cars.add(new Car(null, "18유3752", "황금마티즈", 4, 0.8, "matiz.jpg"));
+        cars.add(new Car(null, "121가123", "스타랙스", 11, 2.5, "https://exodia-file.s3.ap-northeast-2.amazonaws.com/board/grand%20starex.jpeg"));
+        cars.add(new Car(null, "135나894", "밴츠", 5, 3.0, "https://exodia-file.s3.ap-northeast-2.amazonaws.com/board/banchSclass.jpeg"));
+        cars.add(new Car(null, "753호159", "SUV", 7, 2.0, "https://exodia-file.s3.ap-northeast-2.amazonaws.com/board/suv.jpeg"));
+        cars.add(new Car(null, "143라3451", "람보르기니", 2, 5.2, "https://exodia-file.s3.ap-northeast-2.amazonaws.com/board/ramboruginiurakan.jpeg"));
+        cars.add(new Car(null, "429호7318", "G70", 5, 3.3, "https://exodia-file.s3.ap-northeast-2.amazonaws.com/board/g70.jpeg"));
+        cars.add(new Car(null, "14라 8222", "소나타", 5, 2.0, "https://exodia-file.s3.ap-northeast-2.amazonaws.com/board/sonata.jpeg"));
+        cars.add(new Car(null, "18유3752", "황금마티즈", 4, 0.8, "https://exodia-file.s3.ap-northeast-2.amazonaws.com/board/matizgold.jpeg"));
         carRepository.saveAll(cars);
       
         submitTypeRepository.save(new SubmitType(1L, "법인 카드 사용 신청서"));

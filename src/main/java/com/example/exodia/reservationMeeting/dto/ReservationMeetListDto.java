@@ -17,9 +17,9 @@ public class ReservationMeetListDto {
     private Long id;
     private Long meetingRoomId;
     private Long userId;
-    private String userProfileImage;//
-    private String userName;//
-    private String userNum;//
+    private String userProfileImage;
+    private String userName;
+    private String userNum;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private Status status;
