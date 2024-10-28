@@ -221,7 +221,7 @@ public class RedisConfig {
     @Qualifier("hits")
     public RedisTemplate<String, Object> hitsRedisTemplate() {
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
-        redisTemplate.setConnectionFactory(connectionFactoryUpdatedDoc());
+        redisTemplate.setConnectionFactory(connectionFactoryHits());
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         return redisTemplate;

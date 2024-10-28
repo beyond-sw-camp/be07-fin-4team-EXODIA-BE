@@ -3,9 +3,11 @@ package com.example.exodia.board.repository;
 import com.example.exodia.board.domain.Board;
 import com.example.exodia.board.domain.Category;
 import com.example.exodia.common.domain.DelYN;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
@@ -39,5 +41,10 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     // 타이틀 또는 내용으로 검색하고 카테고리와 삭제 여부에 따라 필터링
     Page<Board> findByTitleContainingOrContentContainingIgnoreCaseAndCategoryAndDelYn(
             String title, String content, Category category, DelYN delYN, Pageable pageable);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE Board b SET b.delYn = 'Y' WHERE b.id = :boardId")
+    void softDeleteById(Long boardId);
 
 }
