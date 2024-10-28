@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/rooms")
@@ -19,10 +19,16 @@ public class RoomController {
 
     // RoomRequestDto로 roomName과 password를 JSON으로 받음
     @PostMapping("/create")
-    public ResponseEntity<Room> createRoom(@RequestBody RoomRequestDto roomRequestDto) {
+    public ResponseEntity<Map<String, Object>> createRoom(@RequestBody RoomRequestDto roomRequestDto) {
         Room room = roomService.createRoom(roomRequestDto.getRoomName(), roomRequestDto.getPassword());
-        return ResponseEntity.ok(room);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("sessionId", room.getSessionId()); // Room에 sessionId가 포함된 경우
+        response.put("roomName", room.getRoomName());
+
+        return ResponseEntity.ok(response);
     }
+
 
     @GetMapping("/list")
     public ResponseEntity<List<Room>> getRoomList() {

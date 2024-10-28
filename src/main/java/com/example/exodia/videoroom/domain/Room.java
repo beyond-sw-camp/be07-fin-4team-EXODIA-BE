@@ -22,6 +22,9 @@ public class Room {
     @Column(nullable = false)
     private int participantCount;
 
+    @Column(nullable = false, unique = true)
+    private String sessionId;
+
     public void incrementParticipant() {
         this.participantCount += 1;
     }

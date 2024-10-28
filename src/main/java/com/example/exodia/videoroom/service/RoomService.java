@@ -1,6 +1,5 @@
 package com.example.exodia.videoroom.service;
 
-
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 import com.example.exodia.videoroom.domain.Participant;
@@ -8,16 +7,18 @@ import com.example.exodia.videoroom.domain.Room;
 import com.example.exodia.videoroom.repository.ParticipantRepository;
 import com.example.exodia.videoroom.repository.RoomRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import java.util.List;
+import org.springframework.web.client.RestTemplate;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import java.util.*;
 
-import java.util.List;
 
 @Service
 public class RoomService {
+
+    private final String OPENVIDU_URL = "http://localhost:4443";
+    private final String OPENVIDU_SECRET = "MY_SECRET";
 
     @Autowired
     private RoomRepository roomRepository;
@@ -31,9 +32,30 @@ public class RoomService {
         Room room = Room.builder()
                 .roomName(roomName)
                 .password(password)
-                .participantCount(1)
+                .participantCount(0)
+                .sessionId(generateSessionId())
                 .build();
         return roomRepository.save(room);
+    }
+
+    private String generateSessionId() {
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBasicAuth("OPENVIDUAPP", OPENVIDU_SECRET);
+        headers.set("Content-Type", "application/json");
+
+        HttpEntity<String> request = new HttpEntity<>("{}", headers);
+        String sessionUrl = OPENVIDU_URL + "/api/sessions";
+
+        ResponseEntity<Map> response = restTemplate.exchange(
+                sessionUrl, HttpMethod.POST, request, Map.class
+        );
+
+        if (response.getStatusCode() == HttpStatus.OK) {
+            return (String) response.getBody().get("id"); // 생성된 sessionId 반환
+        } else {
+            throw new RuntimeException("세션 생성 실패");
+        }
     }
 
     public List<Room> getRoomList() {
