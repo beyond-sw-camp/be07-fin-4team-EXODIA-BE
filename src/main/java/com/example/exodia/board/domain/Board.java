@@ -99,6 +99,9 @@ public class Board extends BaseTimeEntity {
                 .build();
     }
 
+    public void softDelete() {
+        super.softDelete();
+    }
 
     public void updateBoardHitsFromRedis(Long hits) {
         this.hits = hits;

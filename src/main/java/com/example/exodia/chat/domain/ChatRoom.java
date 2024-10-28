@@ -27,7 +27,6 @@ public class ChatRoom extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // 채팅방 고유의 id
 
-    @Column(nullable = false)
     private String roomName;
 
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL)
