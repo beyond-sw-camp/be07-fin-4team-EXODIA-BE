@@ -29,7 +29,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     // 와일드 카드 `'*'`을 사용하실 수 없습니다.
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws").setAllowedOrigins("http://localhost:8087", "http://localhost:8082").withSockJS();
+        registry.addEndpoint("/ws").setAllowedOrigins("http://localhost:8087", "http://localhost:8082",  "http://localhost:4443").withSockJS();
     }
 
     @Override
