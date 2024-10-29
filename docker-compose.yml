@@ -1,5 +1,6 @@
 version: '3.8'
 services:
+  # 기존 Zookeeper 서비스 설정
   zookeeper:
     image: wurstmeister/zookeeper:latest
     container_name: zookeeper
@@ -8,6 +9,7 @@ services:
     volumes:
       - zookeeper-data:/var/lib/zookeeper/data
 
+  # 기존 Kafka 서비스 설정
   kafka:
     image: wurstmeister/kafka:latest
     container_name: kafka
@@ -24,21 +26,29 @@ services:
     depends_on:
       - zookeeper
 
-
+  # OpenVidu Server 설정
   openvidu-server:
     image: openvidu/openvidu-server-kms:2.23.0
+    container_name: openvidu-server
+    network_mode: "bridge"
     environment:
       - OPENVIDU_SECRET=MY_SECRET
-      - OPENVIDU_CDR=false
-      - OPENVIDU_RECORDING=false
-      - OPENVIDU_PUBLICURL=http://localhost:4443
-      - CORS_ALLOW_ALL_ORIGINS=true
+      - OPENVIDU_PUBLICURL=http://localhost:4443  # 외부 접근 주소 설정
     ports:
-      - "4443:4443"
-    container_name: openvidu-server
+      - "4443:4443"  # HTTPS 포트
 
-
-
+  # GetARoom 서비스 설정
+  openvidu-getaroom:
+    build:
+      context: .
+      dockerfile: Dockerfile.getaroom
+    container_name: openvidu-getaroom
+    ports:
+      - "7080:8080"
+    volumes:
+      - ./cert.pem:/usr/src/app/cert.pem
+      - ./key.pem:/usr/src/app/key.pem
+    command: ["http-server", "-S", "-C", "cert.pem", "-K", "key.pem", "openvidu-tutorials/openvidu-getaroom/web"]
 
 volumes:
   kafka-data:
