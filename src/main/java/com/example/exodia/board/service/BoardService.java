@@ -74,13 +74,7 @@ public class BoardService {
 
 
         String message = user.getDepartment().getName() + " 에서 " + dto.getTitle() + "를 작성했습니다";
-        if (board.getCategory() == Category.NOTICE) {
             kafkaProducer.sendBoardEvent("notice-events", message);
-        } else if (board.getCategory() == Category.FAMILY_EVENT) {
-            kafkaProducer.sendBoardEvent("family-event-notices", message);
-        }
-
-
 
         return board;
     }

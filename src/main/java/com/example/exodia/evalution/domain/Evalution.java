@@ -62,7 +62,7 @@ public class Evalution extends BaseTimeEntity {
                 .subEvalutionId(evalution.getSubEvalution().getId())
                 .targetName(evalution.getTarget().getName())
                 .targetDepartment(evalution.getTarget().getDepartment().getName())
-                .evalutorUserNum(evalution.getEvaluator().getUserNum())
+                .evaluatorUserNum(evalution.getEvaluator().getUserNum())
                 .evaluatorName(evalution.getEvaluator().getName())
                 .evaluatorDepartment(evalution.getEvaluator().getDepartment().getName())
                 .score(evalution.getScore())
