@@ -126,3 +126,18 @@ spec:
                 secretKeyRef:
                   key: JANUS_URL
                   name: pot-app-secrets
+            - name: KAFKA_SERVER
+              valueFrom:
+                secretKeyRef:
+                  key: KAFKA_SERVER
+                  name: pot-app-secrets
+            - name: OPENVIDU_URL
+              valueFrom:
+                secretKeyRef:
+                  key: OPENVIDU_URL
+                  name: pot-app-secrets
+            - name: OPENVIDU_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: OPENVIDU_SECRET
+                  name: pot-app-secrets
