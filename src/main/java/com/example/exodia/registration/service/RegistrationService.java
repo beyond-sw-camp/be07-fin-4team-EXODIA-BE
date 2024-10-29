@@ -1,7 +1,6 @@
 package com.example.exodia.registration.service;
 
 
-import com.example.exodia.common.service.EmailService;
 import com.example.exodia.common.service.KafkaProducer;
 import com.example.exodia.course.domain.Course;
 import com.example.exodia.course.repository.CourseRepository;
@@ -33,18 +32,18 @@ public class RegistrationService {
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
     private final RegistrationRepository registrationRepository;
-    private final EmailService emailService;
+
 
     @Autowired
     public RegistrationService(RedissonClient redissonClient, @Qualifier("12") RedisTemplate<String, Object> redisTemplate,
-                               KafkaProducer kafkaProducer, CourseRepository courseRepository, UserRepository userRepository, RegistrationRepository registrationRepository, EmailService emailService) {
+                               KafkaProducer kafkaProducer, CourseRepository courseRepository, UserRepository userRepository, RegistrationRepository registrationRepository) {
         this.redissonClient = redissonClient;
         this.redisTemplate = redisTemplate;
         this.kafkaProducer = kafkaProducer;
         this.courseRepository = courseRepository;
         this.userRepository = userRepository;
         this.registrationRepository = registrationRepository;
-        this.emailService = emailService;
+
     }
 
     @Transactional
@@ -178,13 +177,13 @@ public class RegistrationService {
         kafkaProducer.sendCourseTransmissionEvent(courseId.toString(), message);
 
         // 참가자 이메일 목록 가져오기
-        List<Registration> registrations = registrationRepository.findAllByCourseAndRegistrationStatus(course, "confirmed");
-        List<String> participantEmails = registrations.stream()
-                .map(registration -> registration.getUser().getEmail())
-                .collect(Collectors.toList());
-
-        // 참가자들에게 이메일 발송
-        emailService.sendCourseTransmissionEmail(participantEmails, course.getCourseName());
+//        List<Registration> registrations = registrationRepository.findAllByCourseAndRegistrationStatus(course, "confirmed");
+//        List<String> participantEmails = registrations.stream()
+//                .map(registration -> registration.getUser().getEmail())
+//                .collect(Collectors.toList());
+//
+//        // 참가자들에게 이메일 발송
+//        emailService.sendCourseTransmissionEmail(participantEmails, course.getCourseName());
 
         System.out.println("강좌 전송 완료: " + course.getCourseName());
     }

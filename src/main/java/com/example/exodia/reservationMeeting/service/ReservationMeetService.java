@@ -103,19 +103,19 @@ public class ReservationMeetService {
 
         reservationMeetRepository.flush();
 
-        // 관리자를 대상으로 알림 전송
-        String departmentId = user.getDepartment().getId().toString();  // 예약자 부서 ID 가져오기
-        String userName = user.getName();  // 예약자 이름 가져오기
-
-        // Kafka를 통해 회의실 예약 이벤트 전송
-        kafkaProducer.sendMeetingReservationNotification(
-                "meeting-room-reservations",
-                userName,
-                meetingRoom.getName(),
-                reservationMeet.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),  // 시작 시간
-                reservationMeet.getEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),    // 종료 시간
-                departmentId
-        );
+//        // 관리자를 대상으로 알림 전송
+//        String departmentId = user.getDepartment().getId().toString();  // 예약자 부서 ID 가져오기
+//        String userName = user.getName();  // 예약자 이름 가져오기
+//
+//        // Kafka를 통해 회의실 예약 이벤트 전송
+//        kafkaProducer.sendMeetingReservationNotification(
+//                "meeting-room-reservations",
+//                userName,
+//                meetingRoom.getName(),
+//                reservationMeet.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),  // 시작 시간
+//                reservationMeet.getEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),    // 종료 시간
+//                departmentId
+//        );
         return ReservationMeetListDto.fromEntity(reservationMeet);
     }
 
