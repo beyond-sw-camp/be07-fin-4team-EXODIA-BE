@@ -6,16 +6,14 @@ import com.example.exodia.position.domain.Position;
 import com.example.exodia.user.dto.UserRegisterDto;
 import com.example.exodia.user.dto.UserUpdateDto;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Builder
 public class User extends BaseTimeEntity {
 
     @Id
@@ -55,13 +53,20 @@ public class User extends BaseTimeEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    //test 시에 false
     private HireType hireType;
 
     @Column(length = 100)
     private NowStatus n_status;
 
     @Column(nullable = false)
-    private int annualLeave;
+    private double annualLeave;
+
+    @Column(nullable = false)
+    private double sickDay = 0; // 사용 병가
+
+    @Column(nullable = false)
+    private double absentDay = 0; // 결근
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id", nullable = false)
@@ -91,9 +96,12 @@ public class User extends BaseTimeEntity {
         this.annualLeave = dto.getAnnualLeave();
         this.department = department;
         this.position = position;
+        this.gender = Gender.valueOf(dto.getGender());
+        this.status = Status.valueOf(dto.getStatus());
     }
 
-    public static User fromRegisterDto(UserRegisterDto dto, Department department, Position position, String encodedPassword) {
+
+    public static User fromRegisterDto(UserRegisterDto dto, Department department, Position position, Status status, String encodedPassword) {
         User user = new User();
         user.setUserNum(dto.getUserNum());
         user.setName(dto.getName());
@@ -102,12 +110,16 @@ public class User extends BaseTimeEntity {
         user.setAddress(dto.getAddress());
         user.setPhone(dto.getPhone());
         user.setSocialNum(dto.getSocialNum());
+        user.setGender(Gender.valueOf(dto.getGender()));
         user.setHireType(dto.getHireType());
+        user.setStatus(status);
+        user.setAnnualLeave(dto.getAnnualLeave());
         user.setDepartment(department);
         user.setPosition(position);
-        user.setAnnualLeave(dto.getAnnualLeave());
         return user;
     }
+
+
 
     public void softDelete() {
         super.softDelete();
@@ -121,5 +133,25 @@ public class User extends BaseTimeEntity {
     public User(String name, Department department) {
         this.name = name;
         this.department = department;
+    }
+
+    public void updateAnnualLeave(double vacationDate) {
+        this.annualLeave -= vacationDate;
+    }
+
+    public void updateSickDay(double vacationDate) {
+        this.sickDay += vacationDate;
+    }
+
+    public void setWorkIn(){
+        this.n_status = NowStatus.출근;
+    }
+
+    public void setWorkOut(){
+        this.n_status = NowStatus.퇴근;
+    }
+
+    public void setMeetingStatus(){
+        this.n_status = NowStatus.자리비움;
     }
 }

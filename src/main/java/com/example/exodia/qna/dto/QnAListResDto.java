@@ -1,7 +1,6 @@
 
 package com.example.exodia.qna.dto;
 
-import com.example.exodia.department.domain.Department;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

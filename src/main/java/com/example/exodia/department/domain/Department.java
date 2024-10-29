@@ -9,8 +9,7 @@ import lombok.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -28,6 +27,9 @@ public class Department {
     @JoinColumn(name = "parent_id")
     @JsonBackReference
     private Department parentDepartment;
+
+    @Column(length = 3000)
+    private String description;
 
     @OneToMany(mappedBy = "parentDepartment", cascade = CascadeType.ALL)
     @JsonManagedReference

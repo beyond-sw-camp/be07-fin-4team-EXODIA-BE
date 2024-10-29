@@ -22,7 +22,7 @@ public class EvalutionDto {
     private String targetUserNum; // 평가 대상자 ID
     private String targetName; // 평가 대상자 이름
     private String targetDepartment; // 평가 대상자 부서 이름
-    private String evalutorUserNum; // 평가자 ID
+    private String evaluatorUserNum; // 평가자 ID
     private String evaluatorName; // 평가자 이름
     private String evaluatorDepartment; // 평가자 부서 이름
     private Score score; // 평가 점수
@@ -36,7 +36,4 @@ public class EvalutionDto {
                 .score(this.score)
                 .build();
     }
-
-
-
 }

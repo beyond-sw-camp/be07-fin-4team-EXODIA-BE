@@ -15,7 +15,11 @@ public class UserInfoDto {
     private Long departmentId;
     private Long positionId;
     private String name;
+    private String phone;
+    private String departmentName;
+    private String positionName;
     private LocalDate joinDate;
+    private String profileImage;
 
     public static UserInfoDto fromEntity(User user) {
         return new UserInfoDto(
@@ -23,7 +27,11 @@ public class UserInfoDto {
                 user.getDepartment().getId(),
                 user.getPosition().getId(),
                 user.getName(),
-                user.getCreatedAt().toLocalDate()
+                user.getPhone(),
+                user.getDepartment().getName(),
+                user.getPosition().getName(),
+                user.getCreatedAt().toLocalDate(),
+                user.getProfileImage()
         );
     }
 }

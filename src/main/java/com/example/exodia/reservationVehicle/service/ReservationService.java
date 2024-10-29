@@ -3,6 +3,7 @@ package com.example.exodia.reservationVehicle.service;
 import com.example.exodia.car.domain.Car;
 import com.example.exodia.car.repository.CarRepository;
 import com.example.exodia.common.auth.JwtTokenProvider;
+import com.example.exodia.common.service.KafkaProducer;
 import com.example.exodia.notification.service.NotificationService;
 import com.example.exodia.reservationVehicle.domain.Reservation;
 import com.example.exodia.reservationVehicle.domain.Status;
@@ -18,10 +19,12 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -44,9 +47,12 @@ public class ReservationService {
     private UserService userService;
     @Autowired
     private NotificationService notificationService;
+    @Autowired
+    private KafkaProducer kafkaProducer;
 
 
     // 차량 예약 메서드
+    @Transactional
     public ReservationDto carReservation(ReservationCreateDto dto) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         RLock lock = redissonClient.getLock("carReservationLock:" + dto.getCarId() + ":" + dto.getStartDate());
@@ -58,26 +64,32 @@ public class ReservationService {
                 User user = userRepository.findByUserNum(userNum)
                         .orElseThrow(() -> new IllegalArgumentException("사용자가 존재하지 않습니다."));
 
-                List<Reservation> existingReservations = reservationRepository.findByCarIdAndDate(
-                        car.getId(), dto.getStartDate().atStartOfDay(), dto.getStartDate().atTime(LocalTime.MAX));
+                // 예약 기간 내에 다른 예약이 있는지 확인
+                List<Reservation> existingReservations = reservationRepository.findByCarIdAndDateRange(
+                        car.getId(),
+                        dto.getStartDate().atStartOfDay(),
+                        dto.getEndDate().atTime(LocalTime.MAX));
 
-                // 예약 가능여부 췍
                 boolean canReserve = existingReservations.stream().allMatch(Reservation::canReserve);
                 if (!canReserve) {
-                    throw new IllegalArgumentException("해당 날짜에 차량이 이미 예약되어 있거나 예약 가능한 상태가 아닙니다.");
+                    throw new IllegalArgumentException("해당 기간에 차량이 이미 예약되어 있습니다.");
                 }
 
                 Reservation reservation = dto.toEntity(car, user);
                 reservation.setStatus(Status.WAITING);
                 Reservation savedReservation = reservationRepository.save(reservation);
-
-                // 관리자에게 알림 전송 (차량 예약 요청)
-                String message = String.format("%s님이 %s 날짜에 차량 %s를 예약 요청하였습니다. (예약 시간: %s)", user.getName(), dto.getStartDate().toString(), car.getCarNum(), LocalDateTime.now());
-                notificationService.sendReservationReqToAdmins(message);
+                kafkaProducer.sendCarReservationNotification(
+                        "car-reservation-events",
+                        user.getUserNum(),
+                        user.getName(), // 유저명
+                        car.getCarNum(), // 차량 번호
+                        dto.getStartDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), //예약일
+                        dto.getEndDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) // 예약종료일
+                );
 
                 return ReservationDto.fromEntity(savedReservation);
             } else {
-                throw new IllegalArgumentException("현재 다른 사용자가 예약을 진행 중입니다. 잠시 후 다시 시도해주세요.");
+                throw new IllegalArgumentException("다른 사용자가 예약을 진행 중입니다. 잠시 후 다시 시도해주세요.");
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -88,8 +100,7 @@ public class ReservationService {
             }
         }
     }
-
-    /* 예약 승인 */
+    @Transactional
     public ReservationDto approveReservation(Long reservationId) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUserNum(userNum)
@@ -98,18 +109,22 @@ public class ReservationService {
                 .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다."));
 
         userService.checkHrAuthority(user.getDepartment().getId().toString());
-        // 예약 상태를 APPROVED로 변경
         reservation.approveReservation();
         reservation.reserve(); // 최종 예약 확정 상태로 변경
         Reservation updatedReservation = reservationRepository.save(reservation);
 
         // 사용자에게 알림 전송 (예약 승인)
-        String message = String.format("차량 예약이 승인되었습니다: %s", reservation.getCar().getCarNum());
-        notificationService.sendReservationApproval(reservation.getUser(), message);
-
+        kafkaProducer.sendReservationApprovalNotification(
+                "car-reservation-approval-events",
+                reservation.getUser().getUserNum(), // 사용자 번호 추가
+                reservation.getCar().getCarNum(),   // 차량 번호 추가
+                reservation.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                reservation.getEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+        );
         return ReservationDto.fromEntity(updatedReservation);
     }
 
+    @Transactional
     /* 예약 거절 */
     public void rejectReservation(Long reservationId) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -121,14 +136,19 @@ public class ReservationService {
         userService.checkHrAuthority(user.getDepartment().getId().toString());
 
         // 사용자에게 알림 전송 (예약 거절)
-        String message = String.format("차량 예약이 거절되었습니다: %s", reservation.getCar().getCarNum());
-        notificationService.sendReservationRejection(reservation.getUser(), message);
+        kafkaProducer.sendReservationRejectionNotification(
+                "car-reservation-approval-events",
+                reservation.getUser().getUserNum(), // 사용자 번호 추가
+                reservation.getCar().getCarNum(),
+                reservation.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                reservation.getEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+        );
 
         // 예약 삭제
         reservationRepository.delete(reservation);
     }
 
-
+    @Transactional
     // 특정 날짜에 차량이 예약 가능한지 확인 메서드
     public boolean isCarAvailableForDate(Long carId, LocalDate date) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -152,20 +172,20 @@ public class ReservationService {
         return reservationRepository.findByStartTimeBetween(date, date.plusDays(1))
                 .stream().map(ReservationDto::fromEntity).collect(Collectors.toList());
     }
-
+    @Transactional
     // 모든 예약 조회 메서드
     public List<ReservationDto> getAllReservations() {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
-        userService.checkHrAuthority(user.getDepartment().getId().toString());
+//        userService.checkHrAuthority(user.getDepartment().getId().toString());
 
         return reservationRepository.findAll().stream()
                 .map(ReservationDto::fromEntity)
                 .collect(Collectors.toList());
     }
-
+    @Transactional
     public List<CarReservationStatusDto> getAllCarsWithReservationStatusForDay(LocalDateTime date) {
         List<Car> cars = carRepository.findAll();
         List<CarReservationStatusDto> carReservationStatusList = new ArrayList<>();
@@ -179,11 +199,13 @@ public class ReservationService {
 
             // 예약 상태 확인: 예약이 없으면 AVAILABLE, 있으면 RESERVED
             boolean isAvailable = reservations.isEmpty();
+            User user = isAvailable ? null : reservations.get(0).getUser(); // 예약된 경우 사용자 정보 가져오기
 
             // Create DTO using fromEntity method
             CarReservationStatusDto carReservationStatusDto = CarReservationStatusDto.fromEntity(
                     car,
-                    isAvailable ? Status.AVAILABLE : Status.RESERVED
+                    isAvailable ? Status.AVAILABLE : Status.RESERVED,
+                    user
             );
 
             carReservationStatusList.add(carReservationStatusDto);
@@ -191,6 +213,7 @@ public class ReservationService {
 
         return carReservationStatusList;
     }
+
 }
 
 

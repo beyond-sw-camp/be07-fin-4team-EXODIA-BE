@@ -9,6 +9,8 @@ import org.hibernate.annotations.Where;
 import com.example.exodia.common.domain.BaseTimeEntity;
 import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.submit.dto.SubmitDetResDto;
+import com.example.exodia.submit.dto.SubmitLineResDto;
+import com.example.exodia.submit.dto.SubmitSaveReqDto;
 import com.example.exodia.user.domain.User;
 
 import jakarta.persistence.CascadeType;
@@ -55,14 +57,13 @@ public class Submit extends BaseTimeEntity {
 	private String reason;
 
 	@Column(nullable = false)
+	private boolean uploadBoard = false;	// 게시판에 등록 여부
+
+	@Column(nullable = false)
 	private Long department_id;
 
 	@OneToMany(mappedBy = "submit", cascade = CascadeType.PERSIST)
 	private List<SubmitLine> submitLines = new ArrayList<>();
-
-	@Enumerated(EnumType.STRING)
-	@Column(name = "del_yn", nullable = false)
-	private DelYN delYn = DelYN.N;
 
 	@ManyToOne
 	@JoinColumn(name = "user_num", referencedColumnName = "user_num", nullable = false)
@@ -74,17 +75,23 @@ public class Submit extends BaseTimeEntity {
 		this.setUpdatedAt(LocalDateTime.now());
 	}
 
-	public SubmitDetResDto fromEntity(String departmentName){
+	public SubmitDetResDto fromEntity(String departmentName, List<SubmitLineResDto> dtos){
 		return SubmitDetResDto.builder()
+			.id(this.id)
 			.userName(this.getUser().getName())
 			.department(departmentName)
 			.contents(this.contents)
 			.submitStatus(this.submitStatus.toString())
 			.submitType(this.submitType)
-			.submitUserDtos(null)
+			.submitUserDtos(dtos)
 			.rejectReason(this.getReason())
 			.submitTime(this.getCreatedAt())
+			.uploadBoard(this.uploadBoard)
 			.build();
+	}
+
+	public String getUserNum() {
+		return this.user.getUserNum();
 	}
 }
 

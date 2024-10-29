@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Collections;
 import java.util.List;
 
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -25,6 +26,9 @@ public class BoardSaveReqDto {
     private boolean isPinned;
     private Long hits = 0L;
     private Department department;
+    private List<Long> tagIds;
+
+    private boolean uploadBoard;
 
     @Builder.Default
     @JsonIgnore
@@ -33,16 +37,16 @@ public class BoardSaveReqDto {
     @Builder.Default
     private DelYN delYn = DelYN.N;
 
-    public Board toEntity(User user, Category category) {
+    public Board toEntity(User user) {
         return Board.builder()
                 .title(this.title)
                 .content(this.content)
-                .category(category)
+                .category(this.category)
                 .delYn(this.delYn != null ? this.delYn : DelYN.N)
                 .isPinned(this.isPinned)
                 .user(user)
                 .hits(this.hits)
                 .build();
     }
-}
 
+}

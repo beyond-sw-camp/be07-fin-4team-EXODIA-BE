@@ -13,24 +13,28 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class UserProfileDto {
     private String userNum;
-    private Long departmentId;
-    private Long positionId;
+    private String departmentName;
+    private String positionName;
     private String phone;
     private LocalDate joinDate;
     private String name;
     private String profileImage;
-    private int annualLeave;
+    private double annualLeave;
+    private double sickDay;
+    private double absentDay;
 
     public static UserProfileDto fromProfileEntity(User user) {
         return new UserProfileDto(
                 user.getUserNum(),
-                user.getDepartment().getId(),
-                user.getPosition().getId(),
+                user.getDepartment().getName(),
+                user.getPosition().getName(),
                 user.getPhone(),
                 user.getCreatedAt().toLocalDate(),
                 user.getName(),
                 user.getProfileImage(),
-                user.getAnnualLeave()
+                user.getAnnualLeave(),
+                user.getSickDay(),
+                user.getAbsentDay()
         );
     }
 }

@@ -18,6 +18,7 @@ bin/
 !**/src/test/**/bin/
 
 ### IntelliJ IDEA ###
+src/main/resources/application-local.yml
 .idea
 *.iws
 *.iml
@@ -39,9 +40,8 @@ out/
 
 
  ###yml ###
-# **/application.yml
-src/main/resources/application.yml
-# application*.yml
-# application.yml
 .idea
 /src/main/resources/credentials.json
+key.pem
+cert.pem
+

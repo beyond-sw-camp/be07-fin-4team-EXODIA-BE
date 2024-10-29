@@ -1,20 +1,29 @@
 package com.example.exodia.attendance.service;
 
 import com.example.exodia.attendance.domain.Attendance;
+import com.example.exodia.attendance.domain.DayStatus;
 import com.example.exodia.attendance.dto.*;
 import com.example.exodia.attendance.repository.AttendanceRepository;
+import com.example.exodia.common.domain.DelYN;
+import com.example.exodia.user.domain.NowStatus;
 import com.example.exodia.user.domain.User;
+import com.example.exodia.user.dto.UserStatusAndTime;
 import com.example.exodia.user.repository.UserRepository;
+
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.time.*;
 import java.time.format.TextStyle;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class AttendanceService {
@@ -35,7 +44,17 @@ public class AttendanceService {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUserNum(userNum).orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
 
+        LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
+        LocalDateTime endOfToday = LocalDateTime.of(LocalDate.now(), LocalTime.MAX);
+
+        Optional<Attendance> existingAttendance = attendanceRepository.findByUserAndInTimeBetween(user, startOfToday, endOfToday);
+        if (existingAttendance.isPresent()) {
+            throw new RuntimeException("이미 오늘 출근 기록이 있습니다.");
+        }
+
+        user.setWorkIn();   //user.n_status 출근으로 기록
         Attendance attendance = dto.toEntity(user);
+        attendance.setOutTime(null);  // 출근 시에는 퇴근 시간을 null로 설정
         return attendanceRepository.save(attendance);
     }
 
@@ -46,9 +65,11 @@ public class AttendanceService {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUserNum(userNum).orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
 
-        Attendance attendance = attendanceRepository.findTopByUserAndOutTimeIsNull(user).orElseThrow(() -> new RuntimeException("출근 기록이 존재하지 않습니다"));
+        Attendance attendance = attendanceRepository.findTopByUserAndOutTimeIsNull(user)
+                .orElseThrow(() -> new RuntimeException("출근 기록이 존재하지 않습니다"));
 
-        dto.updateEntity(attendance);
+        user.setWorkOut();
+        dto.updateEntity(attendance);  // 퇴근 시간 업데이트
         return attendanceRepository.save(attendance);
     }
 
@@ -78,7 +99,6 @@ public class AttendanceService {
                 weeklySummary.setOvertimeHours(weeklySummary.getOvertimeHours() + (hoursWorked - 8));
             }
         }
-
         return weeklySummaryMap.values().stream()
                 .sorted(Comparator.comparing(WeeklySumDto::getStartOfWeek))
                 .collect(Collectors.toList());
@@ -119,39 +139,9 @@ public class AttendanceService {
 
     // 근무 시간 계산 (출근 시간과 퇴근 시간 차이)
     private double calculateWorkHours(Attendance attendance) {
-        if (attendance.getInTime() != null && attendance.getOutTime() != null) {
-            return Duration.between(attendance.getInTime(), attendance.getOutTime()).toHours();
-        }
-        return 0;
+        LocalDateTime outTime = attendance.getOutTime() != null ? attendance.getOutTime() : LocalDateTime.now();
+        return Duration.between(attendance.getInTime(), outTime).toHours();
     }
-
-    //    public WeeklySumDto getWeeklySum() {
-//        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
-//        User user = userRepository.findByUserNum(userNum).orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
-//
-//        LocalDateTime startOfWeek = LocalDate.now().with(DayOfWeek.MONDAY).atStartOfDay();
-//        LocalDateTime endOfWeek = startOfWeek.plusDays(7);
-//
-//        List<Attendance> weeklyAttendance = attendanceRepository.findAllByUserAndWeek(user, startOfWeek, endOfWeek);
-//        return calculateWeeklySum(weeklyAttendance);
-//    }
-
-//    public WeeklySumDto calculateWeeklySum(List<Attendance> weeklyAttendance) {
-//        WeeklySumDto weeklySumDto = new WeeklySumDto();
-//        double totalHours = 0;
-//        double overallHours = 0;
-//
-//        for (Attendance attendance : weeklyAttendance) {
-//            if (attendance.getInTime() != null && attendance.getOutTime() != null) {
-//                double workHour = Duration.between(attendance.getInTime(), attendance.getOutTime()).toHours();
-//                totalHours += workHour -1; // 점심시간 빼고 계산
-//                if(workHour > 8) { // 8시간을 초과할경우 초과로 처리
-//                    overallHours += (workHour - 8);
-//                }
-//            }
-//        }
-//        return new WeeklySumDto(totalHours, overallHours);
-//    }
 
     public List<WeeklyAttendanceDto> getWeeklyAttendance(int year) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -219,7 +209,7 @@ public class AttendanceService {
         LocalTime standardEndTime = LocalTime.of(18, 0);
 
         LocalTime inTime = attendance.getInTime().toLocalTime();
-        LocalTime outTime = attendance.getOutTime().toLocalTime();
+        LocalTime outTime = attendance.getOutTime() != null ? attendance.getOutTime().toLocalTime() : LocalTime.now(); // 퇴근 시간이 없는 경우 현재 시간 사용
 
         double overtimeMinutes = 0;
 
@@ -227,13 +217,11 @@ public class AttendanceService {
         if (inTime.isBefore(standardStartTime)) {
             overtimeMinutes += Duration.between(inTime, standardStartTime).toMinutes();
         }
-
         // 퇴근 시간이 18:00 이후인 경우
         if (outTime.isAfter(standardEndTime)) {
             overtimeMinutes += Duration.between(standardEndTime, outTime).toMinutes();
         }
-
-        return overtimeMinutes / 60.0; // 시간을 반환
+        return overtimeMinutes / 60.0; // 시간 계산
     }
 
     /* 당일 출 퇴근 조회 */
@@ -246,12 +234,113 @@ public class AttendanceService {
         LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
         LocalDateTime endOfToday = LocalDateTime.of(LocalDate.now(), LocalTime.MAX);
 
-        // 오늘의 출퇴근 기록을 조회
         Attendance attendance = attendanceRepository.findByUserAndInTimeBetween(
                         user, startOfToday, endOfToday)
                 .orElseThrow(() -> new RuntimeException("오늘 출퇴근 기록이 존재하지 않습니다."));
-
-        // 출퇴근 기록을 DTO로 변환
         return DailyAttendanceDto.fromEntity(attendance);
+    }
+
+    public Map<String, List<User>> getDepartmentUsersAttendanceStatus() {
+        // 로그인한 유저의 userNum 가져오기
+        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        // 로그인한 유저 정보 가져오기
+        User loggedInUser = userRepository.findByUserNum(userNum)
+                .orElseThrow(() -> new RuntimeException("로그인한 유저 정보를 찾을 수 없습니다."));
+
+        // 로그인한 유저의 부서 ID로 같은 부서에 속한 모든 유저 조회
+        Long departmentId = loggedInUser.getDepartment().getId();
+        List<User> departmentUsers = userRepository.findAllByDepartmentIdAndDelYn(departmentId, DelYN.N);
+
+        // 오늘의 날짜 범위
+        LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
+        LocalDateTime endOfToday = LocalDate.now().atTime(LocalTime.MAX);
+
+        // 출근한 사람들과 출근하지 않은 사람들을 담을 리스트
+        List<User> presentUsers = new ArrayList<>();
+        List<User> absentUsers = new ArrayList<>();
+
+        // 같은 부서의 모든 유저에 대해 출근 여부 확인
+        for (User user : departmentUsers) {
+            // 유저의 오늘 출근 기록 조회
+            Optional<Attendance> attendanceOptional = attendanceRepository.findByUserAndInTimeBetween(user, startOfToday, endOfToday);
+
+            // if (attendanceOptional.isPresent() && attendanceOptional.get().getDayStatus() == DayStatus.O) {
+            if (attendanceOptional.isPresent() && attendanceOptional.get().getNowStatus() == NowStatus.출근) {
+                presentUsers.add(user); // 출근한 사람으로 분류
+            } else {
+                absentUsers.add(user); // 출근하지 않은 사람으로 분류
+            }
+        }
+        // 출근한 사람들과 출근하지 않은 사람들 리스트를 결과로 반환
+        Map<String, List<User>> attendanceStatusMap = new HashMap<>();
+        attendanceStatusMap.put("출근한 사람들", presentUsers);
+        attendanceStatusMap.put("출근하지 않은 사람들", absentUsers);
+
+        return attendanceStatusMap;
+    }
+
+    public List<?> getTodayRecords() throws IOException {
+        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+        // 로그인한 유저 정보 가져오기
+        User loggedInUser = userRepository.findByUserNum(userNum)
+            .orElseThrow(() -> new IOException("로그인한 유저 정보를 찾을 수 없습니다."));
+
+        List<User> users = userRepository.findAllByDepartmentIdAndDelYn(loggedInUser.getDepartment().getId(), DelYN.N); //같은 부서 사람들
+
+        LocalDateTime startOfDay = LocalDateTime.of(LocalDateTime.now().toLocalDate(), LocalTime.MIDNIGHT);
+        LocalDateTime currentTime = LocalDateTime.now();
+
+        List<UserStatusAndTime> times = new ArrayList<>();
+        List<Attendance> at = attendanceRepository.findTodayRecords(startOfDay, currentTime);
+
+        for (User user : users) {
+            // User와 매칭되는 Attendance를 찾음
+            Attendance attendanceRecord = at.stream()
+                .filter(att -> att.getUser().getId().equals(user.getId()))
+                .findFirst()
+                .orElse(null);
+
+            if (attendanceRecord != null) {
+                times.add(UserStatusAndTime.builder()
+                    .userName(user.getName())
+                    .userNum(user.getUserNum())
+                    .profileImage(user.getProfileImage())
+                    .nowStatus(user.getN_status())
+                    .inTime(attendanceRecord.getInTime())
+                    .outTime(attendanceRecord.getOutTime())
+                    .build()
+                );
+            } else {
+                // 매칭되는 Attendance가 없는 경우
+                times.add(UserStatusAndTime.builder()
+                    .userName(user.getName())
+                    .userNum(user.getUserNum())
+                    .profileImage(user.getProfileImage())
+                    .nowStatus(NowStatus.근무전)
+                    .inTime(null)
+                    .outTime(null)
+                    .build()
+                );
+            }
+        }
+
+        return times;
+    }
+
+    @Transactional
+    public Attendance inMeetingStatus() throws IOException {
+        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUserNum(userNum).orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
+
+        LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
+        LocalDateTime endOfToday = LocalDateTime.of(LocalDate.now(), LocalTime.MAX);
+
+        Attendance attendance = attendanceRepository.findByUserAndInTimeBetween(user, startOfToday, endOfToday)
+            .orElseThrow(() -> new IOException("근태 기록이 존재하지 않습니다."));
+
+        user.setMeetingStatus();   //user.n_status 회의중으로 기록
+        attendance.setMeetingStatus();
+        return attendance;
     }
 }

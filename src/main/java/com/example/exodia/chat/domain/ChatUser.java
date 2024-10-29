@@ -1,5 +1,7 @@
 package com.example.exodia.chat.domain;
 
+import com.example.exodia.chat.dto.ChatRoomUserResponse;
+import com.example.exodia.chat.dto.ChatUserResponse;
 import com.example.exodia.common.domain.BaseTimeEntity;
 import com.example.exodia.user.domain.User;
 import lombok.AllArgsConstructor;
@@ -34,10 +36,29 @@ public class ChatUser extends BaseTimeEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user; // 사번
 
+    private int unreadChatNum;
+
     public static ChatUser toEntity(ChatRoom chatRoom, User user){ // chatRoom 생성시 사용
         return ChatUser.builder()
                 .chatRoom(chatRoom)
                 .user(user)
+//                .unreadChat(0)
+                .build();
+    }
+
+    public ChatUserResponse fromEntity(){
+        return ChatUserResponse.builder()
+                .chatUserNum(this.getUser().getUserNum())
+                .chatUserName(this.getUser().getName())
+                .chatUserPosName(this.getUser().getPosition().getName())
+                .chatUserDepName(this.getUser().getDepartment().getName())
+                .build();
+    }
+
+    public ChatRoomUserResponse fromEntityForRoomList(){
+        return ChatRoomUserResponse.builder()
+                .chatUserName(this.getUser().getName())
+                .chatUserNum(this.getUser().getUserNum())
                 .build();
     }
 }

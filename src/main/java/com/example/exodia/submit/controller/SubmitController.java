@@ -6,9 +6,12 @@ import java.util.stream.Collectors;
 
 import jakarta.persistence.EntityNotFoundException;
 
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,6 +27,7 @@ import com.example.exodia.submit.domain.SubmitLine;
 import com.example.exodia.submit.dto.SubmitDetResDto;
 import com.example.exodia.submit.dto.SubmitSaveReqDto;
 import com.example.exodia.submit.dto.SubmitStatusUpdateDto;
+import com.example.exodia.submit.repository.SubmitRepository;
 import com.example.exodia.submit.repository.SubmitTypeRepository;
 import com.example.exodia.submit.service.SubmitService;
 
@@ -32,10 +36,12 @@ import com.example.exodia.submit.service.SubmitService;
 public class SubmitController {
 
 	private final SubmitService submitService;
+	private final SubmitRepository submitRepository;
 
 	@Autowired
-	public SubmitController(SubmitService submitService) {
+	public SubmitController(SubmitService submitService, SubmitRepository submitRepository) {
 		this.submitService = submitService;
+		this.submitRepository = submitRepository;
 	}
 
 	// 	결재 요청
@@ -44,9 +50,9 @@ public class SubmitController {
 		try {
 			Submit submit = submitService.createSubmit(submitSaveReqDto);
 			return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "결재 요청 성공", submit.getId()));
-		} catch (EntityNotFoundException e) {
-			e.printStackTrace();
-			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()), HttpStatus.BAD_REQUEST);
+		} catch (EntityNotFoundException | IOException e) {
+			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()),
+				HttpStatus.BAD_REQUEST);
 		}
 	}
 
@@ -88,10 +94,25 @@ public class SubmitController {
 	}
 
 
+	// 결재 상세조회
 	@GetMapping("/detail/{id}")
-	public ResponseEntity<?> detailDocument(@PathVariable Long id) {
+	public ResponseEntity<?> detailSubmit(@PathVariable Long id) {
 		SubmitDetResDto submitDetail = submitService.getSubmitDetail(id);
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "결재 정보 조회 성공", submitDetail));
+	}
+
+	// 결재 취소 -> 자신의 글에 대해서만
+	@GetMapping("/delete/{id}")
+	public ResponseEntity<?> deleteSubmit(@PathVariable Long id) {
+		submitService.deleteSubmit(id);
+		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "결재 취소 성공", null ));
+	}
+
+	// 결재 라인 조회
+	@GetMapping("/list/submitLine/{id}")
+	public ResponseEntity<?> getSubmitLine(@PathVariable Long id){
+		submitService.getSubmitLines(id);
+		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "결재라인 조회 성공", submitService.getSubmitLines(id) ));
 	}
 
 }

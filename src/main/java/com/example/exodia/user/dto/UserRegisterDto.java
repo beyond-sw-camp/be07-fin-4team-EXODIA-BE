@@ -5,11 +5,15 @@ import com.example.exodia.department.domain.Department;
 import com.example.exodia.position.domain.Position;
 import com.example.exodia.department.repository.DepartmentRepository;
 import com.example.exodia.position.repository.PositionRepository;
-import lombok.Data;
+import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.multipart.MultipartFile;
 
 @Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserRegisterDto {
     private String userNum;
     private String name;
@@ -24,7 +28,6 @@ public class UserRegisterDto {
     private NowStatus nowStatus;
     private Long departmentId;
     private Long positionId;
-    private int annualLeave;
+    private double annualLeave;
     private MultipartFile profileImage;
 }
-

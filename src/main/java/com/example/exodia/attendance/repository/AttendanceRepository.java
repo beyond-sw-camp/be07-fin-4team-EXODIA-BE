@@ -24,6 +24,11 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
                                                      @Param("endDate") LocalDateTime endDate);
     Optional<Attendance> findTopByUserAndOutTimeIsNull(User user);
     List<Attendance> findByUserIdAndInTimeBetween(Long userId, LocalDateTime startDateTime, LocalDateTime endDateTime);
-    /*당일의 출근 조회를 위한 repo*/
+    /*당일의 출근 조회*/
     Optional<Attendance> findByUserAndInTimeBetween(User user, LocalDateTime startOfDay, LocalDateTime endOfDay);
+
+    // 사용자의 오늘 하루 기록
+    @Query("SELECT a FROM Attendance a WHERE a.inTime >= :startOfDay AND a.inTime <= :currentTime")
+    List<Attendance> findTodayRecords(@Param("startOfDay") LocalDateTime startOfDay, @Param("currentTime") LocalDateTime currentTime);
+
 }

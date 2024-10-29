@@ -1,13 +1,15 @@
 version: '3.8'
 services:
+  # 기존 Zookeeper 서비스 설정
   zookeeper:
     image: wurstmeister/zookeeper:latest
     container_name: zookeeper
     ports:
       - "2181:2181"
-  #    volumes:
-  #      - zookeeper-data:/var/lib/zookeeper/data
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
 
+  # 기존 Kafka 서비스 설정
   kafka:
     image: wurstmeister/kafka:latest
     container_name: kafka
@@ -18,11 +20,38 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092  # 외부에서 접근 가능한 주소
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_BROKER_ID: 1
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1  # 단일 브로커 환경에 맞게 변경
+
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - zookeeper
-#volumes:
-#  kafka-data:
-#  zookeeper-data:
+
+  # OpenVidu Server 설정
+  openvidu-server:
+    image: openvidu/openvidu-server-kms:2.23.0
+    container_name: openvidu-server
+    network_mode: "bridge"
+    environment:
+      - OPENVIDU_SECRET=MY_SECRET
+      - OPENVIDU_PUBLICURL=http://localhost:4443  # 외부 접근 주소 설정
+    ports:
+      - "4443:4443"  # HTTPS 포트
+
+  # GetARoom 서비스 설정
+  openvidu-getaroom:
+    build:
+      context: .
+      dockerfile: Dockerfile.getaroom
+    container_name: openvidu-getaroom
+    ports:
+      - "7080:8080"
+    volumes:
+      - ./cert.pem:/usr/src/app/cert.pem
+      - ./key.pem:/usr/src/app/key.pem
+    command: ["http-server", "-S", "-C", "cert.pem", "-K", "key.pem", "openvidu-tutorials/openvidu-getaroom/web"]
+
+volumes:
+  kafka-data:
+  zookeeper-data:

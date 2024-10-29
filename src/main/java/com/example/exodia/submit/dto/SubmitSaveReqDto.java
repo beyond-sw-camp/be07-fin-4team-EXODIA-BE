@@ -22,6 +22,7 @@ public class SubmitSaveReqDto {
 
 	private String submitType;
 	private String contents;
+	private boolean uploadBoard = false;
 
 	private List<SubmitUserDto> submitUserDtos;
 
@@ -37,19 +38,19 @@ public class SubmitSaveReqDto {
 
 	public Submit toEntity(User user) {
 		return Submit.builder()
-			.submitStatus(SubmitStatus.WAITING)
+			.submitStatus(SubmitStatus.대기중)
 			.submitType(this.getSubmitType())
 			.contents(this.getContents())
 			.user(user)
 			.submitLines(new ArrayList<>())
 			.department_id(user.getDepartment().getId())
-			.delYn(DelYN.N)
+			.uploadBoard(this.uploadBoard)
 			.build();
 	}
 
 	public SubmitLine toLineEntity(User user) {
 		return SubmitLine.builder()
-			.submitStatus(SubmitStatus.WAITING)
+			.submitStatus(SubmitStatus.대기중)
 			.userNum(user.getUserNum())
 			.department_id(user.getDepartment().getId())
 			.delYn(DelYN.N)

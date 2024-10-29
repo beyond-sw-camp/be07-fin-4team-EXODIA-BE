@@ -1,13 +1,14 @@
 package com.example.exodia.salary.dto;
 
 import com.example.exodia.salary.domain.Salary;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.example.exodia.user.domain.User;
+import lombok.*;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 public class SalaryDto {
 
     private String userNum;
@@ -38,5 +39,12 @@ public class SalaryDto {
                 salary.getFinalSalary(),
                 yearsOfService
         );
+    }
+
+    public static Salary toEntity(User user, double baseSalary) {
+        Salary salary = new Salary();
+        salary.setUser(user);
+        salary.setBaseSalary(baseSalary);
+        return salary;
     }
 }

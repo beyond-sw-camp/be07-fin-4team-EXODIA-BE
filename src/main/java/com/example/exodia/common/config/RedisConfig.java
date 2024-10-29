@@ -155,26 +155,26 @@ public class RedisConfig {
     }
 
 
-//    // 4번 채팅룸 정보
-//    @Bean
-//    @Qualifier("chatRoom")
-//    public RedisConnectionFactory roomConnectionFactory() {
-//        RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
-//        configuration.setHostName(host);
-//        configuration.setPort(port);
-//        configuration.setDatabase(4);
-//        return new LettuceConnectionFactory(configuration);
-//    }
-//
-//    @Bean
-//    @Qualifier("chatRoom")
-//    public RedisTemplate<String, Object> chatRoomRedisTemplate(@Qualifier("chatRoom") RedisConnectionFactory connectionFactory) {
-//        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
-//        redisTemplate.setConnectionFactory(connectionFactory);
-//        redisTemplate.setKeySerializer(new StringRedisSerializer());
-//        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(String.class));
-//        return redisTemplate;
-//    }
+    // 4번 채팅룸 정보
+    @Bean
+    @Qualifier("chatRoom")
+    public RedisConnectionFactory roomConnectionFactory() {
+        RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
+        configuration.setHostName(host);
+        configuration.setPort(port);
+        configuration.setDatabase(4);
+        return new LettuceConnectionFactory(configuration);
+    }
+
+    @Bean
+    @Qualifier("chatRoom")
+    public RedisTemplate<String, Object> chatRoomRedisTemplate(@Qualifier("chatRoom") RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(connectionFactory);
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(String.class));
+        return redisTemplate;
+    }
 
     // 최근 조회 문서
     @Bean
@@ -221,7 +221,7 @@ public class RedisConfig {
     @Qualifier("hits")
     public RedisTemplate<String, Object> hitsRedisTemplate() {
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
-        redisTemplate.setConnectionFactory(connectionFactoryUpdatedDoc());
+        redisTemplate.setConnectionFactory(connectionFactoryHits());
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         return redisTemplate;
@@ -248,6 +248,24 @@ public class RedisConfig {
     @Bean
     public LockProvider lockProvider(@Qualifier("10") RedisConnectionFactory connectionFactory) {
         return new RedisLockProvider(connectionFactory, "shedlock");
+    }
+
+
+    /* 강의 인원수만큼 제어*/
+    @Bean
+    @Qualifier("12")
+    LettuceConnectionFactory courseParticipantConnectionFactory() {
+        return redisConnectionFactory(11);
+    }
+
+    @Bean
+    @Qualifier("12")
+    public RedisTemplate<String, Object> courseParticipantRedisTemplate(@Qualifier("12") LettuceConnectionFactory courseParticipantConnectionFactory) {
+        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(courseParticipantConnectionFactory);
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        return redisTemplate;
     }
 
 

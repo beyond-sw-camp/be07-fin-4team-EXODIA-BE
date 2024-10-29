@@ -6,25 +6,13 @@ import com.example.exodia.comment.domain.Comment;
 import com.example.exodia.common.domain.BaseTimeEntity;
 import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.user.domain.User;
-
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Where;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -40,31 +28,28 @@ public class Board extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(length = 100, nullable = false)
     private String title;
 
-    @Column(nullable = false)
+    @Column(length = 5000, nullable = false)
     private String content;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Category category;
 
-
     private Long hits = 0L;
 
-    // 작성자 정보 (익명 게시글의 경우 null, 수정 필요)
     @ManyToOne
     @JoinColumn(name = "user_num", nullable = false)
     private User user;
-
 
     @Enumerated(EnumType.STRING)
     @Column(name = "del_yn", nullable = false)
     private DelYN delYn = DelYN.N;
 
     @Builder.Default
-    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BoardFile> files = new ArrayList<>();
 
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL)
@@ -73,8 +58,15 @@ public class Board extends BaseTimeEntity {
     @Column(name = "is_pinned", nullable = false)
     private Boolean isPinned = false;
 
-    // 게시물 목록 DTO로 변환
+    @Builder.Default
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<BoardTag> boardTags = new ArrayList<>();
+
     public BoardListResDto listFromEntity() {
+        List<Long> tagIds = this.boardTags.stream()
+                .map(boardTag -> boardTag.getBoardTags().getId())
+                .collect(Collectors.toList());
+
         return BoardListResDto.builder()
                 .id(this.id)
                 .title(this.title)
@@ -84,11 +76,15 @@ public class Board extends BaseTimeEntity {
                 .updatedAt(this.getUpdatedAt())
                 .isPinned(this.isPinned)
                 .user_num(user.getUserNum())
+                .tagIds(tagIds)
                 .build();
     }
 
-    // 게시물 상세 DTO로 변환
     public BoardDetailDto detailFromEntity(List<BoardFile> files) {
+        List<String> tagNames = this.boardTags.stream()
+                .map(boardTag -> boardTag.getBoardTags().getTag())
+                .collect(Collectors.toList());
+
         return BoardDetailDto.builder()
                 .id(this.getId())
                 .title(this.getTitle())
@@ -99,12 +95,15 @@ public class Board extends BaseTimeEntity {
                 .files(files)
                 .hits(this.hits)
                 .user_num(user.getUserNum())
+                .tags(tagNames)
                 .build();
+    }
+
+    public void softDelete() {
+        super.softDelete();
     }
 
     public void updateBoardHitsFromRedis(Long hits) {
         this.hits = hits;
     }
-
-
 }
