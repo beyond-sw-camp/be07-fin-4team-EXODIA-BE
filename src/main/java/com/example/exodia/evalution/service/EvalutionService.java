@@ -5,6 +5,8 @@ import com.example.exodia.evalution.dto.EvalutionDto;
 import com.example.exodia.evalution.repository.EvalutionRepository;
 import com.example.exodia.evalutionFrame.subevalution.domain.SubEvalution;
 import com.example.exodia.evalutionFrame.subevalution.repository.SubEvalutionRepository;
+import com.example.exodia.evalutionavg.domain.EvalutionAvg;
+import com.example.exodia.evalutionavg.repository.EvalutionAvgRepository;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,11 +21,13 @@ public class EvalutionService {
     private final EvalutionRepository evalutionRepository;
     private final SubEvalutionRepository subEvalutionRepository;
     private final UserRepository userRepository;
+    private final EvalutionAvgRepository evalutionAvgRepository;
 
-    public EvalutionService(EvalutionRepository evalutionRepository, SubEvalutionRepository subEvalutionRepository, UserRepository userRepository) {
+    public EvalutionService(EvalutionRepository evalutionRepository, SubEvalutionRepository subEvalutionRepository, UserRepository userRepository, EvalutionAvgRepository evalutionAvgRepository) {
         this.evalutionRepository = evalutionRepository;
         this.subEvalutionRepository = subEvalutionRepository;
         this.userRepository = userRepository;
+        this.evalutionAvgRepository = evalutionAvgRepository;
     }
 
     @Transactional
@@ -125,4 +129,26 @@ public class EvalutionService {
 
         return evalutionRepository.saveAll(createdEvalutions);
     }
+
+//    @Transactional
+//    public void calculateAndSaveEvaluatorTargetScore(Long evalutionId) {
+//        Evalution evalution = evalutionRepository.findById(evalutionId)
+//                .orElseThrow(() -> new RuntimeException("존재하지 않는 평가입니다."));
+//
+//        int scoreValue = evalution.getScore().getValue(); // 평가 점수 값
+//        User evaluator = evalution.getEvaluator();
+//        User targetUser = evalution.getTarget();
+//
+//        // 평가자와 대상자 조합으로 총 평가 점수 조회 또는 새로 생성
+//        EvalutionAvg evalutionAvg = evalutionAvgRepository.findByEvaluatorIdAndTargetUserId(evaluator.getId(), targetUser.getId())
+//                .orElse(EvalutionAvg.builder()
+//                        .evaluator(evaluator)
+//                        .targetUser(targetUser)
+//                        .totalScore(0)
+//                        .build());
+//
+//        // 총 점수와 횟수 업데이트
+//        evalutionAvg.setTotalScore(evalutionAvg.getTotalScore() + scoreValue);
+//        evalutionAvgRepository.save(evalutionAvg);
+//    }
 }

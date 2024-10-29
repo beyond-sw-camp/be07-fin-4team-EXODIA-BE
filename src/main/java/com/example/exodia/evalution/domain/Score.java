@@ -10,5 +10,15 @@ E : 1점
 */
 
 public enum Score {
-    A, B, C, D, E
+    A(5), B(4), C(3), D(2), E(1);
+
+    private final int value;
+
+    Score(int value) {
+        this.value = value;
+    }
+
+    public int getValue() {
+        return value;
+    }
 }

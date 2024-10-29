@@ -1,5 +1,6 @@
 package com.example.exodia.reservationMeeting.service;
 
+import com.example.exodia.attendance.service.AttendanceService;
 import com.example.exodia.common.service.KafkaProducer;
 import com.example.exodia.meetingInvitation.domain.MeetingInvitation;
 import com.example.exodia.meetingInvitation.dto.MeetingInvitationDto;
@@ -53,7 +54,9 @@ public class ReservationMeetService {
     private final MeetingInvitationRepository meetingInvitationRepository;
     @Autowired
     private ThreadPoolTaskScheduler taskScheduler;
-//    @Autowired
+	@Autowired
+	private AttendanceService attendanceService;
+    //    @Autowired
 //    @Qualifier("10")
 //    private RedisTemplate<String, Object> reservationRedisTemplate;
 
@@ -103,19 +106,19 @@ public class ReservationMeetService {
 
         reservationMeetRepository.flush();
 
-        // 관리자를 대상으로 알림 전송
-        String departmentId = user.getDepartment().getId().toString();  // 예약자 부서 ID 가져오기
-        String userName = user.getName();  // 예약자 이름 가져오기
-
-        // Kafka를 통해 회의실 예약 이벤트 전송
-        kafkaProducer.sendMeetingReservationNotification(
-                "meeting-room-reservations",
-                userName,
-                meetingRoom.getName(),
-                reservationMeet.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),  // 시작 시간
-                reservationMeet.getEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),    // 종료 시간
-                departmentId
-        );
+//        // 관리자를 대상으로 알림 전송
+//        String departmentId = user.getDepartment().getId().toString();  // 예약자 부서 ID 가져오기
+//        String userName = user.getName();  // 예약자 이름 가져오기
+//
+//        // Kafka를 통해 회의실 예약 이벤트 전송
+//        kafkaProducer.sendMeetingReservationNotification(
+//                "meeting-room-reservations",
+//                userName,
+//                meetingRoom.getName(),
+//                reservationMeet.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),  // 시작 시간
+//                reservationMeet.getEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),    // 종료 시간
+//                departmentId
+//        );
         return ReservationMeetListDto.fromEntity(reservationMeet);
     }
 
@@ -248,8 +251,9 @@ public class ReservationMeetService {
 
     /* 스케줄링을 통한 상태 변경 */
     private void scheduleMeetingStatusUpdateJob(Long reservationId, LocalDateTime startTime, LocalDateTime endTime) {
-        taskScheduler.schedule(() -> updateMeetingStatus(reservationId, NowStatus.회의),
+        taskScheduler.schedule(() -> updateMeetingStatus(reservationId, NowStatus.자리비움),
                 Date.from(startTime.atZone(ZoneId.systemDefault()).toInstant()));
+
 
         taskScheduler.schedule(() -> updateMeetingStatus(reservationId, NowStatus.출근),
                 Date.from(endTime.atZone(ZoneId.systemDefault()).toInstant()));

@@ -278,7 +278,7 @@ public class DocumentService {
 		// 문서 업데이트 후 Kafka에 이벤트 전송
 		String departmentId = document.getUser().getDepartment().getId().toString();
 		String userName = document.getUser().getName();
-		kafkaProducer.sendDocumentUpdateEvent("document-events", document.getFileName(), userName, departmentId, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")));
+		kafkaProducer.sendDocumentUpdateEvent("document-events", document.getFileName(), userName, departmentId);
 
 
 		return newDocument;
@@ -309,7 +309,7 @@ public class DocumentService {
 		// 문서 롤백 후 Kafka에 이벤트 전송
 		String departmentId = document.getUser().getDepartment().getId().toString();
 		String userName = document.getUser().getName();
-		kafkaProducer.sendDocumentRollBackEvent("document-events", document.getFileName(), userName, departmentId, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")));
+		kafkaProducer.sendDocumentRollBackEvent("document-events", document.getFileName(), userName, departmentId);
 
 	}
 	// 	문서 히스토리 조회

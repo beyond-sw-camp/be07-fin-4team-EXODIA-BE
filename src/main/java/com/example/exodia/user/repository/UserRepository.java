@@ -40,4 +40,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u.userNum FROM User u WHERE u.userNum LIKE CONCAT(:date, '%') ORDER BY u.userNum DESC LIMIT 1")
     String findLastUserNum(@Param("date") String date);
+
+    @Query("SELECT m.user FROM Manager m WHERE m.user.department.id = :departmentId")
+    List<User> findManagersByDepartmentId(@Param("departmentId") Long departmentId);
+
 }

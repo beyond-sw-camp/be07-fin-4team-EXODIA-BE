@@ -2,6 +2,7 @@ package com.example.exodia.attendance.dto;
 
 import com.example.exodia.attendance.domain.Attendance;
 import com.example.exodia.attendance.domain.DayStatus;
+import com.example.exodia.user.domain.NowStatus;
 import com.example.exodia.user.domain.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,7 +24,8 @@ public class AttendanceSaveDto {
         return Attendance.builder()
                 .user(user)
                 .inTime(this.inTime != null ? this.inTime : LocalDateTime.now())
-                .dayStatus(DayStatus.O)
+                .nowStatus(NowStatus.출근)
+                // .dayStatus(DayStatus.O)
                 .build();
     }
 

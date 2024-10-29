@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -77,13 +78,13 @@ public class ReservationService {
                 Reservation reservation = dto.toEntity(car, user);
                 reservation.setStatus(Status.WAITING);
                 Reservation savedReservation = reservationRepository.save(reservation);
-
                 kafkaProducer.sendCarReservationNotification(
                         "car-reservation-events",
                         user.getUserNum(),
-                        car.getCarNum(),
-                        dto.getStartDate().toString(),
-                        dto.getEndDate().toString()
+                        user.getName(), // 유저명
+                        car.getCarNum(), // 차량 번호
+                        dto.getStartDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), //예약일
+                        dto.getEndDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) // 예약종료일
                 );
 
                 return ReservationDto.fromEntity(savedReservation);
@@ -100,7 +101,6 @@ public class ReservationService {
         }
     }
     @Transactional
-    /* 예약 승인 */
     public ReservationDto approveReservation(Long reservationId) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUserNum(userNum)
@@ -109,7 +109,6 @@ public class ReservationService {
                 .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다."));
 
         userService.checkHrAuthority(user.getDepartment().getId().toString());
-        // 예약 상태를 APPROVED로 변경
         reservation.approveReservation();
         reservation.reserve(); // 최종 예약 확정 상태로 변경
         Reservation updatedReservation = reservationRepository.save(reservation);
@@ -117,12 +116,14 @@ public class ReservationService {
         // 사용자에게 알림 전송 (예약 승인)
         kafkaProducer.sendReservationApprovalNotification(
                 "car-reservation-approval-events",
-                reservation.getUser().getUserNum(),
-                reservation.getCar().getCarNum()
+                reservation.getUser().getUserNum(), // 사용자 번호 추가
+                reservation.getCar().getCarNum(),   // 차량 번호 추가
+                reservation.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                reservation.getEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
         );
-
         return ReservationDto.fromEntity(updatedReservation);
     }
+
     @Transactional
     /* 예약 거절 */
     public void rejectReservation(Long reservationId) {
@@ -136,9 +137,11 @@ public class ReservationService {
 
         // 사용자에게 알림 전송 (예약 거절)
         kafkaProducer.sendReservationRejectionNotification(
-                "car-reservation-rejection-events",
-                reservation.getUser().getUserNum(),
-                reservation.getCar().getCarNum()
+                "car-reservation-approval-events",
+                reservation.getUser().getUserNum(), // 사용자 번호 추가
+                reservation.getCar().getCarNum(),
+                reservation.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                reservation.getEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
         );
 
         // 예약 삭제
