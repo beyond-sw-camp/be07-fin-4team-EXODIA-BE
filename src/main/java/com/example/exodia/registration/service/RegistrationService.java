@@ -1,6 +1,7 @@
 package com.example.exodia.registration.service;
 
 
+import com.example.exodia.common.service.EmailService;
 import com.example.exodia.common.service.KafkaProducer;
 import com.example.exodia.course.domain.Course;
 import com.example.exodia.course.repository.CourseRepository;
@@ -32,16 +33,18 @@ public class RegistrationService {
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
     private final RegistrationRepository registrationRepository;
+    private final EmailService emailService;
 
     @Autowired
     public RegistrationService(RedissonClient redissonClient, @Qualifier("12") RedisTemplate<String, Object> redisTemplate,
-                               KafkaProducer kafkaProducer, CourseRepository courseRepository, UserRepository userRepository, RegistrationRepository registrationRepository) {
+                               KafkaProducer kafkaProducer, CourseRepository courseRepository, UserRepository userRepository, RegistrationRepository registrationRepository, EmailService emailService) {
         this.redissonClient = redissonClient;
         this.redisTemplate = redisTemplate;
         this.kafkaProducer = kafkaProducer;
         this.courseRepository = courseRepository;
         this.userRepository = userRepository;
         this.registrationRepository = registrationRepository;
+        this.emailService = emailService;
     }
 
     @Transactional
@@ -71,7 +74,11 @@ public class RegistrationService {
                         redisTemplate.opsForValue().decrement(redisKey);
                         return "참가자 수가 초과되었습니다.";
                     }
-
+                    // 참가자 수가 최대 인원에 도달하면 `triggerCourseTransmission` 호출
+                    if (currentParticipants.equals(getMaxParticipants(courseId))) {
+                        System.out.println("maxParticipants 도달, triggerCourseTransmission 호출"); // 로그 확인용
+                        triggerCourseTransmission(courseId); // 강좌 전송 로직 호출
+                    }
                     // Kafka producer를 통해 등록 이벤트 전송
                     String message = "User " + userNum + " has registered for course " + courseId;
                     kafkaProducer.sendCourseRegistrationEvent(courseId.toString(), message);
@@ -93,6 +100,7 @@ public class RegistrationService {
     public int getMaxParticipants(Long courseId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new EntityNotFoundException("강좌를 찾을 수 없습니다."));
+        System.out.println("Retrieved maxParticipants: " + course.getMaxParticipants());
         return course.getMaxParticipants();
     }
 
@@ -163,13 +171,20 @@ public class RegistrationService {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new EntityNotFoundException("강좌를 찾을 수 없습니다."));
 
-        // 강좌 상태를 '전송됨'으로 업데이트
         course.setTransmitted(true);
         courseRepository.save(course);
 
-        // Kafka 이벤트 전송
-        String message = "강좌 " + course.getCourseName() + " 배정이 완료되었습니다. ";
+        String message = "강좌 " + course.getCourseName() + " 배정이 완료되었습니다.";
         kafkaProducer.sendCourseTransmissionEvent(courseId.toString(), message);
+
+        // 참가자 이메일 목록 가져오기
+        List<Registration> registrations = registrationRepository.findAllByCourseAndRegistrationStatus(course, "confirmed");
+        List<String> participantEmails = registrations.stream()
+                .map(registration -> registration.getUser().getEmail())
+                .collect(Collectors.toList());
+
+        // 참가자들에게 이메일 발송
+        emailService.sendCourseTransmissionEmail(participantEmails, course.getCourseName());
 
         System.out.println("강좌 전송 완료: " + course.getCourseName());
     }
