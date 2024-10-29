@@ -1,5 +1,6 @@
 package com.example.exodia.user.service;
 
+import com.example.exodia.attendance.domain.Attendance;
 import com.example.exodia.common.auth.JwtTokenProvider;
 import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.common.service.UploadAwsFileService;
@@ -9,6 +10,7 @@ import com.example.exodia.position.domain.Position;
 import com.example.exodia.position.repository.PositionRepository;
 import com.example.exodia.salary.service.SalaryService;
 import com.example.exodia.submit.dto.PasswordChangeDto;
+import com.example.exodia.user.domain.NowStatus;
 import com.example.exodia.user.domain.Status;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.dto.*;
@@ -73,6 +75,7 @@ public class UserService {
             userRepository.save(user);
             throw new RuntimeException("잘못된 이메일/비밀번호 입니다.");
         }
+        Attendance.builder().inTime(null).outTime(null).nowStatus(NowStatus.근무전).user(user).build();
 
         user.resetLoginFailCount();
         userRepository.save(user);
