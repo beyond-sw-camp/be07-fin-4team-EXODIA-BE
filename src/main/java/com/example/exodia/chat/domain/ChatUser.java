@@ -1,5 +1,6 @@
 package com.example.exodia.chat.domain;
 
+import com.example.exodia.chat.dto.ChatRoomUserResponse;
 import com.example.exodia.chat.dto.ChatUserResponse;
 import com.example.exodia.common.domain.BaseTimeEntity;
 import com.example.exodia.user.domain.User;
@@ -51,6 +52,13 @@ public class ChatUser extends BaseTimeEntity {
                 .chatUserName(this.getUser().getName())
                 .chatUserPosName(this.getUser().getPosition().getName())
                 .chatUserDepName(this.getUser().getDepartment().getName())
+                .build();
+    }
+
+    public ChatRoomUserResponse fromEntityForRoomList(){
+        return ChatRoomUserResponse.builder()
+                .chatUserName(this.getUser().getName())
+                .chatUserNum(this.getUser().getUserNum())
                 .build();
     }
 }

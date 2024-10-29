@@ -94,14 +94,21 @@ public class ChatRoomService {
         }
         // 채팅방을 만드려는 유저가 속한 채팅방이 없거나 // 있는데 중복 채팅방 없으면 신규 생성
         // 새로운 채팅방 생성- 1. 채팅방저장
-        ChatRoom savedChatRoom = chatRoomRequest.toEntity();
+        ChatRoom savedChatRoom = new ChatRoom();
+        if(participants.size()==2){
+            String name = participants.get(0).getName() + ", " + participants.get(1).getName();
+            savedChatRoom = chatRoomRequest.toEntityIsTwo(name);
+        }else {
+            savedChatRoom = chatRoomRequest.toEntity();
+        }
         chatRoomRepository.save(savedChatRoom);
         // 새로운 채팅방 생성 - 2. 채팅유저저장
         for(User user : participants){
             ChatUser savedChatUser = ChatUser.toEntity(savedChatRoom, user);
             chatUserRepository.save(savedChatUser);
-            savedChatRoom.setChatUsers(savedChatUser);
+            savedChatRoom.setChatUser(savedChatUser);
         }
+
         return savedChatRoom.fromEntityExistChatRoom(false);
     }
 
@@ -115,6 +122,7 @@ public class ChatRoomService {
         // 최신 메세지 순서대로 (내림차순: 큰값->작은값) 정렬
         chatRooms = chatRooms.stream().sorted(Comparator.comparing(ChatRoom::getRecentChatTime).reversed()).toList();
         List<ChatRoomResponse> chatRoomResponses = new ArrayList<>();
+
         for(ChatRoom chatRoom : chatRooms){
             String unreadKey = "chatRoom_" + chatRoom.getId() + "_" + userNum;
             String unread = (String)chatredisTemplate.opsForValue().get(unreadKey);
@@ -124,7 +132,7 @@ public class ChatRoomService {
             }
             chatRoomResponses.add(chatRoom.fromEntity(unreadChat));
         }
-        return chatRoomResponses; // id, name, usernums, unreadchatnum, recentChat + ⭐ recentchatTime
+        return chatRoomResponses; // id, name, users, unreadchatnum, recentChat, recentchatTime
     }
 
 
@@ -218,14 +226,18 @@ public class ChatRoomService {
             ChatUser chatUser = chatUserRepository.findByUserAndChatRoom(user, chatRoom).orElseThrow(()->new EntityNotFoundException("채팅 유저가 없습니다."));
             if(!chatUser.isDeleted()){
 //                chatUserRepository.delete(chatUser); // 삭제
+                chatRoom.deleteChatUser(chatUser);
                 chatUser.softDelete();
-                System.out.println(chatUser.getId());
 
                 // chatRoom을 나올 때 chatRoomManage(redis로 관리) user의 현 채팅방id 기록 삭제
                 chatRoomManage.exitChatRoom(userNum);
                 // 채팅방의 unread 메세지 삭제
                 String unreadKey = "chatRoom_" + roomId + "_" + userNum;
                 chatredisTemplate.delete(unreadKey);
+
+                if(chatRoom.getChatUsers().isEmpty()){
+                    chatRoom.softDelete();
+                }
             }
         }
         return ChatUserInfoResponse.builder().senderName(user.getName()).senderNum(user.getUserNum()).build();
@@ -246,14 +258,19 @@ public class ChatRoomService {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(()->new EntityNotFoundException("채팅방이 없습니다."));
         ChatUser chatUser = ChatUser.toEntity(chatRoom, user);
         chatUserRepository.save(chatUser);
-        chatRoom.setChatUsers(chatUser);
+        chatRoom.setChatUser(chatUser);
         // ⭐⭐ 초대된 유저에게 알림?
         return ChatUserInfoResponse.builder().senderName(user.getName()).senderNum(user.getUserNum()).build();
     }
 
     // 채팅방 이름 변경.
-    public Long changeChatRoomName(){
-        return 0L;
+    public Long changeChatRoomName(String chatRoomName, Long roomId){
+        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUserNum(userNum).orElseThrow(()->new EntityNotFoundException("없는 사원입니다."));
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(()->new EntityNotFoundException("채팅방이 없습니다."));
+        chatRoom.updateChatRoomName(chatRoomName);
+        chatRoomRepository.save(chatRoom);
+        return chatRoom.getId();
     }
 
 }

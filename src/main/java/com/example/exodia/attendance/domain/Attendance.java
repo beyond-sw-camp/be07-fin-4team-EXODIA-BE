@@ -1,6 +1,8 @@
 package com.example.exodia.attendance.domain;
 
+import com.example.exodia.user.domain.NowStatus;
 import com.example.exodia.user.domain.User;
+import com.example.exodia.user.dto.UserStatusAndTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -35,9 +37,13 @@ public class Attendance {
 
     private LocalDateTime outTime; // 퇴근 시간
 
+    // @Enumerated(EnumType.STRING)
+    // @Column(nullable = false)
+    // private DayStatus dayStatus;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private DayStatus dayStatus;
+    private NowStatus nowStatus;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -50,5 +56,28 @@ public class Attendance {
             return duration.toHours() + (duration.toMinutesPart() / 60.0); // 시간을 소수점 단위로 반환
         }
         return 0.0;
+    }
+
+    public UserStatusAndTime fromEntity(User user) {
+        LocalDateTime in = null;
+        LocalDateTime out = null;
+
+        if(user.getN_status() == NowStatus.출근){
+            in = this.getInTime();
+        }else if(user.getN_status() == NowStatus.퇴근) {
+            in = this.getInTime();
+            out = this.getOutTime();
+        }
+        return UserStatusAndTime.builder()
+            .userName(this.user.getName())
+            .profileImage(this.user.getProfileImage())
+            .nowStatus(user.getN_status())
+            .inTime(in)
+            .outTime(out)
+            .build();
+    }
+
+    public void setMeetingStatus(){
+        this.nowStatus = NowStatus.자리비움;
     }
 }
