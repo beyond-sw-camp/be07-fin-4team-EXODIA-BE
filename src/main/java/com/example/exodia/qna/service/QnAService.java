@@ -6,9 +6,11 @@ import com.example.exodia.comment.domain.Comment;
 import com.example.exodia.comment.dto.CommentResDto;
 import com.example.exodia.comment.repository.CommentRepository;
 import com.example.exodia.common.domain.DelYN;
+import com.example.exodia.common.service.KafkaProducer;
 import com.example.exodia.common.service.UploadAwsFileService;
 import com.example.exodia.department.domain.Department;
 import com.example.exodia.department.repository.DepartmentRepository;
+import com.example.exodia.qna.domain.Manager;
 import com.example.exodia.qna.domain.QnA;
 import com.example.exodia.qna.dto.*;
 import com.example.exodia.qna.repository.ManagerRepository;
@@ -41,11 +43,12 @@ public class QnAService {
     private final DepartmentRepository departmentRepository;
     private final BoardFileRepository boardFileRepository;
     private final ManagerRepository managerRepository;
+    private final KafkaProducer kafkaProducer;
 
     @Autowired
     public QnAService(QnARepository qnARepository, CommentRepository commentRepository,
                       UploadAwsFileService uploadAwsFileService, UserRepository userRepository,
-                      DepartmentRepository departmentRepository, BoardFileRepository boardFileRepository, ManagerRepository managerRepository) {
+                      DepartmentRepository departmentRepository, BoardFileRepository boardFileRepository, ManagerRepository managerRepository, KafkaProducer kafkaProducer) {
         this.qnARepository = qnARepository;
         this.commentRepository = commentRepository;
         this.uploadAwsFileService = uploadAwsFileService;
@@ -53,14 +56,14 @@ public class QnAService {
         this.boardFileRepository = boardFileRepository;
         this.departmentRepository = departmentRepository;
         this.managerRepository = managerRepository;
+        this.kafkaProducer = kafkaProducer;
     }
 
     @Transactional
     public QnA createQuestion(QnASaveReqDto dto, List<MultipartFile> files, String userNum) {
-        User user = userRepository.findByUserNum(userNum)
+        User questioner = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사번을 가진 유저가 없습니다."));
 
-        // dto.getDepartmentId()로 Department 객체 조회
         if (dto.getDepartmentId() == null || dto.getDepartmentId() == 0) {
             throw new IllegalArgumentException("유효하지 않은 부서 ID 입니다.");
         }
@@ -68,8 +71,7 @@ public class QnAService {
         Department department = departmentRepository.findById(dto.getDepartmentId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 ID의 부서를 찾을 수 없습니다."));
 
-        // QnA 객체 생성
-        QnA qna = dto.toEntity(user, department);
+        QnA qna = dto.toEntity(questioner, department);
 
         // 파일 처리 로직 (필요 시 추가)
         files = files == null ? Collections.emptyList() : files;
@@ -88,8 +90,14 @@ public class QnAService {
                 boardFileRepository.save(boardFile);
             }
         }
+        qnARepository.save(qna);
 
-        return qnARepository.save(qna);
+        // 알림 전송: 해당 부서의 모든 매니저에게 알림
+        List<User> managers = userRepository.findManagersByDepartmentId(department.getId());
+        String message = "Q&A 질문이 도착했습니다: ";
+        kafkaProducer.sendQnaEvent("QUESTION_REGISTERED", department.getId().toString(), userNum, message);
+
+        return qna;
     }
 
     public Page<QnAListResDto> qnaListByGroup(Long departmentId, Pageable pageable) {
@@ -136,12 +144,9 @@ public class QnAService {
     }
 
     @Transactional
-    public QnA answerQuestion(Long id, QnAAnswerReqDto dto, List<MultipartFile> files, String userNum) {
-        QnA qna = qnARepository.findById(id)
+    public QnA answerQuestion(Long questionId, QnAAnswerReqDto dto, List<MultipartFile> files, String userNum) {
+        QnA qna = qnARepository.findById(questionId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 게시글입니다."));
-
-        // 작성자의 부서 확인
-        Department questionerDepartment = qna.getQuestioner().getDepartment();
 
         // 답변자를 사번으로 찾음
         User answerer = userRepository.findByUserNum(userNum)
@@ -153,12 +158,7 @@ public class QnAService {
             throw new SecurityException("매니저만 질문에 답변할 권한이 있습니다.");
         }
 
-        // 다른 부서의 질문에 답변할 수 있는지 체크
-        if (!answerer.getDepartment().getId().equals(questionerDepartment.getId())) {
-            throw new SecurityException("다른 부서의 질문에 답변할 권한이 없습니다.");
-        }
-
-        // 답변 텍스트 및 시간 설정
+        // 부서 확인 없이 답변 설정
         qna.setAnswerText(dto.getAnswerText());
         qna.setAnsweredAt(LocalDateTime.now());
         qna.setAnswerer(answerer);
@@ -180,6 +180,10 @@ public class QnAService {
                 boardFileRepository.save(boardFile);
             }
         }
+
+        // 질문자에게 답변 알림 전송
+        String message = "질문에 대한 답변이 등록되었습니다.";
+        kafkaProducer.sendQnaEvent("ANSWER_REGISTERED", qna.getDepartment().getId().toString(), qna.getQuestioner().getUserNum(), message);
 
         return qnARepository.save(qna);
     }

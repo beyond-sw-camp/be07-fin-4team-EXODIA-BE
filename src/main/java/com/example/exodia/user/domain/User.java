@@ -142,4 +142,16 @@ public class User extends BaseTimeEntity {
     public void updateSickDay(double vacationDate) {
         this.sickDay += vacationDate;
     }
+
+    public void setWorkIn(){
+        this.n_status = NowStatus.출근;
+    }
+
+    public void setWorkOut(){
+        this.n_status = NowStatus.퇴근;
+    }
+
+    public void setMeetingStatus(){
+        this.n_status = NowStatus.자리비움;
+    }
 }

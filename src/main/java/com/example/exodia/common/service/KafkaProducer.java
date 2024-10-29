@@ -31,29 +31,38 @@ public class KafkaProducer {
         System.out.println("Kafka 이벤트 전송: " + message + " / 토픽: " + topic);
     }
     // 회의실 예약 알림
-    public void sendMeetingReservationNotification(String topic, String userName, String meetingRoomName, String startDate, String endDate, String departmentId) {
-        // "|" 구분자를 사용하여 필드 구분
-        String message = String.format("%s|%s|%s|%s|%s", userName, departmentId, meetingRoomName, startDate, endDate);
-        kafkaTemplate.send(topic, message);
-        System.out.println("Kafka 회의실 예약 이벤트 전송: " + message + " / 토픽: " + topic);
+//    public void sendMeetingReservationNotification(String topic, String userName, String meetingRoomName, String startDate, String endDate, String departmentId) {
+//        // "|" 구분자를 사용하여 필드 구분
+//        String message = String.format("%s|%s|%s|%s|%s", userName, departmentId, meetingRoomName, startDate, endDate);
+//        kafkaTemplate.send(topic, message);
+//        System.out.println("Kafka 회의실 예약 이벤트 전송: " + message + " / 토픽: " + topic);
+//    }
+    // Q&A 이벤트 전송 메서드
+    public void sendQnaEvent(String eventType, String departmentId, String userNum, String message) {
+        String payload = String.format("%s|%s|%s|%s", eventType, departmentId, userNum, message);
+        kafkaTemplate.send("qanda-events", payload);
+        System.out.println("Kafka Q&A 이벤트 전송: " + message + " / 토픽: qanda-events");
     }
 
     // 차량 예약 요청 알림 전송
-    public void sendCarReservationNotification(String topic, String userNum, String carNum, String startDate, String endDate) {
-        String message = String.format("%s|%s|%s|%s", userNum, carNum, startDate, endDate);
+    public void sendCarReservationNotification(String topic, String userNum, String userName, String carNum, String startDate, String endDate) {
+        String message = String.format("%s|%s|%s|%s|%s", userNum, userName, carNum, startDate, endDate);
         kafkaTemplate.send(topic, message);
         System.out.println("Kafka 차량 예약 요청 전송: " + message + " / 토픽: " + topic);
     }
+
     // 차량 예약 승인 알림 전송
-    public void sendReservationApprovalNotification(String topic, String userNum, String carNum) {
-        String message = String.format("%s|%s|차량 %s 예약이 승인되었습니다.", userNum, carNum, carNum);
+    public void sendReservationApprovalNotification(String topic, String userNum, String carNum, String startTime, String endTime) {
+        String message = String.format("%s|%s|%s|%s|인사팀에서 %s ~ %s 의 차량 예약을 승인하였습니다.",
+                userNum, carNum, startTime, endTime, startTime, endTime);
         kafkaTemplate.send(topic, message);
         System.out.println("Kafka 차량 예약 승인 전송: " + message + " / 토픽: " + topic);
     }
 
     // 차량 예약 거절 알림 전송
-    public void sendReservationRejectionNotification(String topic, String userNum, String carNum) {
-        String message = String.format("%s|%s|차량 %s 예약이 거절되었습니다.", userNum, carNum, carNum);
+    public void sendReservationRejectionNotification(String topic, String userNum, String carNum, String startTime, String endTime) {
+        String message = String.format("%s|%s|%s|%s|인사팀에서 %s ~ %s 의 차량 예약을 거절하였습니다.",
+                userNum, carNum, startTime, endTime, startTime, endTime);
         kafkaTemplate.send(topic, message);
         System.out.println("Kafka 차량 예약 거절 전송: " + message + " / 토픽: " + topic);
     }
@@ -66,15 +75,15 @@ public class KafkaProducer {
     }
 
     // 문서 업데이트 알림을 위한 메서드 (부서 ID 포함)
-    public void sendDocumentUpdateEvent(String topic, String fileName, String userName, String departmentId, String date) {
-        String message = String.format("%s 님이 %s 문서를 업데이트 했습니다 - (%s)", userName, fileName, date);
+    public void sendDocumentUpdateEvent(String topic, String fileName, String userName, String departmentId) {
+        String message = String.format("%s 님이 %s 을 업데이트 했습니다", userName, fileName);
         kafkaTemplate.send(topic, departmentId + "|" + message);
         System.out.println("Kafka 문서 업데이트 이벤트: " + message);
     }
 
     // 문서 롤백 알림을 위한 메서드 (부서 ID 포함)
-    public void sendDocumentRollBackEvent(String topic, String fileName, String userName, String departmentId, String date) {
-        String message = String.format("%s 님이 %s 문서를 롤백 했습니다 - (%s)", userName, fileName, date);
+    public void sendDocumentRollBackEvent(String topic, String fileName, String userName, String departmentId) {
+        String message = String.format("%s 님이 %s 을 이전버전으로 복원했습니다", userName, fileName);
         kafkaTemplate.send(topic, departmentId + "|" + message);
         System.out.println("Kafka 문서 롤백 이벤트: " + message);
     }
