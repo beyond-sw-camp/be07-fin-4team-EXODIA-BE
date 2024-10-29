@@ -1,5 +1,6 @@
 package com.example.exodia.attendance.domain;
 
+import com.example.exodia.user.domain.NowStatus;
 import com.example.exodia.user.domain.User;
 
 import jakarta.persistence.Column;
@@ -54,5 +55,9 @@ public class Attendance {
             return duration.toHours() + (duration.toMinutesPart() / 60.0); // 시간을 소수점 단위로 반환
         }
         return 0.0;
+    }
+
+    public void setMeetingStatus() {
+        this.nowStatus = NowStatus.자리비움;
     }
 }

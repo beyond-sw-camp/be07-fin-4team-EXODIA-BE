@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
@@ -109,7 +110,7 @@ public class AttendanceController {
 
 
     @GetMapping("/department/list")
-    public ResponseEntity<?> test() {
+    public ResponseEntity<?> test() throws IOException {
         return ResponseEntity.ok(attendanceService.getTodayRecords());
     }
 }

@@ -248,7 +248,7 @@ public class ReservationMeetService {
 
     /* 스케줄링을 통한 상태 변경 */
     private void scheduleMeetingStatusUpdateJob(Long reservationId, LocalDateTime startTime, LocalDateTime endTime) {
-        taskScheduler.schedule(() -> updateMeetingStatus(reservationId, NowStatus.회의),
+        taskScheduler.schedule(() -> updateMeetingStatus(reservationId, NowStatus.자리비움),
                 Date.from(startTime.atZone(ZoneId.systemDefault()).toInstant()));
 
         taskScheduler.schedule(() -> updateMeetingStatus(reservationId, NowStatus.출근),

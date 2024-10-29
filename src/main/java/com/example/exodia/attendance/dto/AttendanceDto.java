@@ -2,6 +2,8 @@ package com.example.exodia.attendance.dto;
 
 import com.example.exodia.attendance.domain.Attendance;
 import com.example.exodia.attendance.domain.DayStatus;
+import com.example.exodia.user.domain.NowStatus;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,7 +19,7 @@ public class AttendanceDto {
     private Long id;
     private LocalDateTime inTime;
     private LocalDateTime outTime;
-    private DayStatus dayStatus;
+    private NowStatus nowStatus;
     private Long userId;
 
     public static AttendanceDto fromEntity(Attendance attendance) {
@@ -25,7 +27,7 @@ public class AttendanceDto {
                 .id(attendance.getId())
                 .inTime(attendance.getInTime())
                 .outTime(attendance.getOutTime())
-                .dayStatus(attendance.getDayStatus())
+                .nowStatus(attendance.getNowStatus())
                 .userId(attendance.getUser().getId())
                 .build();
     }
