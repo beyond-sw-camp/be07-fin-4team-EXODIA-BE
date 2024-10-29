@@ -285,12 +285,12 @@ public class InitialDataLoader implements CommandLineRunner {
         submitTypeRepository.save( new SubmitType(2L, "휴가 신청서"));
         submitTypeRepository.save( new SubmitType(3L, "경조사 신청서"));
 
-        ChatRoom chatRoom = ChatRoom.builder().roomName(user2.getName()).chatUsers(new ArrayList<>()).recentChatTime(LocalDateTime.now()).build();
-        chatRoomRepository.save(chatRoom);
-        ChatUser chatUser1 = ChatUser.builder().chatRoom(chatRoom).user(user1).build();
-        ChatUser chatUser2 = ChatUser.builder().chatRoom(chatRoom).user(user2).build();
-        chatUserRepository.save(chatUser1);
-        chatUserRepository.save(chatUser2);
+//        ChatRoom chatRoom = ChatRoom.builder().roomName(user2.getName()).chatUsers(new ArrayList<>()).recentChatTime(LocalDateTime.now()).build();
+//        chatRoomRepository.save(chatRoom);
+//        ChatUser chatUser1 = ChatUser.builder().chatRoom(chatRoom).user(user1).build();
+//        ChatUser chatUser2 = ChatUser.builder().chatRoom(chatRoom).user(user2).build();
+//        chatUserRepository.save(chatUser1);
+//        chatUserRepository.save(chatUser2);
 
         tagRepository.save(new Tag(1L, "회의록", hrDepartment));
         tagRepository.save(new Tag(2L, "프로젝트 계획서", hrDepartment));

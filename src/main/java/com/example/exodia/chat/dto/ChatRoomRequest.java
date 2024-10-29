@@ -26,4 +26,12 @@ public class ChatRoomRequest { // 받아오는 값
                 .recentChatTime(LocalDateTime.now())
                 .build();
     }
+
+    public ChatRoom toEntityIsTwo(String name){
+        return ChatRoom.builder()
+                .roomName(name)
+                .chatUsers(new ArrayList<>())
+                .recentChatTime(LocalDateTime.now())
+                .build();
+    }
 }
