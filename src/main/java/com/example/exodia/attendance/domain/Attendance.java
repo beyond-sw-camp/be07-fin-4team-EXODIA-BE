@@ -2,6 +2,7 @@ package com.example.exodia.attendance.domain;
 
 import com.example.exodia.user.domain.NowStatus;
 import com.example.exodia.user.domain.User;
+import com.example.exodia.user.dto.UserStatusAndTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -57,7 +58,26 @@ public class Attendance {
         return 0.0;
     }
 
-    public void setMeetingStatus() {
+    public UserStatusAndTime fromEntity(User user) {
+        LocalDateTime in = null;
+        LocalDateTime out = null;
+
+        if(user.getN_status() == NowStatus.출근){
+            in = this.getInTime();
+        }else if(user.getN_status() == NowStatus.퇴근) {
+            in = this.getInTime();
+            out = this.getOutTime();
+        }
+        return UserStatusAndTime.builder()
+            .userName(this.user.getName())
+            .profileImage(this.user.getProfileImage())
+            .nowStatus(user.getN_status())
+            .inTime(in)
+            .outTime(out)
+            .build();
+    }
+
+    public void setMeetingStatus(){
         this.nowStatus = NowStatus.자리비움;
     }
 }

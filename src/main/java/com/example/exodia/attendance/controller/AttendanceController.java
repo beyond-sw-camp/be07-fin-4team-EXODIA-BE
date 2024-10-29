@@ -3,10 +3,10 @@ package com.example.exodia.attendance.controller;
 import com.example.exodia.attendance.dto.*;
 import com.example.exodia.attendance.service.AttendanceService;
 import com.example.exodia.attendance.domain.Attendance;
+import com.example.exodia.common.dto.CommonErrorDto;
 import com.example.exodia.common.dto.CommonResDto;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.dto.UserAttendanceDto;
-import com.example.exodia.user.dto.UserInfoDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -110,8 +110,21 @@ public class AttendanceController {
 
 
     @GetMapping("/department/list")
-    public ResponseEntity<?> test() throws IOException {
-        return ResponseEntity.ok(attendanceService.getTodayRecords());
+    public ResponseEntity<?> test() {
+        try {
+            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "팀원 근태 정보 조회 성공", attendanceService.getTodayRecords()));
+        } catch (IOException e) {
+            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage()), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/meeting-in")
+    public ResponseEntity<?> inMeetingStatus() {
+        try {
+            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "자리비움으로 변경 성공", attendanceService.inMeetingStatus().getNowStatus()));
+        } catch (IOException e) {
+            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage()), HttpStatus.NOT_FOUND);
+        }
     }
 }
 

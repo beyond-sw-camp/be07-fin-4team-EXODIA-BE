@@ -1,0 +1,117 @@
+server:
+  port: 8087
+
+spring:
+  config:
+    activate:
+      on-profile: prod
+  data:
+    redis:
+      host: ${REDIS_HOST}:6379
+      port: ${REDIS_PORT}
+    elasticsearch:
+      uris: ${ELASTIC_SEARCH_URI}
+      username: ${ELASTIC_SEARCH_USERNAME}
+      password: ${ELASTIC_SEARCH_PASSWORD}
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.mariadb.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 30000
+      connection-timeout: 30000
+      max-lifetime: 1800000
+
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: notification-group
+      enable-auto-commit: true
+      auto-offset-reset: earliest
+
+      session-timeout-ms: 15000
+      heartbeat-interval-ms: 3000
+      max-poll-interval-ms: 600000
+
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+  jpa:
+    database: mysql
+    database-platform: org.hibernate.dialect.MariaDBDialect
+    generate-ddl: true
+    hibernate:
+      format_sql: false
+      ddl-auto: create
+    show-sql: false
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ikaros0569
+    password: jiuadogipacmtxbq
+    properties:
+      mail:
+        smtp:
+          starttls:
+            enable: true
+          auth: true
+jwt:
+  secretKeyRT: ${JWT_SECRET_RT}
+  expirationRT: ${JWT_EXPIRATION_RT}
+
+kurento:
+  uri: ws://localhost:8888/kurento
+
+janus:
+  url: ${JANUS_URL}
+
+nginx:
+  proxy-port: 8080
+
+google:
+  credentials:
+    file:
+      path: ${GOOGLE_FILE_PATH}
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY}
+      secret-key: ${AWS_SECRET_KEY}
+    region:
+      static: ${AWS_REGION}
+    s3:
+      bucket: ${AWS_BUCKET_NAME}
+
+coolsms:
+  api:
+    key: ${COOLSMS_KEY}
+    secret: ${COOLSMS_SECRET}
+    number: ${COOLSMS_NUMBER}
+
+#테스트 진행 시 Hibernate 로그 삭제
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: ERROR
+        type:
+          descriptor:
+            sql:
+              BasicBinder: ERROR
+
+openvidu:
+  url: "http://localhost:4443"
+  secret: "MY_SECRET"
+
