@@ -36,7 +36,4 @@ public class EvalutionDto {
                 .score(this.score)
                 .build();
     }
-
-
-
 }

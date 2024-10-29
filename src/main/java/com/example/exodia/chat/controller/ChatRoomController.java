@@ -1,6 +1,7 @@
 package com.example.exodia.chat.controller;
 
 import com.example.exodia.chat.dto.ChatRoomExistResponse;
+import com.example.exodia.chat.dto.ChatRoomNameUpdateRequest;
 import com.example.exodia.chat.dto.ChatRoomRequest;
 import com.example.exodia.chat.dto.ChatUserRequest;
 import com.example.exodia.chat.service.ChatRoomService;
@@ -90,6 +91,12 @@ public class ChatRoomController {
     @PostMapping("/invite")
     public ResponseEntity<?> chatRoomInviteUser(@RequestBody ChatUserRequest dto){
         CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "채팅방에 유저를 초대했습니다.", chatRoomService.inviteChatUser(dto.getInviteUserNum(), dto.getRoomId()));
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+    }
+
+    @PutMapping("/updateName")
+    public ResponseEntity<?> chatRoomNameChange(@RequestBody ChatRoomNameUpdateRequest dto){
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "채팅방 이름을 변경하였습니다. ", chatRoomService.changeChatRoomName(dto.getChatRoomName(), dto.getRoomId()));
         return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 

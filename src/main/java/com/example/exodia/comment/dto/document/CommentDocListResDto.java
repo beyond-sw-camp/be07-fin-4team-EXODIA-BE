@@ -15,5 +15,6 @@ public class CommentDocListResDto {
 	private Long id;
 	private String contents;
 	private String userName;
+	private String userProfileImage;
 	private LocalDateTime createdAt;
 }
