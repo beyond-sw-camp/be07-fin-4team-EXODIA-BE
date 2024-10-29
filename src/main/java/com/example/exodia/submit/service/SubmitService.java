@@ -1,13 +1,14 @@
 package com.example.exodia.submit.service;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.Stack;
 import java.util.stream.Collectors;
 
 import com.example.exodia.board.domain.Board;
@@ -17,12 +18,14 @@ import com.example.exodia.board.repository.BoardRepository;
 import com.example.exodia.board.service.BoardAutoUploadService;
 import com.example.exodia.common.service.KafkaProducer;
 
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.exodia.department.domain.Department;
 import com.example.exodia.department.repository.DepartmentRepository;
+import com.example.exodia.meetingInvitation.domain.MeetingInvitation;
 import com.example.exodia.position.domain.Position;
 import com.example.exodia.position.repository.PositionRepository;
 import com.example.exodia.submit.domain.Submit;
@@ -37,6 +40,7 @@ import com.example.exodia.submit.dto.SubmitStatusUpdateDto;
 import com.example.exodia.submit.repository.SubmitLineRepository;
 import com.example.exodia.submit.repository.SubmitRepository;
 import com.example.exodia.submit.repository.SubmitTypeRepository;
+import com.example.exodia.user.domain.NowStatus;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -57,12 +61,13 @@ public class SubmitService {
 	private final DepartmentRepository departmentRepository;
 	private final BoardRepository boardRepository;
 	private final BoardAutoUploadService boardAutoUploadService;
+	private ThreadPoolTaskScheduler taskScheduler;
 
 	public SubmitService(SubmitRepository submitRepository, UserRepository userRepository,
 		PositionRepository positionRepository, SubmitLineRepository submitLineRepository,
 		SubmitTypeRepository submitTypeRepository, KafkaProducer kafkaProducer,
 		DepartmentRepository departmentRepository, BoardRepository boardRepository,
-		BoardAutoUploadService boardAutoUploadService) {
+		BoardAutoUploadService boardAutoUploadService, ThreadPoolTaskScheduler taskScheduler) {
 		this.submitRepository = submitRepository;
 		this.userRepository = userRepository;
 		this.positionRepository = positionRepository;
@@ -72,6 +77,7 @@ public class SubmitService {
 		this.departmentRepository = departmentRepository;
 		this.boardRepository = boardRepository;
 		this.boardAutoUploadService = boardAutoUploadService;
+		this.taskScheduler = taskScheduler;
 	}
 
 	//    결재라인 등록
@@ -369,6 +375,12 @@ public class SubmitService {
 				user.updateAnnualLeave(totalVacationDays);
 			}
 			user.updateAnnualLeave(getVacationDate(submit));
+			// 날짜에 스케쥴링을 통해 상태 변경
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+			LocalDateTime startDate = LocalDate.parse(rootNode.get("휴가시작일").asText(), formatter).atStartOfDay();
+			LocalDateTime endDate = LocalDate.parse(rootNode.get("휴가종료일").asText(), formatter).atStartOfDay();
+
+			scheduleVacationStatus(startDate,  endDate);
 		}
 	}
 
@@ -402,4 +414,26 @@ public class SubmitService {
 		return dtos;
 	}
 
+
+	/* 스케줄링을 통한 상태 변경 */
+	private void scheduleVacationStatus(LocalDateTime startDate, LocalDateTime endDate) {
+		taskScheduler.schedule(() -> updateVacationStatus(NowStatus.휴가),
+			Date.from(startDate.atZone(ZoneId.systemDefault()).toInstant()));
+
+
+		taskScheduler.schedule(() -> updateVacationStatus(NowStatus.근무전),
+			Date.from(endDate.atZone(ZoneId.systemDefault()).toInstant()));
+	}
+
+	/* 상태 업데이트 메서드 */
+	@Transactional
+	public void updateVacationStatus(NowStatus status) {
+		// 승인된 휴가신청서 확인
+		List<Submit> submits = submitRepository.findAllBySubmitStatusAndSubmitType(SubmitStatus.승인, "휴가신청서");
+		submits.forEach(submit -> {
+			User user = submit.getUser();
+			user.setN_status(NowStatus.휴가);
+			userRepository.save(user);
+		});
+	}
 }

@@ -132,7 +132,7 @@ public class InitialDataLoader implements CommandLineRunner {
         User user1 = new User(
                 null,
                 "20240901001",
-                "https://exodia-file.s3.ap-northeast-2.amazonaws.com/document/user.png",
+                "https://exodia-file.s3.ap-northeast-2.amazonaws.com/document/angry.jpg",
                 "이예나",
                 Gender.M,
                 Status.재직,

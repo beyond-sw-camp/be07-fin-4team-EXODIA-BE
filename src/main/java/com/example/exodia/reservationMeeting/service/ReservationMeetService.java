@@ -1,5 +1,6 @@
 package com.example.exodia.reservationMeeting.service;
 
+import com.example.exodia.attendance.service.AttendanceService;
 import com.example.exodia.common.service.KafkaProducer;
 import com.example.exodia.meetingInvitation.domain.MeetingInvitation;
 import com.example.exodia.meetingInvitation.dto.MeetingInvitationDto;
@@ -53,7 +54,9 @@ public class ReservationMeetService {
     private final MeetingInvitationRepository meetingInvitationRepository;
     @Autowired
     private ThreadPoolTaskScheduler taskScheduler;
-//    @Autowired
+	@Autowired
+	private AttendanceService attendanceService;
+    //    @Autowired
 //    @Qualifier("10")
 //    private RedisTemplate<String, Object> reservationRedisTemplate;
 
@@ -248,8 +251,9 @@ public class ReservationMeetService {
 
     /* 스케줄링을 통한 상태 변경 */
     private void scheduleMeetingStatusUpdateJob(Long reservationId, LocalDateTime startTime, LocalDateTime endTime) {
-        taskScheduler.schedule(() -> updateMeetingStatus(reservationId, NowStatus.회의),
+        taskScheduler.schedule(() -> updateMeetingStatus(reservationId, NowStatus.자리비움),
                 Date.from(startTime.atZone(ZoneId.systemDefault()).toInstant()));
+
 
         taskScheduler.schedule(() -> updateMeetingStatus(reservationId, NowStatus.출근),
                 Date.from(endTime.atZone(ZoneId.systemDefault()).toInstant()));

@@ -2,6 +2,8 @@ package com.example.exodia.attendance.dto;
 
 import com.example.exodia.attendance.domain.Attendance;
 import com.example.exodia.attendance.domain.DayStatus;
+import com.example.exodia.user.domain.NowStatus;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,7 +21,8 @@ public class AttendanceDetailDto {
     private LocalDateTime outTime;
     private double hoursWorked;
     private double overtimeHours;
-    private DayStatus dayStatus;
+    // private DayStatus dayStatus;
+    private NowStatus nowStatus;
 
 //    public static AttendanceDetailDto fromEntity(Attendance attendance) {
 //        double hoursWorked = 0;
@@ -32,11 +35,12 @@ public class AttendanceDetailDto {
 
     public static AttendanceDetailDto fromEntity(Attendance attendance) {
         return AttendanceDetailDto.builder()
-                .inTime(attendance.getInTime())
-                .outTime(attendance.getOutTime())
-                .dayStatus(attendance.getDayStatus())
-                .overtimeHours(attendance.getHoursWorked())
-                .build();
+            .inTime(attendance.getInTime())
+            .outTime(attendance.getOutTime())
+            // .dayStatus(attendance.getDayStatus())
+            .nowStatus(attendance.getNowStatus())
+            .overtimeHours(attendance.getHoursWorked())
+            .build();
     }
 
     public AttendanceDetailDto(LocalDateTime inTime, LocalDateTime outTime, double hoursWorked, double overtimeHours) {
