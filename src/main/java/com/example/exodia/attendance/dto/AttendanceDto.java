@@ -22,7 +22,7 @@ public class AttendanceDto {
     private NowStatus nowStatus;
     private Long userId;
 
-
+    
     public static AttendanceDto fromEntity(User user, Attendance attendance) {
         return AttendanceDto.builder()
                 .id(attendance.getId())
@@ -30,7 +30,6 @@ public class AttendanceDto {
                 .outTime(attendance.getOutTime())
                 .nowStatus(attendance.getNowStatus())
                 .userId(attendance.getUser().getId())
-                .nowStatus(user.getN_status())
                 .build();
     }
 }
