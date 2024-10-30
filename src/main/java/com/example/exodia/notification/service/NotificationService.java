@@ -31,11 +31,6 @@ public class NotificationService {
         this.userService = userService;
     }
 
-//    public List<Notification> getUnreadNotifications(String userNum) {
-//        User user = userRepository.findByUserNum(userNum)
-//                .orElseThrow(() -> new IllegalArgumentException("해당 사번을 가진 유저가 없습니다."));
-//        return notificationRepository.findByUserAndIsReadFalse(user);
-//    }
 
     public List<NotificationDTO> getNotificationsByUser(String userNum) {
 
@@ -76,54 +71,4 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
-
-
-
-    // 인사팀 관리자에게 예약 요청 알림 전송
-    public void sendReservationReqToAdmins(String message) {
-        // 후 department_name 에 맞게 인사1팀 인사 2팀 이런식의 명칭 변경
-        List<User> admins = userRepository.findAllByDepartmentName("인사팀");
-        for (User admin : admins) {
-            Notification notification = new Notification(admin, NotificationType.예약, message);
-            notificationRepository.save(notification);
-//            sseEmitters.sendToUser(admin.getUserNum(), notification);
-            // SSE 실시간 알림 전송
-            NotificationDTO dto = new NotificationDTO(notification);
-            sseEmitters.sendToUser(admin.getUserNum(), dto);
-
-        }
-    }
-
-    // 관리자 승인 -> 사용자 알림(승리)
-    public void sendReservationApproval(User user, String message) {
-        Notification notification = new Notification(user, NotificationType.차량예약승인, message);
-        notificationRepository.save(notification);
-//        sseEmitters.sendToUser(user.getUserNum(), notification);
-        NotificationDTO dto = new NotificationDTO(notification);
-        sseEmitters.sendToUser(user.getUserNum(), dto);
-    }
-
-    // 관리자 거절 -> 사용자 알림(거절)
-    public void sendReservationRejection(User user, String message) {
-        Notification notification = new Notification(user, NotificationType.차량예약거절, message);
-        notificationRepository.save(notification);
-//        sseEmitters.sendToUser(user.getUserNum(), notification);
-        NotificationDTO dto = new NotificationDTO(notification);
-        sseEmitters.sendToUser(user.getUserNum(), dto);
-    }
-
-    // 관리자들에게 회의실 예약 요청 알림을 전송
-//    public void sendMeetReservationReqToAdmins(String message) {
-//        List<User> admins = userRepository.findAllByDepartmentName("인사팀");
-//
-//        for (User admin : admins) {
-//            Notification notification = new Notification(admin, NotificationType.회의실예약, message);
-//            notificationRepository.save(notification);
-//
-//            // SSE로 실시간 알림 전송
-////            sseEmitters.sendToUser(admin.getUserNum(), notification);
-//            NotificationDTO dto = new NotificationDTO(notification);
-//            sseEmitters.sendToUser(admin.getUserNum(), dto);
-//        }
-//    }
 }

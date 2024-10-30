@@ -1,5 +1,0 @@
-version: '3.8'
-services:
-  openvidu-server:
-    environment:
-      - OPENVIDU_CORS=https://localhost:8082
