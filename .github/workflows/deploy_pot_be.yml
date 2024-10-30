@@ -37,7 +37,7 @@ jobs:
           REPOSITORY: pot
         run: |
           docker build -t $REGISTRY/$REPOSITORY:latest \
-           -f ./Dockerfile .
+           -f .ec2-user/Dockerfile .
            docker push $REGISTRY/$REPOSITORY:latest
 
       - name: eks kubectl apply
