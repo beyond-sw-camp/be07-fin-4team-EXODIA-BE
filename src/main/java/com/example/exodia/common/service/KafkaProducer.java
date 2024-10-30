@@ -69,9 +69,23 @@ public class KafkaProducer {
 
     // 결재 알림 전송
     public void sendSubmitNotification(String topic, String userName, String userNum, String date) {
-        String message = String.format("%s 님이 %s일에 결제를 요청이 도착했습니다", userName, date);
+        String message = String.format("%s 님이 %s일에 결재가 요청이 도착했습니다", userName, date);
         kafkaTemplate.send(topic, userNum + "|" + message);
         System.out.println("Kafka 결재 알림 이벤트: " + message);
+    }
+
+    // 결재 반려
+    public void revokeSubmitNotification(String topic, String userNum) {
+        String message = String.format("결재가 반려되었습니다 ");
+        kafkaTemplate.send(topic, userNum + "|" + message);
+        System.out.println("kafka 결재 반려 알림 이벤트" + message);
+    }
+
+    //결재 최종 승인
+    public void allSubmitNotification(String topic, String userNum) {
+        String message = String.format("결재가 최종 승인되었습니다");
+        kafkaTemplate.send(topic, userNum + "|" + message);
+        System.out.println("kafka 결재 최종 승인 이벤트" + message);
     }
 
     // 문서 업데이트 알림을 위한 메서드 (부서 ID 포함)

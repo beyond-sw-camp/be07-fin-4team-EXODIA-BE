@@ -56,17 +56,7 @@ spring:
       ddl-auto: create
     show-sql: false
 
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ikaros0569
-    password: jiuadogipacmtxbq
-    properties:
-      mail:
-        smtp:
-          starttls:
-            enable: true
-          auth: true
+
 jwt:
   secretKeyRT: ${JWT_SECRET_RT}
   expirationRT: ${JWT_EXPIRATION_RT}
