@@ -25,7 +25,7 @@ jobs:
           aws-region: ap-northeast-2
 
       - name: update cluster information
-        run: aws eks update-kubeconfig --name pot-cluster --region ap-northeast-2
+        run: aws eks update-kubeconfig --name pot-cluser2 --region ap-northeast-2
 
       - name: login ECR
         id: login-ecr
