@@ -43,4 +43,4 @@ jobs:
       - name: eks kubectl apply
         run: |
           kubectl apply -f ./k8s/depl.yml
-          kubectl rollout restart deployment pot-deployment -n pot
+          kubectl rollout restart deployment pot-deployment

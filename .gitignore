@@ -42,3 +42,6 @@ out/
  ###yml ###
 .idea
 /src/main/resources/credentials.json
+key.pem
+cert.pem
+
