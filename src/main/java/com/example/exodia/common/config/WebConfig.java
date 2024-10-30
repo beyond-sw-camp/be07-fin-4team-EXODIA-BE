@@ -15,7 +15,7 @@ public class WebConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.addAllowedOrigin("https://server.exodiapot.xyz");
-        config.addAllowedOrigin("https://exodiapot.xyz");
+        config.addAllowedOrigin("https://www.exodiapot.xyz");
         // config.addAllowedOrigin("http://localhost:8082");
         // config.addAllowedOrigin("http://localhost:8088");
         // config.addAllowedOrigin("http://localhost:8087");
