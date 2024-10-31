@@ -16,6 +16,7 @@ public class UserStatusAndTime {
 	private String userName;
 	private String userNum;
 	private String profileImage;
+	private String positionName;
 	private NowStatus nowStatus;
 	private LocalDateTime inTime;
 	private LocalDateTime outTime;
