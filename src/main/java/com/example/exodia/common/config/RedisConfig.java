@@ -43,6 +43,7 @@ public class RedisConfig {
         return new LettuceConnectionFactory(redisStandaloneConfiguration);
     }
 
+
     @Bean
     @Primary
     LettuceConnectionFactory connectionFactory() {
