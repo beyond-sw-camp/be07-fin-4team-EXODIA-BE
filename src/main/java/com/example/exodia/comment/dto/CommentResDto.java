@@ -16,15 +16,17 @@ public class CommentResDto {
     private String userNum;
     private String createdAt;
     private String name;
-
+    private String profileImage;
 
     public static CommentResDto fromEntity(Comment comment) {
         return CommentResDto.builder()
                 .id(comment.getId())
                 .content(comment.getContent())
-                .userNum(comment.getUserNum())
-                .name(comment.getName())
+                .userNum(comment.getUser().getUserNum())
+                .name(comment.getUser().getName())
+                .profileImage(comment.getUser().getProfileImage())
                 .createdAt(comment.getCreatedAt().toString())
                 .build();
     }
+
 }

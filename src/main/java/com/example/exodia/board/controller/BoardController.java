@@ -107,37 +107,35 @@ public class BoardController {
         }
     }
 
-
-
-
-    /**
-     * 게시물 목록 조회
-     * @param pageable - 페이징 정보와 정렬 방식을 담은 객체
-     * @param searchQuery - 검색어
-     * @param searchType - 검색 유형 (예: 제목, 내용 등)
-     * @param tagIds - 태그 필터링
-     * @return 조회된 게시물 목록을 포함한 ResponseEntity 반환
-     */
     @GetMapping("/{category}/list")
     public ResponseEntity<?> getBoardList(
-            @PathVariable("category") String category,
+            @PathVariable("category") String category,  // String으로 받기
             @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
             @RequestParam(value = "searchQuery", required = false) String searchQuery,
             @RequestParam(value = "searchType", required = false) String searchType,
             @RequestParam(value = "tagIds", required = false) List<Long> tagIds) {
 
-        Category cate = null;
-        if (Objects.equals(category, "familyevent")) {
+        // String 값을 Category enum으로 변환
+        Category cate;
+        if ("familyevent".equalsIgnoreCase(category)) {
             cate = Category.FAMILY_EVENT;
-        } else {
+        } else if ("notice".equalsIgnoreCase(category)) {
             cate = Category.NOTICE;
+        } else {
+            return new ResponseEntity<>("Invalid category", HttpStatus.BAD_REQUEST);
         }
 
-        // URL 경로로부터 받은 카테고리 값과 검색 조건을 사용하여 목록 조회
+        // 변환된 cate 값을 확인
+        System.out.println("Converted category: " + cate);  // 디버그: 변환된 카테고리 확인
+
+        // cate 변수를 사용하여 BoardListWithSearch 호출
         Page<BoardListResDto> boardListResDto = boardService.BoardListWithSearch(pageable, searchType, searchQuery, cate, tagIds);
         CommonResDto response = new CommonResDto(HttpStatus.OK, "게시물 목록을 반환합니다.", boardListResDto);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
+
+
 
 
     /**
