@@ -7,7 +7,7 @@ spring:
       on-profile: prod
   data:
     redis:
-      host: ${REDIS_HOST}
+      host: ${REDIS_HOST}:6379
       port: ${REDIS_PORT}
 
     elasticsearch:
