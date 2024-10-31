@@ -2,16 +2,21 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: pot-deployment
+#  labels:
+#    app: pot
+#    version: blue
 #  namespace: pot
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: pot
+#      version: blue
   template:
     metadata:
       labels:
         app: pot
+#        version: blue
     spec:
       containers:
         - name: pot
@@ -30,11 +35,6 @@ spec:
               valueFrom:
                 secretKeyRef:
                   key: REDIS_HOST
-                  name: pot-app-secrets
-            - name: REDIS_PORT
-              valueFrom:
-                secretKeyRef:
-                  key: REDIS_PORT
                   name: pot-app-secrets
             - name: DB_HOST
               valueFrom:
@@ -141,3 +141,147 @@ spec:
                 secretKeyRef:
                   key: OPENVIDU_SECRET
                   name: pot-app-secrets
+
+#---
+#apiVersion: apps/v1
+#kind: Deployment
+#metadata:
+#  name: pot-deployment-green
+#  labels:
+#    app: pot
+#    version: green
+#spec:
+#  replicas: 1
+#  selector:
+#    matchLabels:
+#      app: pot
+#      version: green
+#  template:
+#    metadata:
+#      labels:
+#        app: pot
+#        version: green
+#    spec:
+#      containers:
+#        - name: pot
+#          image: 211125454143.dkr.ecr.ap-northeast-2.amazonaws.com/pot:latest
+#          ports:
+#            - containerPort: 8087
+#          resources:
+#            limits:
+#              cpu: "1"
+#              memory: "500Mi"
+#            requests:
+#              cpu: "0.2"
+#              memory: "250Mi"
+#          env:
+#            - name: REDIS_HOST
+#              valueFrom:
+#                secretKeyRef:
+#                  key: REDIS_HOST
+#                  name: pot-app-secrets
+#            - name: DB_HOST
+#              valueFrom:
+#                secretKeyRef:
+#                  key: DB_HOST
+#                  name: pot-app-secrets
+#            - name: DB_USERNAME
+#              valueFrom:
+#                secretKeyRef:
+#                  key: DB_USERNAME
+#                  name: pot-app-secrets
+#            - name: DB_URL
+#              valueFrom:
+#                secretKeyRef:
+#                  key: DB_URL
+#                  name: pot-app-secrets
+#            - name: DB_PASSWORD
+#              valueFrom:
+#                secretKeyRef:
+#                  key: DB_PASSWORD
+#                  name: pot-app-secrets
+#            - name: JWT_SECRET_RT
+#              valueFrom:
+#                secretKeyRef:
+#                  key: JWT_SECRET_RT
+#                  name: pot-app-secrets
+#            - name: JWT_EXPIRATION_RT
+#              valueFrom:
+#                secretKeyRef:
+#                  key: JWT_EXPIRATION_RT
+#                  name: pot-app-secrets
+#            - name: AWS_ACCESS_KEY
+#              valueFrom:
+#                secretKeyRef:
+#                  key: AWS_ACCESS_KEY
+#                  name: pot-app-secrets
+#            - name: AWS_SECRET_KEY
+#              valueFrom:
+#                secretKeyRef:
+#                  key: AWS_SECRET_KEY
+#                  name: pot-app-secrets
+#            - name: AWS_BUCKET_NAME
+#              valueFrom:
+#                secretKeyRef:
+#                  key: AWS_BUCKET_NAME
+#                  name: pot-app-secrets
+#            - name: AWS_REGION
+#              valueFrom:
+#                secretKeyRef:
+#                  key: AWS_REGION
+#                  name: pot-app-secrets
+#            - name: GOOGLE_FILE_PATH
+#              valueFrom:
+#                secretKeyRef:
+#                  key: GOOGLE_FILE_PATH
+#                  name: pot-app-secrets
+#            - name: ELASTIC_SEARCH_URI
+#              valueFrom:
+#                secretKeyRef:
+#                  key: ELASTIC_SEARCH_URI
+#                  name: pot-app-secrets
+#            - name: ELASTIC_SEARCH_USERNAME
+#              valueFrom:
+#                secretKeyRef:
+#                  key: ELASTIC_SEARCH_USERNAME
+#                  name: pot-app-secrets
+#            - name: ELASTIC_SEARCH_PASSWORD
+#              valueFrom:
+#                secretKeyRef:
+#                  key: ELASTIC_SEARCH_PASSWORD
+#                  name: pot-app-secrets
+#            - name: COOLSMS_KEY
+#              valueFrom:
+#                secretKeyRef:
+#                  key: COOLSMS_KEY
+#                  name: pot-app-secrets
+#            - name: COOLSMS_SECRET
+#              valueFrom:
+#                secretKeyRef:
+#                  key: COOLSMS_SECRET
+#                  name: pot-app-secrets
+#            - name: COOLSMS_NUMBER
+#              valueFrom:
+#                secretKeyRef:
+#                  key: COOLSMS_NUMBER
+#                  name: pot-app-secrets
+#            - name: JANUS_URL
+#              valueFrom:
+#                secretKeyRef:
+#                  key: JANUS_URL
+#                  name: pot-app-secrets
+#            - name: KAFKA_SERVER
+#              valueFrom:
+#                secretKeyRef:
+#                  key: KAFKA_SERVER
+#                  name: pot-app-secrets
+#            - name: OPENVIDU_URL
+#              valueFrom:
+#                secretKeyRef:
+#                  key: OPENVIDU_URL
+#                  name: pot-app-secrets
+#            - name: OPENVIDU_SECRET
+#              valueFrom:
+#                secretKeyRef:
+#                  key: OPENVIDU_SECRET
+#                  name: pot-app-secrets
