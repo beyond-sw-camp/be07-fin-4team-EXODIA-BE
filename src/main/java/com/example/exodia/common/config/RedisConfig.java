@@ -236,6 +236,7 @@ public class RedisConfig {
         return redisConnectionFactory(9);
     }
 
+
     @Bean
     @Qualifier("10")
     public RedisTemplate<String, Object> shedlockRedisTemplate(@Qualifier("10") RedisConnectionFactory connectionFactory) {
