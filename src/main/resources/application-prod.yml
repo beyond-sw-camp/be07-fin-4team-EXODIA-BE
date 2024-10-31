@@ -9,8 +9,9 @@ spring:
     redis:
       host: ${REDIS_HOST}:6379
       port: ${REDIS_PORT}
-      nodes:
-        - ${REDIS_NODE}:6379
+      cluster:
+        nodes:
+          - ${REDIS_NODE}:6379
     elasticsearch:
       uris: ${ELASTIC_SEARCH_URI}
       username: ${ELASTIC_SEARCH_USERNAME}

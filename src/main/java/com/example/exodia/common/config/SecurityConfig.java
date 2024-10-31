@@ -27,6 +27,7 @@ public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
     private final CustomSessionExpiredStrategy customSessionExpiredStrategy;
 
+
     public SecurityConfig(JwtAuthFilter jwtAuthFilter, CustomSessionExpiredStrategy customSessionExpiredStrategy) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.customSessionExpiredStrategy = customSessionExpiredStrategy;

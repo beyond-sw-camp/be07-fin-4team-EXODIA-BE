@@ -14,7 +14,7 @@ import java.util.List;
 @Configuration
 public class RedissonConfig {
 
-    @Value("${spring.data.redis.nodes}")
+    @Value("${spring.data.redis.cluster.nodes}")
     private List<String> redisNodes;
 
     @PostConstruct
