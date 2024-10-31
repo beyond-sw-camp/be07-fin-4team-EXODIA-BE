@@ -40,6 +40,7 @@ public class BoardController {
     }
 
 
+
     @PostMapping("/{category}/create")
     public ResponseEntity<?> createBoard(@ModelAttribute BoardSaveReqDto dto, @RequestParam List<Long> tagIds) {
         try {
