@@ -79,13 +79,22 @@ public class KafkaConsumer {
             case "car-reservation-rejection-events":
                 processCarReservationRejection(message);
                 break;
+            case "qanda-events":
+                listenQnaEvents(message);
+                break;
+            case "course-registration":
+                processCourseRegistration(message);
+                break;
+            case "course-transmission":
+                processCourseTransmission(message);
+                break;
             default:
                 System.out.println("알 수 없는 토픽이거나 메시지 형식이 맞지 않습니다.");
         }
     }
 
 
-    @KafkaListener(topics = "qanda-events", groupId = "qanda-group")
+    @KafkaListener(topics = "qanda-events", groupId = "notification-group")
     public void listenQnaEvents(String message) {
         String[] parts = message.split("\\|");
         String eventType = parts[0];
@@ -364,8 +373,8 @@ public class KafkaConsumer {
     }
 
 
-    @KafkaListener(topics = "course-registration", groupId = "course-registration-group")
-    public void listenCourseRegistration(@Header(KafkaHeaders.RECEIVED_TOPIC) String topic, String message) {
+//    @KafkaListener(topics = "course-registration", groupId = "notification-group")
+    public void processCourseRegistration(String message) {
         System.out.println("Kafka 참가자 등록 메시지 수신: " + message);
 
         String[] messageParts = message.split(" has registered for course ");
@@ -375,8 +384,8 @@ public class KafkaConsumer {
         registrationService.confirmRegistration(courseId, userNum);
     }
 
-    @KafkaListener(topics = {"course-transmission"}, groupId = "course-transmission-group")
-    public void listenCourseTransmission(@Header(KafkaHeaders.RECEIVED_TOPIC) String topic, String message) {
+//    @KafkaListener(topics = {"course-transmission"}, groupId = "notification-group")
+    public void processCourseTransmission(String message) {
         System.out.println("Kafka 강좌 전송 메시지 수신: " + message);
 
         // 메시지 형식: "courseId|전송 메시지"

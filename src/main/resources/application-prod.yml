@@ -36,13 +36,29 @@ spring:
   kafka:
     bootstrap-servers: ${KAFKA_SERVER}:9092
     consumer:
-      group-id: notification-group
-      enable-auto-commit: true
-      auto-offset-reset: earliest
+      enable-auto-commit: false
+      properties:
+        isolation.level: read_committed
+      listener:
+        missing-topics-fatal: false
 
-      session-timeout-ms: 15000
-      heartbeat-interval-ms: 3000
-      max-poll-interval-ms: 600000
+      # notification-group에 대한 설정
+      notification-group:
+        group-id: notification-group
+        auto-offset-reset: earliest
+        max-poll-records: 10
+        session-timeout-ms: 15000
+        heartbeat-interval-ms: 3000
+        max-poll-interval-ms: 600000
+
+      # chat-group에 대한 설정
+      chat-group:
+        group-id: chat-group
+        auto-offset-reset: earliest
+        max-poll-records: 50
+        concurrency: 3
+        session-timeout-ms: 10000
+        heartbeat-interval-ms: 2000
 
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
