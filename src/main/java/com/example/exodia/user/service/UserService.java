@@ -199,23 +199,25 @@ public class UserService {
     }
 
 
-    public List<User> searchUsers(String search, String searchType, Pageable pageable) {
+    public Page<User> searchUsers(String search, String searchType, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
         if (search == null || search.isEmpty()) {
-            return userRepository.findByDelYn(DelYN.N, pageable).getContent();
+            return userRepository.findByDelYn(DelYN.N, pageable);
+//            return userRepository.findByDelYn(DelYN.N, pageable).getContent();
         }
 
         switch (searchType) {
             case "name":
-                return userRepository.findByNameContainingAndDelYn(search, DelYN.N, pageable).getContent();
+                return userRepository.findByNameContainingAndDelYn(search, DelYN.N, pageable);
             case "department":
-                return userRepository.findByDepartmentNameContainingAndDelYn(search, DelYN.N, pageable).getContent();
+                return userRepository.findByDepartmentNameContainingAndDelYn(search, DelYN.N, pageable);
             case "position":
-                return userRepository.findByPositionNameContainingAndDelYn(search, DelYN.N, pageable).getContent();
+                return userRepository.findByPositionNameContainingAndDelYn(search, DelYN.N, pageable);
             case "all":
                 return userRepository.findByDelYnAndNameContainingOrDelYnAndDepartmentNameContainingOrDelYnAndPositionNameContaining(
-                        DelYN.N, search, DelYN.N, search, DelYN.N, search, pageable).getContent();
+                        DelYN.N, search, DelYN.N, search, DelYN.N, search, pageable);
             default:
-                return userRepository.findByDelYn(DelYN.N, pageable).getContent();
+                return userRepository.findByDelYn(DelYN.N, pageable);
         }
     }
 

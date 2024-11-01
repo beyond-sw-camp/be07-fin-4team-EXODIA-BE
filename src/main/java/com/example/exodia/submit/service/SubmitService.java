@@ -200,6 +200,10 @@ public class SubmitService {
 					}
 					// 반려 처리
 					changeToReject(dto.getSubmitId(), dto.getReason());
+
+					// 반려 시 kafka 알림
+					kafkaProducer.revokeSubmitNotification("submit-events", submit.getUserNum());
+
 					break;
 				} else if (dto.getStatus() == SubmitStatus.승인) {
 					submitLine.updateStatus(SubmitStatus.승인);
@@ -207,6 +211,10 @@ public class SubmitService {
 					// 최상단 결재자인 경우
 					if (i == submitLines.size() - 1) {
 						submit.updateStatus(SubmitStatus.승인, null);
+
+						// kafka 결재 승인 알림(최종 찐 승인)
+						kafkaProducer.allSubmitNotification("submit-events", submit.getUserNum());
+
 						checkVacationType(submit);
 						// 경조사 신청서인 경우 자동 게시판 업로드 처리
 						if ("경조사 신청서".equals(submit.getSubmitType()) && submit.isUploadBoard()) {
@@ -219,6 +227,7 @@ public class SubmitService {
 						User nextUser = userRepository.findByUserNum(nextUserNum)
 							.orElseThrow(() -> new EntityNotFoundException("회원 정보가 존재하지 않습니다."));
 
+						// 알림(1->2 2->3)
 						kafkaProducer.sendSubmitNotification("submit-events", nextUser.getName(),
 							nextUser.getUserNum(),
 							LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM.dd")));

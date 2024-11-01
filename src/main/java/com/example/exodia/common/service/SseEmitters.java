@@ -17,7 +17,7 @@ public class SseEmitters {
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
 
     public SseEmitter addEmitter(String userNum) {
-        SseEmitter emitter = new SseEmitter(600_000L);
+        SseEmitter emitter = new SseEmitter(1800_000L);
         emitters.put(userNum, emitter);
 //        System.out.println("SSE Emitter 추가: " + userNum);
 
@@ -26,13 +26,13 @@ public class SseEmitters {
             try {
                 if (emitters.containsKey(userNum)) {
                     emitter.send(SseEmitter.event().comment("heartbeat"));
-                    System.out.println("Heartbeat 전송: " + userNum); // 로그 출력 감소
+
                 } else {
                     throw new IOException("연결이 종료되었습니다.");
                 }
             } catch (IOException e) {
                 emitters.remove(userNum);
-                System.out.println("SSE 연결 오류 발생 및 종료: " + userNum);
+
             }
         }, 0, 2, TimeUnit.MINUTES);
 
@@ -40,14 +40,14 @@ public class SseEmitters {
         emitter.onCompletion(() -> {
             emitters.remove(userNum);
             System.out.println("SSE 연결 완료: " + userNum);
-            heartbeatTask.cancel(true); // heartbeat 스케줄 정리
+            heartbeatTask.cancel(true);
         });
 
         // SSE 타임아웃 처리
         emitter.onTimeout(() -> {
             emitters.remove(userNum);
             System.out.println("SSE 연결 타임아웃 발생: " + userNum);
-            heartbeatTask.cancel(true); // heartbeat 스케줄 정리
+            heartbeatTask.cancel(true);
         });
 
         // SSE 오류 처리
@@ -55,7 +55,7 @@ public class SseEmitters {
             emitters.remove(userNum);
 
             System.out.println("SSE 연결 오류 발생: " + userNum);
-            heartbeatTask.cancel(true); // heartbeat 스케줄 정
+            heartbeatTask.cancel(true);
         });
 
         return emitter;
@@ -91,6 +91,7 @@ public class SseEmitters {
             } catch (IOException e) {
                 emitters.remove(userNum);
                 System.out.println("알림 전송 실패, SSE 연결 해제: " + userNum);
+
                 //e.printStackTrace();
             }
         } else {

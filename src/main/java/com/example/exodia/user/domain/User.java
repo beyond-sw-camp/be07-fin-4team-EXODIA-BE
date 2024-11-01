@@ -52,7 +52,7 @@ public class User extends BaseTimeEntity {
     private String socialNum;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+//    @Column(nullable = false)
     //test 시에 false
     private HireType hireType;
 

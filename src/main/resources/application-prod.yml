@@ -62,6 +62,7 @@ spring:
       ddl-auto: update
     show-sql: true
 
+
 jwt:
   secretKeyRT: ${JWT_SECRET_RT}
   expirationRT: ${JWT_EXPIRATION_RT}
