@@ -1,41 +1,41 @@
 package com.example.exodia.videoroom.service;
 
+import io.openvidu.java.client.*;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.http.HttpStatus;
 
-import java.util.Map;
 @Service
 public class OpenViduService {
-    @Value("${openvidu.url}")
-    private String OPENVIDU_URL;
 
-    @Value("${openvidu.secret}")
-    private String OPENVIDU_SECRET;
+    private OpenVidu openVidu;
 
-    public String createSession() {
-        RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBasicAuth("OPENVIDUAPP", OPENVIDU_SECRET);
-        headers.set("Content-Type", "application/json");
-        HttpEntity<String> requestEntity = new HttpEntity<>("{}", headers);
-        String sessionUrl = OPENVIDU_URL + "/api/sessions";
+    public OpenViduService(@Value("${openvidu.url}") String openViduUrl,
+                           @Value("${openvidu.secret}") String secret) {
+        this.openVidu = new OpenVidu(openViduUrl, secret);
+    }
 
-        try {
-            ResponseEntity<Map> response = restTemplate.exchange(sessionUrl, HttpMethod.POST, requestEntity, Map.class);
-            if (response.getStatusCode() == HttpStatus.OK) {
-                return (String) response.getBody().get("id");
-            } else {
-                throw new RuntimeException("OpenVidu 세션 생성에 실패했습니다. 상태 코드: " + response.getStatusCode());
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("OpenVidu 세션 생성 요청 중 오류 발생: " + e.getMessage(), e);
+    // 세션 생성
+    public String createSession() throws OpenViduJavaClientException, OpenViduHttpException {
+        SessionProperties properties = new SessionProperties.Builder().build();
+        Session session = openVidu.createSession(properties);
+        return session.getSessionId();
+    }
+
+    // 연결 생성
+    public String createConnection(String sessionId) throws OpenViduJavaClientException, OpenViduHttpException {
+        Session session = openVidu.getActiveSession(sessionId);
+        if (session == null) {
+            throw new RuntimeException("Session not found");
+        }
+        Connection connection = session.createConnection(new ConnectionProperties.Builder().build());
+        return connection.getToken();
+    }
+
+    // 세션 종료
+    public void closeSession(String sessionId) throws OpenViduJavaClientException, OpenViduHttpException {
+        Session session = openVidu.getActiveSession(sessionId);
+        if (session != null) {
+            session.close();
         }
     }
 }

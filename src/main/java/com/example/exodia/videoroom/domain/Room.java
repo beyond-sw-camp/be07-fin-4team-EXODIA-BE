@@ -2,42 +2,30 @@ package com.example.exodia.videoroom.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.util.List;
 
-@Entity
-@Getter
-@Setter
-@NoArgsConstructor
+
 @AllArgsConstructor
-@Builder
+@NoArgsConstructor
+@Setter
+@Getter
+@Entity
 public class Room {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private String roomName;
-
-
-    private String password;
-
-    @Column(nullable = false)
-    private int participantCount;
+    private String title;
 
     @Column(nullable = false, unique = true)
-    private String sessionId;
+    private String sessionId;  // OpenVidu 세션 ID
 
-    public void incrementParticipant() {
-        this.participantCount += 1;
-    }
+    @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Participant> participants;
 
-    public void decrementParticipant() {
-        this.participantCount -= 1;
-    }
-
-    public Room(String roomName, String password, String sessionId) {
-        this.roomName = roomName;
-        this.password = password;
-        this.sessionId = sessionId;
-        this.participantCount = 1;
+    public int getParticipantCount() {
+        return participants != null ? participants.size() : 0;
     }
 }
