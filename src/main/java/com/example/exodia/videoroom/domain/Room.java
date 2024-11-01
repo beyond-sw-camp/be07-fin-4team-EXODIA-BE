@@ -25,7 +25,19 @@ public class Room {
     @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Participant> participants;
 
-    public int getParticipantCount() {
-        return participants != null ? participants.size() : 0;
+    @Column(nullable = false)
+    private int participantCount = 0;
+
+    // 참가자 추가
+    public void addParticipant(Participant participant) {
+        participants.add(participant);
+        participant.setRoom(this);
+        participantCount = participants.size();
+    }
+
+    // 참가자 제거
+    public void removeParticipant(Participant participant) {
+        participants.remove(participant);
+        participantCount = participants.size();
     }
 }

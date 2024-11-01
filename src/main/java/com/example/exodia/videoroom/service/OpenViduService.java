@@ -14,7 +14,7 @@ public class OpenViduService {
         this.openVidu = new OpenVidu(openViduUrl, secret);
     }
 
-    
+
     // 세션 생성
     public String createSession() throws OpenViduJavaClientException, OpenViduHttpException {
         SessionProperties properties = new SessionProperties.Builder().build();
