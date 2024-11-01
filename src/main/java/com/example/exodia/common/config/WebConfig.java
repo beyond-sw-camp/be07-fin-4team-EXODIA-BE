@@ -14,8 +14,8 @@ public class WebConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOriginPattern("https://*.exodiapot.xyz");
-        config.addAllowedOriginPattern("http://localhost:[8082,8087,8088,4443]");
+        config.addAllowedOriginPattern("https://www.exodiapot.xyz");
+//        config.addAllowedOriginPattern("http://localhost:[8082,8087,8088,4443]");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         source.registerCorsConfiguration("/**", config);
