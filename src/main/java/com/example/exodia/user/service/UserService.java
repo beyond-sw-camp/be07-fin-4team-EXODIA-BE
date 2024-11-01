@@ -67,6 +67,8 @@ public class UserService {
         if (user.isDeleted()) {
             throw new RuntimeException("비활성화 상태의 계정입니다.");
         }
+
+
         if (!passwordEncoder.matches(loginDto.getPassword(), user.getPassword())) {
             user.incrementLoginFailCount();
             if (user.getLoginFailCount() > 5) {
