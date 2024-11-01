@@ -86,54 +86,68 @@ public class InitialDataLoader implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        if (evalutionbRepository.count() == 0) {
+            insertEvalutionData();
+        }
+        if (carRepository.count() == 0) {
+            insertCarData();
+        }
+        if (submitTypeRepository.count() == 0) {
+            insertSubmitTypeData();
+        }
+        if (chatRoomRepository.count() == 0) {
+            insertChatRoomData();
+        }
+    }
 
-
-        // 대분류 데이터 생성
+    private void insertEvalutionData() {
         Evalutionb workAbility = new Evalutionb(null, "업무 수행 능력");
         Evalutionb problemSolving = new Evalutionb(null, "문제 해결");
         Evalutionb responsibility = new Evalutionb(null, "책임감");
         Evalutionb teamworkCommunication = new Evalutionb(null, "팀워크/의사소통");
 
-        evalutionbRepository.save(workAbility);
-        evalutionbRepository.save(problemSolving);
-        evalutionbRepository.save(responsibility);
-        evalutionbRepository.save(teamworkCommunication);
+        evalutionbRepository.saveAll(List.of(workAbility, problemSolving, responsibility, teamworkCommunication));
 
-        // 중분류 데이터 생성 및 대분류와 연결
-        Evalutionm workAchievement = new Evalutionm(null, "업무달성도", workAbility);
-        Evalutionm workProcessingAbility = new Evalutionm(null, "업무처리능력", workAbility);
+        List<Evalutionm> evalutionms = List.of(
+                new Evalutionm(null, "업무달성도", workAbility),
+                new Evalutionm(null, "업무처리능력", workAbility),
+                new Evalutionm(null, "문제 해결 능력", problemSolving),
+                new Evalutionm(null, "주도성", problemSolving),
+                new Evalutionm(null, "협력태도", responsibility),
+                new Evalutionm(null, "팀워크", teamworkCommunication),
+                new Evalutionm(null, "의사소통", teamworkCommunication)
+        );
+        evalutionmRepository.saveAll(evalutionms);
+    }
 
-        Evalutionm problemSolvingAbility = new Evalutionm(null, "문제 해결 능력", problemSolving);
-        Evalutionm initiative = new Evalutionm(null, "주도성", problemSolving);
-
-        Evalutionm cooperativeAttitude = new Evalutionm(null, "협력태도", responsibility);
-
-        Evalutionm teamwork = new Evalutionm(null, "팀워크", teamworkCommunication);
-        Evalutionm communication = new Evalutionm(null, "의사소통", teamworkCommunication);
-
-        evalutionmRepository.save(workAchievement);
-        evalutionmRepository.save(workProcessingAbility);
-        evalutionmRepository.save(problemSolvingAbility);
-        evalutionmRepository.save(initiative);
-        evalutionmRepository.save(cooperativeAttitude);
-        evalutionmRepository.save(teamwork);
-        evalutionmRepository.save(communication);
-
-
-        List<Car> cars = new ArrayList<>();
-        cars.add(new Car(null, "121가123", "스타랙스", 11, 2.5, "starrex.jpg"));
-        cars.add(new Car(null, "135나894", "밴츠", 5, 3.0, "benz.jpg"));
-        cars.add(new Car(null, "753호159", "SUV", 7, 2.0, "suv.jpg"));
-        cars.add(new Car(null, "143라3451", "람보르기니", 2, 5.2, "lamborghini.jpg"));
-        cars.add(new Car(null, "429호7318", "G70", 5, 3.3, "g70.jpg"));
-        cars.add(new Car(null, "14라 8222", "소나타", 5, 2.0, "sonata.jpg"));
-        cars.add(new Car(null, "18유3752", "황금마티즈", 4, 0.8, "matiz.jpg"));
+    private void insertCarData() {
+        List<Car> cars = List.of(
+                new Car(null, "121가123", "스타랙스", 11, 2.5, "starrex.jpg"),
+                new Car(null, "135나894", "벤츠", 5, 3.0, "benz.jpg"),
+                new Car(null, "753호159", "SUV", 7, 2.0, "suv.jpg"),
+                new Car(null, "143라3451", "람보르기니", 2, 5.2, "lamborghini.jpg"),
+                new Car(null, "429호7318", "G70", 5, 3.3, "g70.jpg"),
+                new Car(null, "14라 8222", "소나타", 5, 2.0, "sonata.jpg"),
+                new Car(null, "18유3752", "황금마티즈", 4, 0.8, "matiz.jpg")
+        );
         carRepository.saveAll(cars);
+    }
 
-        submitTypeRepository.save(new SubmitType(1L, "법인 카드 사용 신청서"));
-        submitTypeRepository.save(new SubmitType(2L, "휴가 신청서"));
-        submitTypeRepository.save(new SubmitType(3L, "경조사 신청서"));
+    private void insertSubmitTypeData() {
+        List<SubmitType> submitTypes = List.of(
+                new SubmitType(1L, "법인 카드 사용 신청서"),
+                new SubmitType(2L, "휴가 신청서"),
+                new SubmitType(3L, "경조사 신청서")
+        );
+        submitTypeRepository.saveAll(submitTypes);
+    }
 
-        ChatRoom chatRoom = ChatRoom.builder().roomName("test").chatUsers(new ArrayList<>()).recentChatTime(LocalDateTime.now()).build();
+    private void insertChatRoomData() {
+        ChatRoom chatRoom = ChatRoom.builder()
+                .roomName("test")
+                .chatUsers(new ArrayList<>())
+                .recentChatTime(LocalDateTime.now())
+                .build();
+        chatRoomRepository.save(chatRoom);
     }
 }

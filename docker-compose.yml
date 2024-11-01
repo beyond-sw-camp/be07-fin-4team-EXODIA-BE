@@ -35,7 +35,7 @@ services:
     network_mode: "bridge"
     environment:
       - OPENVIDU_SECRET=MY_SECRET
-      - OPENVIDU_PUBLICURL=http://localhost:4443  # 외부 접근 주소 설정
+      - OPENVIDU_PUBLICURL=https://server.exodiapot.xyz:4443  # 외부 접근 주소 설정
     ports:
       - "4443:4443"  # HTTPS 포트
 

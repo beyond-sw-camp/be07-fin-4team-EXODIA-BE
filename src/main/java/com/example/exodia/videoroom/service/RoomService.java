@@ -31,7 +31,7 @@ public class RoomService {
     @Autowired
     private UserRepository userRepository;
 
-    private final String OPENVIDU_URL = "http://localhost:4443";
+    private final String OPENVIDU_URL = "https://server.exodiapot.xyz:4443";
     private final String OPENVIDU_SECRET = "MY_SECRET";
 
     public Room createRoom(String roomName, String password) {
