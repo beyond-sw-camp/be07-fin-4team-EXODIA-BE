@@ -137,40 +137,43 @@ public class BoardService {
     }
 
     public Page<BoardListResDto> BoardListWithSearch(Pageable pageable, String searchType, String searchQuery, Category category, List<Long> tagIds) {
-        Page<Board> boards;
+        System.out.println("Received category in BoardListWithSearch: " + category); // 디버그: 전달된 카테고리 확인
 
+        Page<Board> boards;
         if (searchQuery != null && !searchQuery.isEmpty()) {
             switch (searchType) {
                 case "title":
-                    boards = boardRepository.findByTitleContainingIgnoreCaseAndCategoryAndDelYn(
-                            searchQuery, category, DelYN.N, pageable);
+                    boards = boardRepository.findByCategoryAndDelYnAndTitleContainingIgnoreCase(
+                            category, DelYN.N, searchQuery, pageable);
                     break;
                 case "content":
-                    boards = boardRepository.findByContentContainingIgnoreCaseAndCategoryAndDelYn(
-                            searchQuery, category, DelYN.N, pageable);
+                    boards = boardRepository.findByCategoryAndDelYnAndContentContainingIgnoreCase(
+                            category, DelYN.N, searchQuery, pageable);
                     break;
                 case "tags":
-                    boards = boardRepository.findByTagsContainingIgnoreCaseAndCategoryAndDelYn(
-                            searchQuery, category, DelYN.N, pageable);
+                    boards = boardRepository.findByCategoryAndDelYnAndTagsContainingIgnoreCase(
+                            category, DelYN.N, searchQuery, pageable);
                     break;
                 case "title + content":
-                    boards = boardRepository.findByTitleContainingOrContentContainingIgnoreCaseAndCategoryAndDelYn(
-                            searchQuery, searchQuery, category, DelYN.N, pageable);
+                    boards = boardRepository.findByCategoryAndDelYnAndTitleOrContentContainingIgnoreCase(
+                            category, DelYN.N, searchQuery, pageable);
                     break;
                 default:
                     boards = boardRepository.findByCategoryAndDelYn(category, DelYN.N, pageable);
                     break;
             }
-        } else if (tagIds != null && !tagIds.isEmpty()) {
-            boards = boardRepository.findByTagIdsAndCategoryAndDelYn(tagIds, category, DelYN.N, pageable);
-        } else if (category != null) {
-            boards = boardRepository.findByCategoryAndDelYn(category, DelYN.N, pageable);
         } else {
-            boards = boardRepository.findAllWithPinnedByCategory(category, pageable);
+            boards = boardRepository.findByCategoryAndDelYn(category, DelYN.N, pageable);
         }
+
+        // 결과 출력
+        System.out.println("Retrieved boards: " + boards.getContent());  // 디버그: 조회된 게시글 목록 출력
 
         return boards.map(Board::listFromEntity);
     }
+
+
+
 
 
     public BoardDetailDto BoardDetail(Long id, String userNum) {
