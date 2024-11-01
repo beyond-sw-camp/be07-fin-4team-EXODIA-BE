@@ -80,4 +80,8 @@ public class Attendance {
     public void setMeetingStatus(){
         this.nowStatus = NowStatus.자리비움;
     }
+
+    public void setWorkIn(){
+        this.nowStatus = NowStatus.출근;
+    }
 }

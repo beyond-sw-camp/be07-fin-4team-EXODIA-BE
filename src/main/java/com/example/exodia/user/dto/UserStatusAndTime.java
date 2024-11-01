@@ -15,6 +15,8 @@ import lombok.NoArgsConstructor;
 public class UserStatusAndTime {
 	private String userName;
 	private String userNum;
+	private String positionName;
+	private String departmentName;
 	private String profileImage;
 	private NowStatus nowStatus;
 	private LocalDateTime inTime;

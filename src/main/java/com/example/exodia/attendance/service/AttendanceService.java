@@ -5,6 +5,7 @@ import com.example.exodia.attendance.domain.DayStatus;
 import com.example.exodia.attendance.dto.*;
 import com.example.exodia.attendance.repository.AttendanceRepository;
 import com.example.exodia.common.domain.DelYN;
+import com.example.exodia.department.domain.Department;
 import com.example.exodia.user.domain.NowStatus;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.dto.UserStatusAndTime;
@@ -286,8 +287,17 @@ public class AttendanceService {
         User loggedInUser = userRepository.findByUserNum(userNum)
             .orElseThrow(() -> new IOException("로그인한 유저 정보를 찾을 수 없습니다."));
 
-        List<User> users = userRepository.findAllByDepartmentIdAndDelYn(loggedInUser.getDepartment().getId(), DelYN.N); //같은 부서 사람들
+        List<Department> departments = loggedInUser.getDepartment().getChildren();
+        departments.add(loggedInUser.getDepartment());
 
+        List<User> users = new ArrayList<>();
+
+        for (Department department : departments) {
+            List<User> departmentUsers = userRepository.findAllByDepartmentIdAndDelYn(department.getId(), DelYN.N); //같은 부서 사람들
+            for (User user : departmentUsers) {
+                users.add(user);
+            }
+        }
         LocalDateTime startOfDay = LocalDateTime.of(LocalDateTime.now().toLocalDate(), LocalTime.MIDNIGHT);
         LocalDateTime currentTime = LocalDateTime.now();
 
@@ -305,6 +315,8 @@ public class AttendanceService {
                 times.add(UserStatusAndTime.builder()
                     .userName(user.getName())
                     .userNum(user.getUserNum())
+                    .departmentName(user.getDepartment().getName())
+                    .positionName(user.getPosition().getName())
                     .profileImage(user.getProfileImage())
                     .nowStatus(user.getN_status())
                     .inTime(attendanceRecord.getInTime())
@@ -316,6 +328,8 @@ public class AttendanceService {
                 times.add(UserStatusAndTime.builder()
                     .userName(user.getName())
                     .userNum(user.getUserNum())
+                    .departmentName(user.getDepartment().getName())
+                    .positionName(user.getPosition().getName())
                     .profileImage(user.getProfileImage())
                     .nowStatus(NowStatus.근무전)
                     .inTime(null)
@@ -341,6 +355,22 @@ public class AttendanceService {
 
         user.setMeetingStatus();   //user.n_status 회의중으로 기록
         attendance.setMeetingStatus();
+        return attendance;
+    }
+
+    @Transactional
+    public Attendance outMeetingStatus() throws IOException {
+        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUserNum(userNum).orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
+
+        LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
+        LocalDateTime endOfToday = LocalDateTime.of(LocalDate.now(), LocalTime.MAX);
+
+        Attendance attendance = attendanceRepository.findByUserAndInTimeBetween(user, startOfToday, endOfToday)
+            .orElseThrow(() -> new IOException("근태 기록이 존재하지 않습니다."));
+
+        user.setWorkIn();   //user.n_status 출근으로 기록
+        attendance.setWorkIn();
         return attendance;
     }
 }

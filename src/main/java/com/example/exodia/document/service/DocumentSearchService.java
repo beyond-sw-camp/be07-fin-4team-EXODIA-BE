@@ -15,11 +15,16 @@ import org.opensearch.client.opensearch.core.search.Hit;
 import org.opensearch.client.opensearch.indices.CreateIndexRequest;
 import org.opensearch.client.opensearch.indices.ExistsRequest;
 import org.opensearch.client.transport.endpoints.BooleanResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.example.exodia.document.domain.Document;
 import com.example.exodia.document.domain.EsDocument;
 import com.example.exodia.document.dto.DocListResDto;
+import com.example.exodia.document.dto.DocumentSearchDto;
 import com.example.exodia.document.repository.DocumentRepository;
 
 import jakarta.annotation.PostConstruct;
@@ -80,42 +85,78 @@ public class DocumentSearchService {
 	}
 
 	// OpenSearch에서 검색
-		public List<EsDocument> searchDocuments(String keyword) {
-			List<EsDocument> documents = new ArrayList<>();
-			try {
-				SearchRequest request = SearchRequest.of(searchRequest ->
-					searchRequest.index(INDEX_NAME)
-						.query(query -> query
-							.bool(bool -> bool
-								.should(should -> should
-									.wildcard(wildcard -> wildcard
-										.field("fileName")
-										.value("*" + keyword + "*")
-									)
-								)
-								.should(should -> should
-									.wildcard(wildcard -> wildcard
-										.field("description")
-										.value("*" + keyword + "*")
-									)
-								)
-							)
-						)
-				);
+	public Page<EsDocument> searchDocuments(DocumentSearchDto documentSearchDto, int page, int size) {
+		List<EsDocument> documents = new ArrayList<>();
+		try {
+			SearchRequest request = SearchRequest.of(searchRequest ->
+				searchRequest.index(INDEX_NAME)
+					.from(page * size)
+					.size(size)
+					.query(query -> query
+						.bool(bool -> {
+								String searchType = documentSearchDto.getSearchType();
+								String keyword = "*" + documentSearchDto.getKeyword() + "*";
 
-				// 검색 결과
-				SearchResponse<EsDocument> response = openSearchClient.search(request, EsDocument.class);
-				List<Hit<EsDocument>> hits = response.hits().hits();
-				System.out.println("hits.size() : " + hits.size());
-				for (Hit<EsDocument> hit : hits) {
-					EsDocument esDocument = hit.source();
-					documents.add(esDocument);
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
+								if ("userName".equals(searchType)) {
+									bool.should(should -> should
+										.wildcard(wildcard -> wildcard
+											.field("userName")
+											.value(keyword)
+										)
+									);
+								} else if ("title".equals(searchType)) {
+									bool.should(should -> should
+										.wildcard(wildcard -> wildcard
+											.field("fileName")
+											.value(keyword)
+										)
+									);
+								} else if ("description".equals(searchType)) {
+									bool.should(should -> should
+										.wildcard(wildcard -> wildcard
+											.field("description")
+											.value(keyword)
+										)
+									);
+								} else {
+									bool.should(should -> should
+										.wildcard(wildcard -> wildcard
+											.field("fileName")
+											.value(keyword)
+										)
+									);
+									bool.should(should -> should
+										.wildcard(wildcard -> wildcard
+											.field("description")
+											.value(keyword)
+										)
+									);
+								}
+								return bool;
+							}
+
+						)
+					)
+			);
+
+			// 검색 결과
+			SearchResponse<EsDocument> response = openSearchClient.search(request, EsDocument.class);
+			List<Hit<EsDocument>> hits = response.hits().hits();
+
+			System.out.println("hits.size() : " + hits.size());
+			for (Hit<EsDocument> hit : hits) {
+				EsDocument esDocument = hit.source();
+				documents.add(esDocument);
 			}
-			return documents;
+			Pageable pageable = PageRequest.of(page, size);
+			long totalHits = response.hits().total().value();  // Total number of hits for pagination
+
+			return new PageImpl<>(documents, pageable, totalHits);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
+		return Page.empty();
+	}
 
 	// 삭제
 	public void deleteDocument(String id) {
@@ -128,8 +169,6 @@ public class DocumentSearchService {
 			e.printStackTrace();
 		}
 	}
-
-
 
 	// 기본 검색
 	public List<DocListResDto> searchDocumentsQuery(String keyword) {

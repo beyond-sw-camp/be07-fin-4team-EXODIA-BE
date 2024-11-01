@@ -122,8 +122,8 @@ public class DocumentService {
 		documentRepository.save(document);
 
 		// opens search 저장
-		// EsDocument esDocument = EsDocument.toEsDocument(document);
-		// documentSearchService.indexDocuments(esDocument);
+		EsDocument esDocument = EsDocument.toEsDocument(document);
+		documentSearchService.indexDocuments(esDocument);
 		return document;
 	}
 
