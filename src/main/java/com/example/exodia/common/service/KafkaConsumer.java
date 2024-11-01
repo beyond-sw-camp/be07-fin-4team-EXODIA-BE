@@ -88,6 +88,7 @@ public class KafkaConsumer {
             case "course-transmission":
                 processCourseTransmission(message);
                 break;
+
             default:
                 System.out.println("알 수 없는 토픽이거나 메시지 형식이 맞지 않습니다.");
         }
