@@ -53,25 +53,20 @@ public class RoomService {
         User user = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with userNum: " + userNum));
 
-        Participant participant = participantRepository.findByUser_UserNumAndRoom(userNum, room)
-                .orElseGet(() -> {
-                    Participant newParticipant = new Participant();
-                    newParticipant.setUser(user);
-                    newParticipant.setRoom(room);
-                    return participantRepository.save(newParticipant);
-                });
+        String token = openViduService.createConnection(sessionId);
+
+        Participant participant = new Participant();
+        participant.setUser(user);
+        participant.setRoom(room);
+        participant.setToken(token);
+
+        participantRepository.save(participant);
 
         room.addParticipant(participant);
         roomRepository.save(room);
 
-        String token = openViduService.createConnection(sessionId);
-        participant.setToken(token);
-        participantRepository.save(participant);
-
         return token;
     }
-
-
 
 
     @Transactional
