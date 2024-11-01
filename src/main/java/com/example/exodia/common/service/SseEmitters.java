@@ -15,6 +15,7 @@ public class SseEmitters {
 
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
+    private final Map<String, NotificationDTO> cache = new ConcurrentHashMap<>();
 
     public SseEmitter addEmitter(String userNum) {
         SseEmitter emitter = new SseEmitter(1800_000L);
@@ -84,6 +85,7 @@ public class SseEmitters {
 
     public void sendToUser(String userNum, NotificationDTO dto) {
         SseEmitter emitter = emitters.get(userNum);
+        cache.put(userNum, dto); // 캐시에 저장
         if (emitter != null) {
             try {
                 emitter.send(SseEmitter.event().data(dto));
@@ -91,12 +93,7 @@ public class SseEmitters {
             } catch (IOException e) {
                 emitters.remove(userNum);
                 System.out.println("알림 전송 실패, SSE 연결 해제: " + userNum);
-
-                //e.printStackTrace();
             }
-        } else {
-            //System.out.println("SSE 연결 없음: " + userNum);
-
         }
     }
 

@@ -31,13 +31,15 @@ spring:
       idle-timeout: 30000
       connection-timeout: 30000
       max-lifetime: 1800000
+    tomcat:
+      max-active: 5
 
 
   kafka:
     bootstrap-servers: ${KAFKA_SERVER}:9092
     consumer:
       enable-auto-commit: false
-      retry-backoff-ms: 500
+      retry-backoff-ms: 1000
       max-poll-records: 15
       fetch-min-size: 10000
       properties:
@@ -55,6 +57,8 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      linger-ms: 10
+      buffer-memory: 33554432
 
   jpa:
     database: mysql
