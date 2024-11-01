@@ -26,7 +26,8 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-@Transactional
+//@Transactional
+@Transactional(readOnly = true)
 public class ChatRoomService {
 
     private final ChatRoomManage chatRoomManage; // redis로 채팅룸 입장유저들 관리 // 채팅 알림 (unread 총합)
@@ -70,6 +71,7 @@ public class ChatRoomService {
     }
 
     // 채팅방 생성 (생성 이후 채팅방목록으로 넘어감.)
+    @Transactional
     public ChatRoomExistResponse createChatRoom(ChatRoomRequest chatRoomRequest){
         // 유저들 존재여부 확인 -> 채팅방 구성원
         List<User> participants = new ArrayList<>();
@@ -216,6 +218,7 @@ public class ChatRoomService {
     }
 
     // 채팅방 삭제 == 나가려는 chatRoomId(chatRoom)의 userNum(User)을 가진 chatUser 삭제.
+    @Transactional
     public ChatUserInfoResponse hardExitChatRoom(String userNum, Long roomId){
         User user = userRepository.findByUserNum(userNum).orElseThrow(()->new EntityNotFoundException("없는 사원입니다."));
         ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(()->new EntityNotFoundException("채팅방이 없습니다."));
@@ -252,6 +255,7 @@ public class ChatRoomService {
     }
 
     // 채팅방 구성원 초대
+    @Transactional
     public ChatUserInfoResponse inviteChatUser(String inviteUserNum, Long roomId){
         // chatRoomId(chatRoom)과 초대하려는 userNum(user)을 chatUser에 저장.
         User user = userRepository.findByUserNum(inviteUserNum).orElseThrow(()->new EntityNotFoundException("없는 사원입니다."));
@@ -264,6 +268,7 @@ public class ChatRoomService {
     }
 
     // 채팅방 이름 변경.
+    @Transactional
     public Long changeChatRoomName(String chatRoomName, Long roomId){
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUserNum(userNum).orElseThrow(()->new EntityNotFoundException("없는 사원입니다."));
