@@ -1,5 +1,6 @@
 package com.example.exodia.position.domain;
 
+import com.example.exodia.common.domain.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -10,7 +11,7 @@ import lombok.*;
 @Entity
 @Builder
 @Table(name = "dep_position")
-public class Position {
+public class Position extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
