@@ -103,7 +103,7 @@ public class KafkaConsumer {
     }
 
 
-    @KafkaListener(topics = "qanda-events", groupId = "notification-group")
+//    @KafkaListener(topics = "qanda-events", groupId = "notification-group")
     public void listenQnaEvents(String message) {
         String[] parts = message.split("\\|");
         String eventType = parts[0];
