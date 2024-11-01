@@ -68,8 +68,6 @@ jwt:
   expirationRT: ${JWT_EXPIRATION_RT}
 
 
-nginx:
-  proxy-port: 8080
 
 google:
   credentials:

@@ -13,7 +13,7 @@ spec:
     app: pot
 #    version: blue  # 지금의 트래픽 버전
 
----
+#---
 #apiVersion: v1
 #kind: Service
 #metadata:
