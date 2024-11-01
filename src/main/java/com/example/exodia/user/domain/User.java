@@ -36,6 +36,7 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false)
     private Status status;
 
+    
     @Column(nullable = false)
     private String password;
 
