@@ -60,6 +60,7 @@ public class UserService {
         this.uploadAwsFileService = uploadAwsFileService;
     }
 
+
     public String login(UserLoginDto loginDto) {
         User user = userRepository.findByUserNumAndDelYn(loginDto.getUserNum(), DelYN.N)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 아이디입니다."));
