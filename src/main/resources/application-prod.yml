@@ -26,8 +26,8 @@ spring:
     password: ${DB_PASSWORD}
     driver-class-name: org.mariadb.jdbc.Driver
     hikari:
-      maximum-pool-size: 20
-      minimum-idle: 5
+      maximum-pool-size: 40
+      minimum-idle: 10
       idle-timeout: 30000
       connection-timeout: 30000
       max-lifetime: 1800000
@@ -37,6 +37,9 @@ spring:
     bootstrap-servers: ${KAFKA_SERVER}:9092
     consumer:
       enable-auto-commit: false
+      retry-backoff-ms: 500
+      max-poll-records: 15
+      fetch-min-size: 10000
       properties:
         isolation.level: read_committed
       listener:
