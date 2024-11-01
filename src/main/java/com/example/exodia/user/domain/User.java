@@ -120,7 +120,6 @@ public class User extends BaseTimeEntity {
     }
 
 
-
     public void softDelete() {
         super.softDelete();
     }
