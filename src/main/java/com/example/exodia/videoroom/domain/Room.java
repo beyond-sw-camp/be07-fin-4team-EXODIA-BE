@@ -17,6 +17,7 @@ public class Room {
     @Column(nullable = false)
     private String roomName;
 
+
     private String password;
 
 //    @Column(nullable = false)
