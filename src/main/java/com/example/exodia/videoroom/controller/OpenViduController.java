@@ -30,8 +30,10 @@ public class OpenViduController {
         headers.setBasicAuth("OPENVIDUAPP", OPENVIDU_SECRET);
         headers.set("Content-Type", "application/json");
 
+
+
         try {
-            // 수정된 경로: /openvidu/api/sessions
+            // 수정된 경로: /openvidu/api/sessions!!! 대박..
             HttpEntity<String> sessionRequest = new HttpEntity<>("{}", headers);
             String sessionUrl = OPENVIDU_URL + "/openvidu/api/sessions";
             ResponseEntity<Map> sessionResponse = restTemplate.exchange(sessionUrl, HttpMethod.POST, sessionRequest, Map.class);
