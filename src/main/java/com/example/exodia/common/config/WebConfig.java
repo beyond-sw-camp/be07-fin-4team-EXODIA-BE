@@ -16,6 +16,7 @@ public class WebConfig {
         config.setAllowCredentials(true);
         config.addAllowedOriginPattern("https://www.exodiapot.xyz");
         config.addAllowedOriginPattern("https://server.exodiapot.xyz");
+        config.addAllowedOriginPattern("https://openvidu.exodiapot.xyz");
 
         //        config.addAllowedOriginPattern("http://localhost:[8082,8087,8088,4443]");
         config.addAllowedHeader("*");
