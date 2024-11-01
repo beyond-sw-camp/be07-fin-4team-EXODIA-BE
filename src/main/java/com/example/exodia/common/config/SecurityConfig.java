@@ -27,7 +27,6 @@ public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
     private final CustomSessionExpiredStrategy customSessionExpiredStrategy;
 
-
     public SecurityConfig(JwtAuthFilter jwtAuthFilter, CustomSessionExpiredStrategy customSessionExpiredStrategy) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.customSessionExpiredStrategy = customSessionExpiredStrategy;
@@ -62,24 +61,19 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("**").permitAll()
-                .anyRequest().authenticated()
-            )
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .sessionFixation().changeSessionId()
-                .maximumSessions(1)  // 한 사용자는 한 번에 하나의 세션만 유지 가능
-                .expiredSessionStrategy(customSessionExpiredStrategy)
-//                .maxSessionsPreventsLogin(false)  // 중복 로그인 허용
-                .maxSessionsPreventsLogin(true)  // 중복 로그인 차단
-                .sessionRegistry(sessionRegistry())
-            );
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("**").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                );
 
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
