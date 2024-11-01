@@ -3,6 +3,7 @@ package com.example.exodia.document.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.exodia.common.dto.CommonResDto;
 import com.example.exodia.document.domain.EsDocument;
+import com.example.exodia.document.dto.DocumentSearchDto;
 import com.example.exodia.document.service.DocumentSearchService;
 
 @RestController
@@ -37,9 +39,9 @@ public class DocumentSearchController {
 	}
 
 	// 검색
-	@GetMapping("/search")
-	public ResponseEntity<?> searchDocuments(@RequestParam String keyword) {
-		List<EsDocument> documents = documentSearchService.searchDocuments(keyword);
+	@PostMapping("/search")
+	public ResponseEntity<?> searchDocuments(@RequestBody DocumentSearchDto documentSearchDto) {
+		Page<EsDocument> documents = documentSearchService.searchDocuments(documentSearchDto, 0, 10);
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "es: 문서 검색 성공", documents));
 	}
 
