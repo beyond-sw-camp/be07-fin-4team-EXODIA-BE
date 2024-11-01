@@ -377,6 +377,7 @@ public class KafkaConsumer {
     public void processCourseRegistration(String message) {
         System.out.println("Kafka 참가자 등록 메시지 수신: " + message);
 
+
         String[] messageParts = message.split(" has registered for course ");
         String userNum = messageParts[0].split(" ")[1];
         Long courseId = Long.parseLong(messageParts[1]); // course 1 에서 1 추출
