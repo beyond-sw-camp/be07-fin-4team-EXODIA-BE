@@ -1,6 +1,7 @@
 package com.example.exodia.attendance.repository;
 
 import com.example.exodia.attendance.domain.Attendance;
+import com.example.exodia.department.domain.Department;
 import com.example.exodia.user.domain.User;
 import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -110,7 +110,7 @@ public class AttendanceController {
 
 
     @GetMapping("/department/list")
-    public ResponseEntity<?> test() {
+    public ResponseEntity<?> getTeamAttendance() {
         try {
             return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "팀원 근태 정보 조회 성공", attendanceService.getTodayRecords()));
         } catch (IOException e) {
@@ -122,6 +122,15 @@ public class AttendanceController {
     public ResponseEntity<?> inMeetingStatus() {
         try {
             return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "자리비움으로 변경 성공", attendanceService.inMeetingStatus().getNowStatus()));
+        } catch (IOException e) {
+            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage()), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/meeting-out")
+    public ResponseEntity<?> outMeetingStatus() {
+        try {
+            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "복귀 성공", attendanceService.outMeetingStatus().getNowStatus()));
         } catch (IOException e) {
             return new ResponseEntity<>(new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage()), HttpStatus.NOT_FOUND);
         }
