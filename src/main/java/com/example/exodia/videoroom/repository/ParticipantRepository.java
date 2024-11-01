@@ -12,4 +12,5 @@ public interface ParticipantRepository extends JpaRepository<Participant, Long> 
     List<Participant> findByRoom(Room room);
     Optional<Participant> findByRoomAndUser(Room room, User user);
     Optional<Participant> findByUserAndRoom(User user, Room room);
+    Optional<User> findByUserNum(String userNum);
 }
