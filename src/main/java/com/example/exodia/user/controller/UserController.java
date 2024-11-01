@@ -144,15 +144,22 @@ public class UserController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<UserInfoDto>> searchUsers(
+    public ResponseEntity<Map<String, Object>> searchUsers(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String searchType,
-            Pageable pageable) {
-        List<User> users = userService.searchUsers(search, searchType, pageable);
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<User> users = userService.searchUsers(search, searchType, page, size);
         List<UserInfoDto> userDtos = users.stream()
                 .map(UserInfoDto::fromEntity)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(userDtos);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("users", userDtos);
+        response.put("currentPage", users.getNumber());
+        response.put("totalItems", users.getTotalElements());
+        response.put("totalPages", users.getTotalPages());
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
   
     @PostMapping("/refresh-token")

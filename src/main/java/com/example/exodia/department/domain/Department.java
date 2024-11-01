@@ -1,5 +1,6 @@
 package com.example.exodia.department.domain;
 
+import com.example.exodia.common.domain.BaseTimeEntity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -15,7 +16,7 @@ import java.util.List;
 @Entity
 @Builder
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-public class Department {
+public class Department extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
