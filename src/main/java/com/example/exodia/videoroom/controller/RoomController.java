@@ -21,7 +21,12 @@ public class RoomController {
 
     // 방 생성
     @PostMapping("/create")
-    public ResponseEntity<Map<String, String>> createRoom(@RequestParam String title) {
+    public ResponseEntity<Map<String, String>> createRoom(@RequestBody Map<String, String> request) {
+        String title = request.get("title");
+        if (title == null) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
         try {
             Room room = roomService.createRoom(title);
             Map<String, String> response = new HashMap<>();
