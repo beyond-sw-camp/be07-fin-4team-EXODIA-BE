@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -63,5 +64,11 @@ public class RoomController {
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<List<Room>> getRoomList() {
+        List<Room> rooms = roomService.getRoomList();
+        return ResponseEntity.ok(rooms);
     }
 }

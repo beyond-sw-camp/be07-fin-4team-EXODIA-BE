@@ -11,6 +11,7 @@ import io.openvidu.java.client.OpenViduHttpException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -65,5 +66,10 @@ public class RoomService {
             openViduService.closeSession(sessionId);
             roomRepository.delete(optionalRoom.get());
         }
+    }
+
+
+    public List<Room> getRoomList() {
+        return roomRepository.findAll();
     }
 }
