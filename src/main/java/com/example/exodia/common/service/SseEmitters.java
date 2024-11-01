@@ -8,70 +8,40 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class SseEmitters {
 
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
+    private final Map<String, NotificationDTO> cache = new ConcurrentHashMap<>();
 
     public SseEmitter addEmitter(String userNum) {
         SseEmitter emitter = new SseEmitter(1800_000L);
         emitters.put(userNum, emitter);
-//        System.out.println("SSE Emitter 추가: " + userNum);
-
-        // Heartbeat 스케줄 설정
-        ScheduledFuture<?> heartbeatTask = scheduler.scheduleAtFixedRate(() -> {
-            try {
-                if (emitters.containsKey(userNum)) {
-                    emitter.send(SseEmitter.event().comment("heartbeat"));
-
-                } else {
-                    throw new IOException("연결이 종료되었습니다.");
-                }
-            } catch (IOException e) {
-                emitters.remove(userNum);
-
-            }
-        }, 0, 2, TimeUnit.MINUTES);
 
         // SSE 종료 처리
         emitter.onCompletion(() -> {
             emitters.remove(userNum);
             System.out.println("SSE 연결 완료: " + userNum);
-            heartbeatTask.cancel(true);
         });
 
         // SSE 타임아웃 처리
         emitter.onTimeout(() -> {
             emitters.remove(userNum);
             System.out.println("SSE 연결 타임아웃 발생: " + userNum);
-            heartbeatTask.cancel(true);
         });
 
         // SSE 오류 처리
         emitter.onError(e -> {
             emitters.remove(userNum);
-
             System.out.println("SSE 연결 오류 발생: " + userNum);
-            heartbeatTask.cancel(true);
         });
 
         return emitter;
     }
-    public void shutdownScheduler() {
-        scheduler.shutdown();
-        try {
-            if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
-                scheduler.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            scheduler.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
-    }
-    // 모든 사용자
+
+    // 모든 사용자에게 알림 전송
     public void sendToAll(Notification notification) {
         emitters.forEach((userNum, emitter) -> {
             try {
@@ -82,8 +52,10 @@ public class SseEmitters {
         });
     }
 
+    // 특정 사용자에게 알림 전송
     public void sendToUser(String userNum, NotificationDTO dto) {
         SseEmitter emitter = emitters.get(userNum);
+        cache.put(userNum, dto); // 캐시에 저장
         if (emitter != null) {
             try {
                 emitter.send(SseEmitter.event().data(dto));
@@ -91,30 +63,23 @@ public class SseEmitters {
             } catch (IOException e) {
                 emitters.remove(userNum);
                 System.out.println("알림 전송 실패, SSE 연결 해제: " + userNum);
-
-                //e.printStackTrace();
             }
-        } else {
-            //System.out.println("SSE 연결 없음: " + userNum);
-
         }
     }
 
-    public void sendChatToUser(String userNum, ChatAlarmResponse dto){
+    // 특정 사용자에게 채팅 알림 전송
+    public void sendChatToUser(String userNum, ChatAlarmResponse dto) {
         SseEmitter emitter = emitters.get(userNum);
         if (emitter != null) {
             try {
                 emitter.send(SseEmitter.event().data(dto));
-                System.out.println("알림 전송 성공: " + userNum);
+                System.out.println("채팅 알림 전송 성공: " + userNum);
             } catch (IOException e) {
                 emitters.remove(userNum);
-                //System.out.println("알림 전송 실패, SSE 연결 해제: " + userNum);
-                //e.printStackTrace();
+                System.out.println("채팅 알림 전송 실패, SSE 연결 해제: " + userNum);
             }
         } else {
-            //System.out.println("SSE 연결 없음: " + userNum);
-
+            System.out.println("SSE 연결 없음: " + userNum);
         }
     }
 }
-

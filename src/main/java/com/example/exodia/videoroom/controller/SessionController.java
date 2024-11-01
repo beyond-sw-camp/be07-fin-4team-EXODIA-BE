@@ -15,7 +15,7 @@ import java.util.HashMap;
 @RequestMapping("/api/sessions")
 public class SessionController {
 
-    private final String OPENVIDU_URL = "http://localhost:4443";
+    private final String OPENVIDU_URL = "https://server.exodiapot.xyz";
     private final String OPENVIDU_SECRET = "MY_SECRET";
 
     @PostMapping("/get-token")

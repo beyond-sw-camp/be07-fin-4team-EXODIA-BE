@@ -12,7 +12,6 @@ import java.nio.charset.StandardCharsets;
 public class RedisMessageSubscriber implements MessageListener {
 
     private final Logger logger = LoggerFactory.getLogger(RedisMessageSubscriber.class);
-
     @Override
     public void onMessage(Message message, byte[] pattern) {
         String messageBody = new String(message.getBody(), StandardCharsets.UTF_8);

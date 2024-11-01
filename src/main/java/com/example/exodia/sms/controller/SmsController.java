@@ -20,6 +20,7 @@ public class SmsController {
 
     private final CoolSmsService coolSmsService;
 
+
     @Autowired
     public SmsController(CoolSmsService coolSmsService) {
         this.coolSmsService = coolSmsService;
