@@ -7,13 +7,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class OpenViduService {
 
-    private OpenVidu openVidu;
+    private final OpenVidu openVidu;
 
     public OpenViduService(@Value("${openvidu.url}") String openViduUrl,
                            @Value("${openvidu.secret}") String secret) {
         this.openVidu = new OpenVidu(openViduUrl, secret);
     }
-
 
     // 세션 생성
     public String createSession() throws OpenViduJavaClientException, OpenViduHttpException {
