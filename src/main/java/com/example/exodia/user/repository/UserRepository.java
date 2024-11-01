@@ -40,12 +40,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     "LEFT JOIN u.department d " +
     "LEFT JOIN u.position p " +
     "WHERE u.delYn = :delYn1 AND u.name LIKE CONCAT('%', :name, '%') " +
-    "OR d IS NOT NULL AND d.delYn = :delYn2 AND d.name LIKE CONCAT('%', :departmentName, '%') " +
-    "OR p IS NOT NULL AND p.delYn = :delYn3 AND p.name LIKE CONCAT('%', :positionName, '%') " +
+    "OR d IS NOT NULL AND d.name LIKE CONCAT('%', :departmentName, '%') " +
+    "OR p IS NOT NULL AND p.name LIKE CONCAT('%', :positionName, '%') " +
     "ORDER BY u.position.id ASC")
-    Page<User> findByDelYnAndNameContainingOrDelYnAndDepartmentNameContainingOrDelYnAndPositionNameContaining(
-            @Param("delYn1")DelYN delYn1, @Param("name")String name, @Param("delYn2")DelYN delYn2, @Param("departmentName")String departmentName, @Param("delYn3")DelYN delYn3, @Param("positionName")String positionName, Pageable pageable
-    );
+    Page<User> findByDelYnAndNameContainingOrDepartmentNameContainingOrPositionNameContaining(
+            @Param("delYn1")DelYN delYn1, @Param("name")String name, @Param("departmentName")String departmentName, @Param("positionName")String positionName, Pageable pageable);
 
     @Query("SELECT u FROM User u WHERE u.department.id = :departmentId ORDER BY u.position.id ASC")
     List<User> findByDepartmentId(@Param("departmentId")Long departmentId);

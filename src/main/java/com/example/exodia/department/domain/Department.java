@@ -16,7 +16,7 @@ import java.util.List;
 @Entity
 @Builder
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-public class Department extends BaseTimeEntity {
+public class Department {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

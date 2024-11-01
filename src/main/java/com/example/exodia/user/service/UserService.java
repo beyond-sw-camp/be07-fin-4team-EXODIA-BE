@@ -215,8 +215,8 @@ public class UserService {
             case "position":
                 return userRepository.findByPositionNameContainingAndDelYn(search, DelYN.N, pageable);
             case "all":
-                return userRepository.findByDelYnAndNameContainingOrDelYnAndDepartmentNameContainingOrDelYnAndPositionNameContaining(
-                        DelYN.N, search, DelYN.N, search, DelYN.N, search, pageable);
+                return userRepository.findByDelYnAndNameContainingOrDepartmentNameContainingOrPositionNameContaining(
+                        DelYN.N, search, search, search, pageable);
             default:
                 return userRepository.findByDelYn(DelYN.N, pageable);
         }
