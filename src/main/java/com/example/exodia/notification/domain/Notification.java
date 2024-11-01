@@ -35,8 +35,7 @@ public class Notification extends BaseTimeEntity {
     @Column(nullable = false)
     private String message;
 
-    @Column(nullable = false)
-    private Boolean isRead = false; // 읽음 여부 -> 기본 FALSE
+    private Boolean isRead = false;
 
     public Notification(User user, NotificationType type, String message) {
         this.user = user;
@@ -44,8 +43,5 @@ public class Notification extends BaseTimeEntity {
         this.message = message;
     }
 
-    public void markAsRead() {
-        this.isRead = true;
-    }
 }
 

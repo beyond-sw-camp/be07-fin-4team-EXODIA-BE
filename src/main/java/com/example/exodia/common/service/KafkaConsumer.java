@@ -46,6 +46,7 @@ public class KafkaConsumer {
     @Transactional
     @KafkaListener(topics =
             {
+                    "notification-topic",
                     "notice-events", "document-events", "submit-events",
                     "family-event-notices", "meeting-room-reservations",
                     "car-reservation-events", "car-reservation-approval-events",
@@ -91,17 +92,19 @@ public class KafkaConsumer {
             case "qanda-events":
                 listenQnaEvents(message);
                 break;
-            case "course-registration":
+            case "course-registration": // 강좌 수강
                 processCourseRegistration(message);
                 break;
             case "course-transmission":
                 processCourseTransmission(message);
                 break;
+            case "notification-topic": // 알림 이벤트
+                listenNotificationEvents(message);
+                break;
             default:
                 System.out.println("알 수 없는 토픽이거나 메시지 형식이 맞지 않습니다.");
         }
     }
-
 
 //    @KafkaListener(topics = "qanda-events", groupId = "notification-group")
     public void listenQnaEvents(String message) {
@@ -123,11 +126,26 @@ public class KafkaConsumer {
         }
     }
 
+    public void listenNotificationEvents(String message) {
+        System.out.println("Kafka 메시지 수신: " + message);
+
+        // 메시지 파싱 (예: "userNum|notificationId|content")
+        String[] parts = message.split("\\|");
+        String userNum = parts[0];
+        Long notificationId = Long.parseLong(parts[1]);
+        String content = parts[2];
+
+        // 알림 객체 생성 후 Redis에 저장 및 SSE로 전송
+        NotificationDTO notificationDTO = new NotificationDTO(notificationId, content, false, userNum);
+        notificationService.saveNotification(userNum, notificationDTO);
+    }
+
     private void sendNotificationsToUsers(List<User> users, String message, NotificationType type) {
         for (User user : users) {
             sendNotificationToUser(user, message, type);
         }
     }
+
 
     private void sendNotificationToUser(User user, String message, NotificationType type) {
         boolean exists = notificationRepository.existsByUserAndMessage(user, message);

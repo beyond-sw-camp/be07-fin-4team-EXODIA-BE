@@ -18,13 +18,19 @@ public class KafkaProducer {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-
     //    public void sendBoardEvent(String topic, String message) {
 //        String uniqueKey = UUID.randomUUID().toString();
 //        kafkaTemplate.send(topic, message);
 //        System.out.println("Kafka 이벤트 : " + message); //
 //        System.out.println(topic);
 //    }
+    // 알림 제어
+    public void sendNotificationEvent(String userNum, String content) {
+        String message = userNum + "|" + content; // 메시지 포맷: "userNum|content"
+        kafkaTemplate.send("notification-topic", message);
+        System.out.println("Kafka 알림 이벤트 전송: " + message);
+    }
+
     // 게시판 알림
     public void sendBoardEvent(String topic, String message) {
         kafkaTemplate.send(topic, message);
