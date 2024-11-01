@@ -1,6 +1,7 @@
 package com.example.exodia.videoroom.service;
 
 import com.example.exodia.user.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.videoroom.domain.Room;
@@ -31,8 +32,11 @@ public class RoomService {
     @Autowired
     private UserRepository userRepository;
 
-    private final String OPENVIDU_URL = "https://server.exodiapot.xyz:4443";
-    private final String OPENVIDU_SECRET = "MY_SECRET";
+    @Value("${openvidu.url}")
+    private String OPENVIDU_URL;
+
+    @Value("${openvidu.secret}")
+    private String OPENVIDU_SECRET;
 
     public Room createRoom(String roomName, String password) {
         Room room = Room.builder()
