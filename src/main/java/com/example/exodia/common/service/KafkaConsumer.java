@@ -49,7 +49,7 @@ public class KafkaConsumer {
                     "notice-events", "document-events", "submit-events",
                     "family-event-notices", "meeting-room-reservations",
                     "car-reservation-events", "car-reservation-approval-events",
-                    "car-reservation-rejection-events"
+                    "car-reservation-rejection-events", "sendChatAlarm-events", "enterChatAlarm-events", "chatRoomList-events"
             }, groupId = "notification-group")
     public void listen(@Header(KafkaHeaders.RECEIVED_TOPIC) String topic, String message) {
         System.out.println("Kafka 메시지 수신: " + message);
@@ -78,6 +78,15 @@ public class KafkaConsumer {
                 break;
             case "car-reservation-rejection-events":
                 processCarReservationRejection(message);
+                break;
+            case "sendChatAlarm-events":
+                processSendChatHeaderAlarmUpdateMessage(message);
+                break;
+            case "enterChatAlarm-events":
+                processEnterChatHeaderAlarmUpdateMessage(message);
+                break;
+            case "chatRoomList-events":
+                processChatRoomListUnreadUpdateMessage(message);
                 break;
             default:
                 System.out.println("알 수 없는 토픽이거나 메시지 형식이 맞지 않습니다.");
@@ -460,26 +469,26 @@ public class KafkaConsumer {
 
     // chat-header-alarm-num-update (send(+) + roomEnter(-))
     // chat-list-unread-update (send)
-    @Transactional
-    @KafkaListener(topics = {"sendChatAlarm-events", "enterChatAlarm-events", "chatRoomList-events"}, groupId = "chat-group")
-    public void listenChatEvents(@Header(KafkaHeaders.RECEIVED_TOPIC) String topic, String message) {
-        System.out.println("Kafka 메시지 수신: " + message);
-
-        switch (topic) {
-            case "sendChatAlarm-events":
-                processSendChatHeaderAlarmUpdateMessage(message);
-                break;
-            case "enterChatAlarm-events":
-                processEnterChatHeaderAlarmUpdateMessage(message);
-                break;
-            case "chatRoomList-events":
-                processChatRoomListUnreadUpdateMessage(message);
-                break;
-            default:
-                System.out.println("알 수 없는 토픽이거나 메시지 형식이 맞지 않습니다.");
-        }
-
-    }
+//    @Transactional
+//    @KafkaListener(topics = {"sendChatAlarm-events", "enterChatAlarm-events", "chatRoomList-events"}, groupId = "chat-group")
+//    public void listenChatEvents(@Header(KafkaHeaders.RECEIVED_TOPIC) String topic, String message) {
+//        System.out.println("Kafka 메시지 수신: " + message);
+//
+//        switch (topic) {
+//            case "sendChatAlarm-events":
+//                processSendChatHeaderAlarmUpdateMessage(message);
+//                break;
+//            case "enterChatAlarm-events":
+//                processEnterChatHeaderAlarmUpdateMessage(message);
+//                break;
+//            case "chatRoomList-events":
+//                processChatRoomListUnreadUpdateMessage(message);
+//                break;
+//            default:
+//                System.out.println("알 수 없는 토픽이거나 메시지 형식이 맞지 않습니다.");
+//        }
+//
+//    }
 
     // chat-header-alarm-num-update (send(+))
     private void processSendChatHeaderAlarmUpdateMessage(String message) {
