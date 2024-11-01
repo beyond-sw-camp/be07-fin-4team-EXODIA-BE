@@ -1,5 +1,6 @@
 package com.example.exodia.videoroom.controller;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -15,8 +16,11 @@ import java.util.HashMap;
 @RequestMapping("/api/sessions")
 public class SessionController {
 
-    private final String OPENVIDU_URL = "https://server.exodiapot.xyz";
-    private final String OPENVIDU_SECRET = "MY_SECRET";
+    @Value("${openvidu.url}")
+    private String OPENVIDU_URL;
+
+    @Value("${openvidu.secret}")
+    private String OPENVIDU_SECRET;
 
     @PostMapping("/get-token")
     public ResponseEntity<String> getToken(@RequestBody Map<String, String> sessionInfo) {
