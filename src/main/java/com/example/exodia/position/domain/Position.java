@@ -11,7 +11,7 @@ import lombok.*;
 @Entity
 @Builder
 @Table(name = "dep_position")
-public class Position extends BaseTimeEntity {
+public class Position {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
