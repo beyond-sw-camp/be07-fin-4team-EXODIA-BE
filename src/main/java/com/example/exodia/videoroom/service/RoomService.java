@@ -49,19 +49,23 @@ public class RoomService {
     public String joinRoom(String sessionId, Long userId) throws OpenViduJavaClientException, OpenViduHttpException {
         Room room = roomRepository.findBySessionId(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Room not found"));
-
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         Participant participant = new Participant();
         participant.setUser(user);
-        room.addParticipant(participant);
-        participantRepository.save(participant);
+        participant.setRoom(room);
 
+        System.out.println("Saving participant for user: " + user.getId() + " in room: " + room.getId());
+        participantRepository.save(participant);
+        System.out.println("Participant saved successfully");
+
+        room.addParticipant(participant);
         roomRepository.save(room);
 
         return openViduService.createConnection(sessionId);
     }
+
 
     @Transactional
     public void deleteRoom(String sessionId) throws OpenViduJavaClientException, OpenViduHttpException {
