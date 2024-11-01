@@ -20,17 +20,24 @@ public class Room {
 
     private String password;
 
-//    @Column(nullable = false)
-//    private int participantCount;
+    @Column(nullable = false)
+    private int participantCount;
 
     @Column(nullable = false, unique = true)
     private String sessionId;
 
-//    public void incrementParticipant() {
-//        this.participantCount += 1;
-//    }
-//
-//    public void decrementParticipant() {
-//        this.participantCount -= 1;
-//    }
+    public void incrementParticipant() {
+        this.participantCount += 1;
+    }
+
+    public void decrementParticipant() {
+        this.participantCount -= 1;
+    }
+
+    public Room(String roomName, String password, String sessionId) {
+        this.roomName = roomName;
+        this.password = password;
+        this.sessionId = sessionId;
+        this.participantCount = 1;
+    }
 }
