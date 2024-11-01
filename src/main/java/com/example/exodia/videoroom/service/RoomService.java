@@ -16,6 +16,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 @Service
@@ -34,6 +36,7 @@ public class RoomService {
         this.participantRepository = participantRepository;
     }
 
+    @Transactional
     public Room createRoom(String title) throws OpenViduJavaClientException, OpenViduHttpException {
         String sessionId = openViduService.createSession();
         Room room = new Room();
@@ -42,6 +45,7 @@ public class RoomService {
         return roomRepository.save(room);
     }
 
+    @Transactional
     public String joinRoom(String sessionId, Long userId) throws OpenViduJavaClientException, OpenViduHttpException {
         Room room = roomRepository.findBySessionId(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Room not found"));
@@ -51,15 +55,15 @@ public class RoomService {
 
         Participant participant = new Participant();
         participant.setUser(user);
-        participant.setRoom(room);
+        room.addParticipant(participant);
         participantRepository.save(participant);
 
-        room.addParticipant(participant);
         roomRepository.save(room);
 
         return openViduService.createConnection(sessionId);
     }
 
+    @Transactional
     public void deleteRoom(String sessionId) throws OpenViduJavaClientException, OpenViduHttpException {
         Room room = roomRepository.findBySessionId(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Room not found"));

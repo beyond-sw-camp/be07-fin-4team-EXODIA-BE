@@ -2,6 +2,8 @@ package com.example.exodia.videoroom.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -23,7 +25,7 @@ public class Room {
     private String sessionId;  // OpenVidu 세션 ID
 
     @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Participant> participants;
+    private List<Participant> participants = new ArrayList<>();
 
     @Column(nullable = false)
     private int participantCount = 0;
