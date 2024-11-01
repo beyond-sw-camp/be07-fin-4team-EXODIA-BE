@@ -42,9 +42,9 @@ public class RoomController {
 
     // 참가자 추가
     @PostMapping("/{sessionId}/join")
-    public ResponseEntity<Map<String, String>> joinRoom(@PathVariable String sessionId, @RequestParam Long userId) {
+    public ResponseEntity<Map<String, String>> joinRoom(@PathVariable String sessionId, @RequestParam String userNum) {
         try {
-            String token = roomService.joinRoom(sessionId, userId);
+            String token = roomService.joinRoom(sessionId, userNum);
             Map<String, String> response = new HashMap<>();
             response.put("token", token);
             return new ResponseEntity<>(response, HttpStatus.OK);
