@@ -73,6 +73,7 @@ public class RoomService {
 
 
 
+
     @Transactional
     public void deleteRoom(String sessionId) throws OpenViduJavaClientException, OpenViduHttpException {
         Room room = roomRepository.findBySessionId(sessionId)
