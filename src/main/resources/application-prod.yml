@@ -92,7 +92,7 @@ coolsms:
 #테스트 진행 시 Hibernate 로그 삭제
 logging:
   level:
-    root: DEBUG
+    root: info
     org:
       hibernate:
         SQL: ERROR
