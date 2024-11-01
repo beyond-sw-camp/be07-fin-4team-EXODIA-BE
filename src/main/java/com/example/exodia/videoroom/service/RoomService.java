@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class RoomService {
@@ -45,25 +46,31 @@ public class RoomService {
         return roomRepository.save(room);
     }
 
-    @Transactional
     public String joinRoom(String sessionId, Long userId) throws OpenViduJavaClientException, OpenViduHttpException {
         Room room = roomRepository.findBySessionId(sessionId)
-                .orElseThrow(() -> new IllegalArgumentException("Room not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Room not found with session ID: " + sessionId));
+
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
+
+        Optional<Participant> existingParticipant = participantRepository.findByUserAndRoom(user, room);
+        if (existingParticipant.isPresent()) {
+            return existingParticipant.get().getToken();
+        }
 
         Participant participant = new Participant();
         participant.setUser(user);
         participant.setRoom(room);
-
-        System.out.println("Saving participant for user: " + user.getId() + " in room: " + room.getId());
         participantRepository.save(participant);
-        System.out.println("Participant saved successfully");
 
         room.addParticipant(participant);
         roomRepository.save(room);
 
-        return openViduService.createConnection(sessionId);
+        String token = openViduService.createConnection(sessionId);
+        participant.setToken(token);
+        participantRepository.save(participant);
+
+        return token;
     }
 
 
