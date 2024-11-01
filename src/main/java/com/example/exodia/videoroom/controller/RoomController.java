@@ -54,6 +54,7 @@ public class RoomController {
         }
     }
 
+
     // 방 삭제
     @DeleteMapping("/{sessionId}")
     public ResponseEntity<Void> deleteRoom(@PathVariable String sessionId) {
