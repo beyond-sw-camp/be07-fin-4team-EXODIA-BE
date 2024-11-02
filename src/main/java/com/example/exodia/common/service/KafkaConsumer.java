@@ -44,7 +44,7 @@ public class KafkaConsumer {
     @KafkaListener(topics =
             {
                     "notification-topic",
-                    "notice-events", "document-events", "submit-events",
+                    "notice-events", "document-events", "document-events-rollbacks","submit-events",
                     "family-event-notices", "meeting-room-reservations",
                     "car-reservation-events", "car-reservation-approval-events",
                     "car-reservation-rejection-events", "sendChatAlarm-events", "enterChatAlarm-events", "chatRoomList-events"
@@ -55,6 +55,9 @@ public class KafkaConsumer {
         switch (topic) {
             case "document-events":
                 processDocumentUpdateMessage(message);
+                break;
+            case "document-events-rollbacks":
+                sendDocumentRollBackEvent(message);
                 break;
             case "notice-events":
                 processBoardNotification(message);
@@ -153,15 +156,15 @@ public class KafkaConsumer {
         notificationService.saveNotification(user.getUserNum(), dto); // Redis에 저장 및 SSE 전송
     }
 
-    @Transactional
-//    @KafkaListener(topics = {"document-events"}, groupId = "notification-group")
-    public void listenDocumentUpdateEvents(@Header(KafkaHeaders.RECEIVED_TOPIC) String topic, String message) {
-        System.out.println("Kafka 메시지 수신: " + message);
-
-        if ("document-events".equals(topic)) {
-            processDocumentUpdateMessage(message);
-        }
-    }
+//    @Transactional
+////    @KafkaListener(topics = {"document-events"}, groupId = "notification-group")
+//    public void listenDocumentUpdateEvents(@Header(KafkaHeaders.RECEIVED_TOPIC) String topic, String message) {
+//        System.out.println("Kafka 메시지 수신: " + message);
+//
+//        if ("document-events".equals(topic)) {
+//            processDocumentUpdateMessage(message);
+//        }
+//    }
 
     private void processDocumentUpdateMessage(String message) {
         if (message.contains("|")) {
@@ -174,6 +177,25 @@ public class KafkaConsumer {
                 NotificationDTO notificationDTO = new NotificationDTO();
                 notificationDTO.setMessage(actualMessage);
                 notificationDTO.setRead(false);
+                notificationDTO.setType(NotificationType.문서);
+
+                notificationService.saveNotification(user.getUserNum(), notificationDTO);
+            }
+        }
+    }
+
+    private void sendDocumentRollBackEvent(String message) {
+        if (message.contains("|")) {
+            String[] splitMessage = message.split("\\|", 2);
+            String departmentId = splitMessage[0];
+            String actualMessage = splitMessage[1];
+
+            List<User> departmentUsers = userRepository.findAllByDepartmentId(Long.parseLong(departmentId));
+            for (User user : departmentUsers) {
+                NotificationDTO notificationDTO = new NotificationDTO();
+                notificationDTO.setMessage(actualMessage);
+                notificationDTO.setRead(false);
+                notificationDTO.setType(NotificationType.문서);
 
                 notificationService.saveNotification(user.getUserNum(), notificationDTO);
             }
