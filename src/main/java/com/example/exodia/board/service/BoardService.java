@@ -71,7 +71,6 @@ public class BoardService {
         processFiles(files, board);
         boardHitsService.resetBoardHits(board.getId());
 
-
         String departmentName = (user.getDepartment() != null) ? user.getDepartment().getName() : "부서 없음";
         String title = (dto.getTitle() != null) ? dto.getTitle() : "제목 없음";
         String message = departmentName + " 에서 " + title + "를 작성했습니다";
@@ -84,7 +83,6 @@ public class BoardService {
 
     private void addTagsToBoard(Board board, List<Long> tagIds) {
         List<BoardTags> tags = boardTagsRepository.findAllById(tagIds);
-
 
         for (BoardTags tag : tags) {
             BoardTag boardTag = BoardTag.builder()
@@ -166,9 +164,6 @@ public class BoardService {
         } else {
             boards = boardRepository.findByCategoryAndDelYn(category, DelYN.N, pageable);
         }
-
-        // 결과 출력
-        System.out.println("Retrieved boards: " + boards.getContent());  // 디버그: 조회된 게시글 목록 출력
 
         return boards.map(Board::listFromEntity);
     }
@@ -260,7 +255,6 @@ public class BoardService {
     public void pinBoard(Long boardId, boolean isPinned) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new EntityNotFoundException("게시물을 찾을 수 없습니다."));
-
 
         if (!board.getCategory().equals(Category.NOTICE)) {
             throw new IllegalArgumentException("공지사항 게시물만 상단 고정이 가능합니다.");

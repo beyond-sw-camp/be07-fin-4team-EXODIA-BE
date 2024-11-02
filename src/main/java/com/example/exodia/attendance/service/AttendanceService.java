@@ -105,38 +105,38 @@ public class AttendanceService {
                 .collect(Collectors.toList());
     }
 
-    @Transactional
-    public Map<String, List<AttendanceDetailDto>> getWeeklyDetails(LocalDate startDate, LocalDate endDate) {
-        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        User user = userRepository.findByUserNum(userNum).orElseThrow(()
-                -> new RuntimeException("존재하지 않는 사원입니다"));
-
-        // 주어진 기간 내의 출퇴근 시간 데이터 가져오기
-        List<Attendance> attendances = attendanceRepository.findAllByMemberAndInTimeBetween(user, startDate.atStartOfDay(), endDate.atTime(LocalTime.MAX));
-        Map<String, List<AttendanceDetailDto>> weeklyDetails = new HashMap<>();
-
-        for (Attendance attendance : attendances) {
-            LocalDate attendanceDate = attendance.getInTime().toLocalDate();
-            String dayOfWeek = attendanceDate.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREAN); // 월, 화, 수, 목, 금
-
-            double workHours = calculateWorkHours(attendance);
-            double overtimeHours = calculateOvertimeHours(attendance); // 초과 근무 시간 계산
-
-            // 요일별로 출퇴근 시간을 Dto로 만들어서 저장
-            AttendanceDetailDto dto = new AttendanceDetailDto(
-                    attendance.getInTime(),
-                    attendance.getOutTime(),
-                    workHours,
-                    overtimeHours
-            );
-
-            weeklyDetails.putIfAbsent(dayOfWeek, new ArrayList<>());
-            weeklyDetails.get(dayOfWeek).add(dto);
-        }
-
-        return weeklyDetails;
-    }
+    // @Transactional
+    // public Map<String, List<AttendanceDetailDto>> getWeeklyDetails(LocalDate startDate, LocalDate endDate) {
+    //     String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+    //
+    //     User user = userRepository.findByUserNum(userNum).orElseThrow(()
+    //             -> new RuntimeException("존재하지 않는 사원입니다"));
+    //
+    //     // 주어진 기간 내의 출퇴근 시간 데이터 가져오기
+    //     List<Attendance> attendances = attendanceRepository.findAllByMemberAndInTimeBetween(user, startDate.atStartOfDay(), endDate.atTime(LocalTime.MAX));
+    //     Map<String, List<AttendanceDetailDto>> weeklyDetails = new HashMap<>();
+    //
+    //     for (Attendance attendance : attendances) {
+    //         LocalDate attendanceDate = attendance.getInTime().toLocalDate();
+    //         String dayOfWeek = attendanceDate.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREAN); // 월, 화, 수, 목, 금
+    //
+    //         double workHours = calculateWorkHours(attendance);
+    //         double overtimeHours = calculateOvertimeHours(attendance); // 초과 근무 시간 계산
+    //
+    //         // 요일별로 출퇴근 시간을 Dto로 만들어서 저장
+    //         AttendanceDetailDto dto = new AttendanceDetailDto(
+    //                 attendance.getInTime(),
+    //                 attendance.getOutTime(),
+    //                 workHours,
+    //                 overtimeHours
+    //         );
+    //
+    //         weeklyDetails.putIfAbsent(dayOfWeek, new ArrayList<>());
+    //         weeklyDetails.get(dayOfWeek).add(dto);
+    //     }
+    //
+    //     return weeklyDetails;
+    // }
 
     // 근무 시간 계산 (출근 시간과 퇴근 시간 차이)
     private double calculateWorkHours(Attendance attendance) {
@@ -205,6 +205,7 @@ public class AttendanceService {
 
         return weeklyDetails;
     }
+
     private double calculateOvertimeHours(Attendance attendance) {
         LocalTime standardStartTime = LocalTime.of(9, 0);
         LocalTime standardEndTime = LocalTime.of(18, 0);
@@ -241,6 +242,7 @@ public class AttendanceService {
         return DailyAttendanceDto.fromEntity(attendance);
     }
 
+    @Transactional  // 일단 보류
     public Map<String, List<User>> getDepartmentUsersAttendanceStatus() {
         // 로그인한 유저의 userNum 가져오기
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
