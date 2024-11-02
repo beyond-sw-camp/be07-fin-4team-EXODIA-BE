@@ -60,11 +60,11 @@ public class CourseController {
     }
 
     /* 강좌 신청 */
-//    @PostMapping("/register/{courseId}")
-//    public ResponseEntity<String> registerParticipant(@PathVariable Long courseId) {
-//        String result = registrationService.registerParticipant(courseId);
-//        return ResponseEntity.ok(result);
-//    }
+    @PostMapping("/register/{courseId}")
+    public ResponseEntity<String> registerParticipant(@PathVariable Long courseId) {
+        String result = registrationService.registerParticipant(courseId);
+        return ResponseEntity.ok(result);
+    }
 
     /* 강좌 확정 인원 조회*/
     @GetMapping("/{courseId}/confirmed")
