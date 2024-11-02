@@ -38,6 +38,7 @@ public class RoomController {
         }
     }
 
+    
     // 참가자 추가
     @PostMapping("/{sessionId}/leave")
     public ResponseEntity<Void> leaveRoom(@PathVariable String sessionId, @RequestParam String userNum) {
