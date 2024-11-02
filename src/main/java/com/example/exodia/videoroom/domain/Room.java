@@ -1,5 +1,6 @@
 package com.example.exodia.videoroom.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,6 +26,7 @@ public class Room {
     private String sessionId;  // OpenVidu 세션 ID
 
     @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Participant> participants = new ArrayList<>();
 
     @Column(nullable = false)

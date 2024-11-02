@@ -38,12 +38,17 @@ public class RoomService {
     }
 
     @Transactional
-    public Room createRoom(String title) throws OpenViduJavaClientException, OpenViduHttpException {
+    public Room createRoom(String title, String userNum) throws OpenViduJavaClientException, OpenViduHttpException {
         String sessionId = openViduService.createSession();
         Room room = new Room();
         room.setTitle(title);
         room.setSessionId(sessionId);
-        return roomRepository.save(room);
+        room = roomRepository.save(room);
+
+        // 방 생성자가 자동으로 참여
+        joinRoom(sessionId, userNum);
+
+        return room;
     }
 
 
@@ -52,12 +57,7 @@ public class RoomService {
                 .orElseThrow(() -> new IllegalArgumentException("Room not found"));
 
         User user = userRepository.findByUserNum(userNum)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with userNum: " + userNum));
-
-        Session session = openViduService.getActiveSession(sessionId);
-        if (session == null) {
-            throw new RuntimeException("Session not found or has expired.");
-        }
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         String token = openViduService.createConnection(sessionId);
 
@@ -67,11 +67,31 @@ public class RoomService {
         participant.setToken(token);
 
         participantRepository.save(participant);
-
         room.addParticipant(participant);
         roomRepository.save(room);
 
         return token;
+    }
+
+
+    public void leaveRoom(String sessionId, String userNum) {
+        Room room = roomRepository.findBySessionId(sessionId)
+                .orElseThrow(() -> new IllegalArgumentException("Room not found"));
+
+        User user = userRepository.findByUserNum(userNum)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        Participant participant = participantRepository.findByUserAndRoom(user, room)
+                .orElseThrow(() -> new IllegalArgumentException("Participant not found"));
+
+        room.removeParticipant(participant);
+        participantRepository.delete(participant);
+
+        if (room.getParticipantCount() == 0) {
+            roomRepository.delete(room);
+        } else {
+            roomRepository.save(room);
+        }
     }
 
 

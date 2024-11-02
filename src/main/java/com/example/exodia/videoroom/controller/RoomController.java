@@ -24,33 +24,33 @@ public class RoomController {
     @PostMapping("/create")
     public ResponseEntity<Map<String, String>> createRoom(@RequestBody Map<String, String> request) {
         String title = request.get("title");
-        if (title == null) {
+        String userNum = request.get("userNum");
+
+        if (title == null || userNum == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
         try {
-            Room room = roomService.createRoom(title);
+            Room room = roomService.createRoom(title, userNum);
             Map<String, String> response = new HashMap<>();
             response.put("sessionId", room.getSessionId());
             response.put("title", room.getTitle());
             return new ResponseEntity<>(response, HttpStatus.CREATED);
-        } catch (OpenViduJavaClientException | OpenViduHttpException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     // 참가자 추가
-    @PostMapping("/{sessionId}/join")
-    public ResponseEntity<Map<String, String>> joinRoom(@PathVariable String sessionId, @RequestParam String userNum) {
+    @PostMapping("/{sessionId}/leave")
+    public ResponseEntity<Void> leaveRoom(@PathVariable String sessionId, @RequestParam String userNum) {
         try {
-            String token = roomService.joinRoom(sessionId, userNum);
-            Map<String, String> response = new HashMap<>();
-            response.put("token", token);
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (OpenViduJavaClientException | OpenViduHttpException e) {
+            roomService.leaveRoom(sessionId, userNum);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (Exception e) {
             e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -72,4 +72,6 @@ public class RoomController {
         List<Room> rooms = roomService.getRoomList();
         return ResponseEntity.ok(rooms);
     }
+
+
 }
