@@ -36,6 +36,7 @@ public class RoomService {
         this.participantRepository = participantRepository;
     }
 
+    
     @Transactional
     public Map<String, String> createRoom(String title, String userNum) throws OpenViduJavaClientException, OpenViduHttpException {
         // 세션 생성
