@@ -27,12 +27,12 @@ public class ChatUser extends BaseTimeEntity {
     private Long id; // 채팅유저고유의 id
 
     //    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chat_room_id", nullable = false)
     private ChatRoom chatRoom;
 
     //    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user; // 사번
 

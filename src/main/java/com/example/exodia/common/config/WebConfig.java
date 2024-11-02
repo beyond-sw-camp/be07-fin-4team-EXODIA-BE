@@ -14,15 +14,12 @@ public class WebConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        //config.addAllowedOrigin("https://exodiapot.xyz");
-         config.addAllowedOrigin("http://localhost:8082");
-         config.addAllowedOrigin("http://localhost:8088");
-         config.addAllowedOrigin("http://localhost:8087");
-         config.addAllowedOrigin("http://localhost:4443");
-
+        config.addAllowedOriginPattern("https://*.exodiapot.xyz");
+        config.addAllowedOriginPattern("http://localhost:[8082,8087,8088,4443]");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
     }
+
 }
