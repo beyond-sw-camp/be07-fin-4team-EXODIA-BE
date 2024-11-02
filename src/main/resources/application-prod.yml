@@ -66,7 +66,7 @@ spring:
     generate-ddl: true
     hibernate:
       format_sql: false
-      ddl-auto: update
+      ddl-auto: create
     show-sql: true
 #    open-in-view: false
 
@@ -75,7 +75,6 @@ spring:
 jwt:
   secretKeyRT: ${JWT_SECRET_RT}
   expirationRT: ${JWT_EXPIRATION_RT}
-
 
 
 google:
@@ -113,3 +112,12 @@ logging:
 openvidu:
   url: ${OPENVIDU_URL}
   secret: ${OPENVIDU_SECRET}
+
+management:
+  endpoints:
+    jmx:
+      exposure:
+        include: "*"
+  endpoint:
+    jmx:
+      enabled: true
