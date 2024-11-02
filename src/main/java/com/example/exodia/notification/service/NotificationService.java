@@ -93,7 +93,6 @@ public class NotificationService {
         return notificationList;
     }
 
-
     /* 읽음 처리 */
     @Transactional
     public void markNotificationAsRead(String userNum, String notificationId) {
@@ -102,6 +101,7 @@ public class NotificationService {
         if (notification != null) {
             notification.setRead(true);
             notificationRedisTemplate.opsForHash().put(redisKey, notificationId, notification);
+            notificationRedisTemplate.expire(redisKey, Duration.ofDays(3)); // TTL 갱신 //
         }
     }
     /* 읽음 처리 여부 조회 */
