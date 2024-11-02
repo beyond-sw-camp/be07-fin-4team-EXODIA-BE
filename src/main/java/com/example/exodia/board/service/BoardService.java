@@ -72,9 +72,10 @@ public class BoardService {
         boardHitsService.resetBoardHits(board.getId());
 
 
-
-        String message = user.getDepartment().getName() + " 에서 " + dto.getTitle() + "를 작성했습니다";
-            kafkaProducer.sendBoardEvent("notice-events", message);
+        String departmentName = (user.getDepartment() != null) ? user.getDepartment().getName() : "부서 없음";
+        String title = (dto.getTitle() != null) ? dto.getTitle() : "제목 없음";
+        String message = departmentName + " 에서 " + title + "를 작성했습니다";
+        kafkaProducer.sendBoardEvent("notice-events", message);
 
         return board;
     }

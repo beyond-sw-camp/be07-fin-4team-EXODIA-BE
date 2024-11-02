@@ -224,7 +224,6 @@ public class UserService {
         }
     }
 
-
     //  userNum으로 회원 이름 찾아오기
     public String getUserName() {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -263,7 +262,6 @@ public class UserService {
         }
         return userRepository.save(newUser);
     }
-
 
 
 

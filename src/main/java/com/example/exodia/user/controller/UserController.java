@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -178,7 +179,6 @@ public class UserController {
     public ResponseEntity<?> getUserName() {
           return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "이름 조회 성공", userService.getUserName()));
     }
-
 
 
     @GetMapping("/department/{departmentId}/search")

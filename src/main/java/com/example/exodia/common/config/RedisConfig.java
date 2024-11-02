@@ -269,6 +269,22 @@ public class RedisConfig {
         return redisTemplate;
     }
 
+    // 알림
+    @Bean
+    @Qualifier("notification")
+    public LettuceConnectionFactory notificationConnectionFactory() {
+        return redisConnectionFactory(14);
+    }
+
+    @Bean
+    @Qualifier("notification")
+    public RedisTemplate<String, Object> notificationRedisTemplate(@Qualifier("notification") LettuceConnectionFactory notificationConnectionFactory) {
+        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(notificationConnectionFactory);
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        return redisTemplate;
+    }
 
 
 }
