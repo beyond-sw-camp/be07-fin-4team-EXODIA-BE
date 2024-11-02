@@ -31,7 +31,6 @@ public class OpenViduController {
         headers.set("Content-Type", "application/json");
 
 
-
         try {
             // 수정된 경로: /openvidu/api/sessions!!! 대박..
             HttpEntity<String> sessionRequest = new HttpEntity<>("{}", headers);
