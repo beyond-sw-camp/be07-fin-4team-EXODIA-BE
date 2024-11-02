@@ -63,20 +63,36 @@ public class NotificationService {
     }
 
     /* 사용자 조회 */
+//    public List<NotificationDTO> getNotifications(String userNum) {
+//        String redisKey = "notifications:" + userNum;
+//        Map<Object, Object> notifications = notificationRedisTemplate.opsForHash().entries(redisKey);
+//        return notifications.values().stream()
+//                .map(obj -> (NotificationDTO) obj)
+//                .collect(Collectors.toList());
+//    }
+
+    /* 사용자 조회 */
     public List<NotificationDTO> getNotifications(String userNum) {
         String redisKey = "notifications:" + userNum;
         Map<Object, Object> notifications = notificationRedisTemplate.opsForHash().entries(redisKey);
-        return notifications.values().stream()
+
+        List<NotificationDTO> notificationList = notifications.values().stream()
                 .map(obj -> {
                     NotificationDTO notification = (NotificationDTO) obj;
 
                     if (notification.getNotificationTime() == null) {
                         notification.setNotificationTime(LocalDateTime.now());
                     }
+                    if (!notification.isRead()) {
+                        notification.setRead(true);
+                        notificationRedisTemplate.opsForHash().put(redisKey, notification.getId().toString(), notification);
+                    }
                     return notification;
                 })
                 .collect(Collectors.toList());
+        return notificationList;
     }
+
 
     /* 읽음 처리 */
     @Transactional
