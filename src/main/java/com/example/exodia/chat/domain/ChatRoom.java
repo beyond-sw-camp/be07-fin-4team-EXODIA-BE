@@ -49,8 +49,6 @@ public class ChatRoom extends BaseTimeEntity {
 
     public void deleteChatUser(ChatUser chatUser){
         this.chatUsers.remove(chatUser);
-        System.out.println("나가면 한명만 남는데 왜 empty값이 들어가 이 자식아.");
-        System.out.println(this.chatUsers.size());
     }
 
     public void updateChatRoomName(String chatRoomName){
@@ -59,8 +57,6 @@ public class ChatRoom extends BaseTimeEntity {
 
     public ChatRoomResponse fromEntity (int unreadChat){ // 단일 조회 , 목록 조회
         List<ChatRoomUserResponse> userList = this.getChatUsers().stream().map(ChatUser::fromEntityForRoomList).toList();
-        System.out.println("empty값은 대체 뭐야");
-        System.out.println(userList.size());
         return ChatRoomResponse.builder()
                 .roomId(this.getId())
                 .roomName(this.getRoomName())
