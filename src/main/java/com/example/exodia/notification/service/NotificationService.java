@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -50,6 +51,9 @@ public class NotificationService {
 //    }
     /* kafka - > redis */
     public void saveNotification(String userNum, NotificationDTO notificationDTO) {
+        if (notificationDTO.getId() == null) {
+            notificationDTO.setId(UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE);
+        }
         String redisKey = "notifications:" + userNum;
         notificationDTO.setRead(false);
         notificationRedisTemplate.opsForHash().put(redisKey, notificationDTO.getId().toString(), notificationDTO);

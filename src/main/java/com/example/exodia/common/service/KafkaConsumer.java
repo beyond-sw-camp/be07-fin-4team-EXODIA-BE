@@ -144,17 +144,17 @@ public class KafkaConsumer {
     }
 
     private void sendNotificationToUser(User user, String message, NotificationType type) {
-        // 중복 확인 없이 Redis에 바로 저장하고 SSE 전송
+
         NotificationDTO dto = new NotificationDTO();
         dto.setMessage(message);
         dto.setRead(false);
-        dto.setType(type);
+        dto.setType(type != null ? type : NotificationType.NOTIFICATION);
 
         notificationService.saveNotification(user.getUserNum(), dto); // Redis에 저장 및 SSE 전송
     }
 
     @Transactional
-    @KafkaListener(topics = {"document-events"}, groupId = "notification-group")
+//    @KafkaListener(topics = {"document-events"}, groupId = "notification-group")
     public void listenDocumentUpdateEvents(@Header(KafkaHeaders.RECEIVED_TOPIC) String topic, String message) {
         System.out.println("Kafka 메시지 수신: " + message);
 
@@ -324,6 +324,7 @@ public class KafkaConsumer {
             NotificationDTO notificationDTO = new NotificationDTO();
             notificationDTO.setMessage(message);
             notificationDTO.setRead(false);
+            notificationDTO.setType(NotificationType.공지사항);
 
             notificationService.saveNotification(user.getUserNum(), notificationDTO);
         }
