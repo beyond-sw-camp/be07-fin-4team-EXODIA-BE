@@ -3,6 +3,7 @@ package com.example.exodia.common.service;
 import com.example.exodia.chat.dto.ChatAlarmResponse;
 
 import com.example.exodia.notification.dto.NotificationDTO;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -82,5 +83,18 @@ public class SseEmitters {
         } else {
             System.out.println("SSE 연결 없음: " + userNum);
         }
+    }
+
+    @Scheduled(fixedRate = 30000)
+    public void sendHeartbeat() {
+        emitters.forEach((userNum, emitter) -> {
+            try {
+                emitter.send(SseEmitter.event().comment("heartbeat"));
+                System.out.println("Heartbeat 전송: " + userNum);
+            } catch (IOException e) {
+                emitters.remove(userNum);
+                System.out.println("Heartbeat 전송 실패, SSE 연결 해제: " + userNum);
+            }
+        });
     }
 }
