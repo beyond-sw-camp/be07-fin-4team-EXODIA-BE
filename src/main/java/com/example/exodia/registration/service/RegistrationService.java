@@ -94,6 +94,7 @@ public class RegistrationService {
         }
     }
 
+
     // 데이터베이스에서 강좌의 최대 참가자 수 조회
     public int getMaxParticipants(Long courseId) {
         Course course = courseRepository.findById(courseId)
