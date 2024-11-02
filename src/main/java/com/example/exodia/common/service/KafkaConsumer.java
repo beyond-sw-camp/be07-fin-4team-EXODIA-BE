@@ -43,7 +43,7 @@ public class KafkaConsumer {
     @Transactional
     @KafkaListener(topics =
             {
-                    "notification-topic",
+                    "notification-topic", "qanda-events",
                     "notice-events", "document-events", "document-events-rollbacks","submit-events",
                     "family-event-notices", "meeting-room-reservations",
                     "car-reservation-events", "car-reservation-approval-events",
@@ -108,6 +108,8 @@ public class KafkaConsumer {
 
 //    @KafkaListener(topics = "qanda-events", groupId = "notification-group")
     public void listenQnaEvents(String message) {
+        System.out.println("Kafka Q&A 이벤트 수신: " + message);
+
         String[] parts = message.split("\\|");
         String eventType = parts[0];
         String departmentId = parts[1];
