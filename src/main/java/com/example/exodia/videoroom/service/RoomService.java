@@ -46,12 +46,18 @@ public class RoomService {
         return roomRepository.save(room);
     }
 
+
     public String joinRoom(String sessionId, String userNum) throws OpenViduJavaClientException, OpenViduHttpException {
         Room room = roomRepository.findBySessionId(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Room not found"));
 
         User user = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with userNum: " + userNum));
+
+        Session session = openViduService.getActiveSession(sessionId);
+        if (session == null) {
+            throw new RuntimeException("Session not found or has expired.");
+        }
 
         String token = openViduService.createConnection(sessionId);
 
@@ -67,6 +73,7 @@ public class RoomService {
 
         return token;
     }
+
 
 
     @Transactional

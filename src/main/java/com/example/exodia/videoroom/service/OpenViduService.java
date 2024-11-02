@@ -38,4 +38,12 @@ public class OpenViduService {
             session.close();
         }
     }
+
+    public Session getActiveSession(String sessionId) {
+        return openVidu.getActiveSessions().stream()
+                .filter(s -> s.getSessionId().equals(sessionId))
+                .findFirst()
+                .orElse(null);
+    }
+
 }
