@@ -181,7 +181,6 @@ public class UserController {
     }
 
 
-
     @GetMapping("/department/{departmentId}/search")
     public ResponseEntity<List<UserInfoDto>> searchUsersInDepartment(
             @PathVariable Long departmentId,
