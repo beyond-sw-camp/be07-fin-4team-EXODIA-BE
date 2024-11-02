@@ -296,4 +296,25 @@ public class UserService {
         return date + newUserNum;
     }
 
+    // 상위 부서의 모든 yser들
+    public List<UserInfoDto> getUsersByParentDepartment(Long departmentId) {
+        Department department = departmentRepository.findById(departmentId)
+            .orElseThrow(() -> new RuntimeException("해당 부서가 존재하지 않습니다."));
+
+        List<Department> parentDepartments = new ArrayList<>();
+        while (department != null) {
+            parentDepartments.add(department);
+            department = department.getParentDepartment();  // Move to the next parent department
+        }
+
+        List<User> users = new ArrayList<>();
+        for (Department dept : parentDepartments) {
+            List<User> tmp = userRepository.findAllByDepartmentIdAndDelYn(dept.getId(), DelYN.N);
+            users.addAll(tmp);
+        }
+
+        return users.stream()
+            .map(UserInfoDto::fromEntity)
+            .collect(Collectors.toList());
+    }
 }
