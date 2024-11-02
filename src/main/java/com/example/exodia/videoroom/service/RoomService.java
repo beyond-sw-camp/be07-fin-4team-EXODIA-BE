@@ -77,10 +77,10 @@ public class RoomService {
     }
 
 
+    @Transactional
     public void leaveRoom(String sessionId, String userNum) {
         Room room = roomRepository.findBySessionId(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Room not found"));
-
         User user = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
