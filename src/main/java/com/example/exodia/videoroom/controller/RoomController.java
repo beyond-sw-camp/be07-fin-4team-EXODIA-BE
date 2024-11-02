@@ -29,13 +29,9 @@ public class RoomController {
         if (title == null || userNum == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-
         try {
-            Room room = roomService.createRoom(title, userNum);
-            Map<String, String> response = new HashMap<>();
-            response.put("sessionId", room.getSessionId());
-            response.put("title", room.getTitle());
-            return new ResponseEntity<>(response, HttpStatus.CREATED);
+            Map<String, String> roomInfo = roomService.createRoom(title, userNum);
+            return new ResponseEntity<>(roomInfo, HttpStatus.CREATED);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);

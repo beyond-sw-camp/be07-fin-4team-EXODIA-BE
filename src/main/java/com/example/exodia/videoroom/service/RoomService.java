@@ -18,8 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class RoomService {
@@ -38,17 +37,21 @@ public class RoomService {
     }
 
     @Transactional
-    public Room createRoom(String title, String userNum) throws OpenViduJavaClientException, OpenViduHttpException {
+    public Map<String, String> createRoom(String title, String userNum) throws OpenViduJavaClientException, OpenViduHttpException {
+        // 세션 생성
         String sessionId = openViduService.createSession();
+
         Room room = new Room();
         room.setTitle(title);
         room.setSessionId(sessionId);
         room = roomRepository.save(room);
 
-        // 방 생성자가 자동으로 참여
-        joinRoom(sessionId, userNum);
+        String token = joinRoom(sessionId, userNum);
 
-        return room;
+        Map<String, String> response = new HashMap<>();
+        response.put("sessionId", sessionId);
+        response.put("token", token);
+        return response;
     }
 
 
