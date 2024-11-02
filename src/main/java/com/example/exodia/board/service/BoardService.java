@@ -137,8 +137,6 @@ public class BoardService {
     }
 
     public Page<BoardListResDto> BoardListWithSearch(Pageable pageable, String searchType, String searchQuery, Category category, List<Long> tagIds) {
-        System.out.println("Received category in BoardListWithSearch: " + category); // 디버그: 전달된 카테고리 확인
-
         Page<Board> boards;
         if (searchQuery != null && !searchQuery.isEmpty()) {
             switch (searchType) {
@@ -165,10 +163,6 @@ public class BoardService {
         } else {
             boards = boardRepository.findByCategoryAndDelYn(category, DelYN.N, pageable);
         }
-
-        // 결과 출력
-        System.out.println("Retrieved boards: " + boards.getContent());  // 디버그: 조회된 게시글 목록 출력
-
         return boards.map(Board::listFromEntity);
     }
 
@@ -218,28 +212,21 @@ public class BoardService {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다."));
 
-
         if (!board.getUser().getUserNum().equals(userNum)) {
             throw new IllegalArgumentException("작성자 본인만 수정할 수 있습니다.");
         }
 
-
         board.setTitle(dto.getTitle());
         board.setContent(dto.getContent());
         board.setCategory(dto.getCategory());
-
-
         board.updateTimestamp();
-
 
         boardTagRepository.deleteByBoardId(board.getId());
         if (tagIds != null && !tagIds.isEmpty()) {
             addTagsToBoard(board, tagIds);
         }
 
-
         processFiles(files, board);
-
         boardRepository.save(board);
     }
 

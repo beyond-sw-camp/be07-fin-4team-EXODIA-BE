@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional(readOnly = true)
 public class QnAService {
 
     private final QnARepository qnARepository;
@@ -73,7 +72,7 @@ public class QnAService {
 
         QnA qna = dto.toEntity(questioner, department);
 
-        // 파일 처리 로직 (필요 시 추가)
+
         files = files == null ? Collections.emptyList() : files;
         if (!files.isEmpty()) {
             List<String> s3FilePaths = uploadAwsFileService.uploadMultipleFilesAndReturnPaths(files, "qna");
@@ -206,7 +205,6 @@ public class QnAService {
 
             for (MultipartFile file : files) {
                 if (file.isEmpty()) {
-                    System.out.println("빈 파일이므로 업로드를 건너뜁니다. 파일 이름: " + file.getOriginalFilename());
                     continue;
                 }
 
@@ -239,7 +237,6 @@ public class QnAService {
 
             for (MultipartFile file : files) {
                 if (file.isEmpty()) {
-                    System.out.println("빈 파일이므로 업로드를 건너뜁니다. 파일 이름: " + file.getOriginalFilename());
                     continue;
                 }
 

@@ -17,12 +17,8 @@ public class BoardHitsService {
 
     public Long incrementBoardHits(Long boardId, String userNum) {
         String key = "board_hits:" + boardId;
-
         String userKey = "board_hits_user:" + boardId;
-
-
         Boolean hasViewed = redisTemplate.opsForSet().isMember(userKey, userNum);
-
 
         if (Boolean.FALSE.equals(hasViewed)) {
             redisTemplate.opsForSet().add(userKey, userNum);
@@ -36,7 +32,6 @@ public class BoardHitsService {
     public Long getBoardHits(Long boardId) {
         String key = "board_hits:" + boardId;
         Object hits = redisTemplate.opsForValue().get(key);
-
         if (hits instanceof Integer) {
             return ((Integer) hits).longValue();
         }
@@ -50,11 +45,7 @@ public class BoardHitsService {
 
     public void resetBoardHits(Long boardId) {
         String key = "board_hits:" + boardId;
-
-
         String userKey = "board_hits_user:" + boardId;
-
-
         redisTemplate.delete(key);
         redisTemplate.delete(userKey);
     }

@@ -65,22 +65,15 @@ public class BoardAutoUploadService {
             }
 
             String randomDate = eventType.equals("결혼") ? getRandomDate(4, ChronoUnit.MONTHS) : getRandomDate(2, ChronoUnit.WEEKS);
-
             String title = generateTitle(submit.getContents(), user, randomDate);
-            System.out.println("Final Generated Title: " + title); // 제목 확인
-
             String content = generateContent(submit.getContents(), user, randomLocation, randomDate, eventType);
 
             BoardSaveReqDto boardDto = BoardSaveReqDto.builder()
                     .userNum(submit.getUserNum())
                     .category(Category.FAMILY_EVENT)
-                    .title(title)  // 제목 설정
-                    .content(content)  // 내용 설정
+                    .title(title)
+                    .content(content)
                     .build();
-
-            System.out.println("Final Board Title: " + boardDto.getTitle()); // 최종 저장 전 제목 출력 확인
-            System.out.println("Final Board Content: " + boardDto.getContent()); // 최종 저장 전 내용 출력 확인
-
             boardService.createBoard(boardDto, Collections.emptyList(), null);
         }
     }
@@ -94,7 +87,6 @@ public class BoardAutoUploadService {
 
             String eventTypeAndRelation = parsedContents.get("경조종류");
             if (eventTypeAndRelation == null) {
-                System.out.println("경조종류 값이 null입니다.");
                 return title;
             }
 
@@ -102,11 +94,9 @@ public class BoardAutoUploadService {
             String eventType = parts[0];
             String familyRelation = parts[1];
 
-            // 상 종류를 한번만 선택해 제목과 내용에 동일하게 사용
             String deathType = getDeathType(familyRelation);
 
-            String positionName = user.getPosition().getName(); // 올바르게 직급명 추출
-
+            String positionName = user.getPosition().getName();
             if (eventType.equals("결혼")) {
                 title = String.format("[결혼] %s(%s) %s %s 결혼 - %s",
                         user.getName(),
@@ -129,13 +119,11 @@ public class BoardAutoUploadService {
             e.printStackTrace();
         }
 
-        System.out.println("Generated Title: " + title);
-
         return title;
     }
 
     private String getDeathType(String familyRelation) {
-        // 상 종류는 제목과 내용에서 동일하게 사용하기 위해 한번만 추출
+
         switch (familyRelation) {
             case "부모":
                 return getRandomElement(parentsDeathOptions);
@@ -144,7 +132,7 @@ public class BoardAutoUploadService {
             case "형제자매":
                 return "형제상";
             default:
-                return familyRelation;  // fallback
+                return familyRelation;
         }
     }
 
@@ -172,26 +160,15 @@ public class BoardAutoUploadService {
         String content = "";
 
         try {
-            System.out.println("Raw contents: " + contents);  // 디버깅용 원본 로그
-            System.out.println("Event Type: " + eventType);  // 이벤트 타입 확인
-
-            // contents JSON 파싱
             Map<String, String> parsedContents = objectMapper.readValue(contents, Map.class);
-            System.out.println("Parsed Contents: " + parsedContents);  // 파싱된 데이터 로그
 
             String eventTypeAndRelation = parsedContents.get("경조종류");
             if (eventTypeAndRelation == null) {
-                System.out.println("경조종류 값이 null입니다.");
-                return content; // 여기서 중단하고 반환
+                return content;
             }
 
-            String familyRelation = eventTypeAndRelation.split(" ")[1];  // 예: "부고 부모"에서 "부모" 추출
-            System.out.println("Family Relation: " + familyRelation);  // 가족 관계 로그
-
-            // 상 종류를 한번만 추출하여 제목과 내용에 동일하게 사용
+            String familyRelation = eventTypeAndRelation.split(" ")[1];
             String deathType = getDeathType(familyRelation);
-            System.out.println("Death Type: " + deathType);  // 상 종류 확인
-
             if (eventType.equals("부고")) {
                 content = String.format(
                         "<div>[부고]</div>" +
@@ -222,7 +199,6 @@ public class BoardAutoUploadService {
                 );
             }
 
-            System.out.println("Generated Content: " + content);  // 생성된 content 확인
         } catch (Exception e) {
             e.printStackTrace();
         }

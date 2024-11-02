@@ -6,6 +6,7 @@ import com.example.exodia.qna.dto.ManagerSaveDto;
 import com.example.exodia.qna.repository.ManagerRepository;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,8 @@ public class ManagerService {
     private final ManagerRepository managerRepository;
     private final UserRepository userRepository;
 
+
+    @Transactional
     public ManagerListDto saveManager(ManagerSaveDto managerSaveDto) {
         User user = userRepository.findByUserNum(managerSaveDto.getUserNum())
                 .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
@@ -34,16 +37,15 @@ public class ManagerService {
 
 
 
-    // 2. 매니저 삭제
+    @Transactional
     public void deleteManager(String userNum) {
-        // 매니저 존재 여부 확인 후 삭제
         Manager manager = managerRepository.findByUser_UserNum(userNum)
                 .orElseThrow(() -> new IllegalArgumentException("매니저를 찾을 수 없습니다."));
         managerRepository.delete(manager);
     }
 
 
-    // 3. 매니저 목록 조회
+
     public List<ManagerListDto> getAllManagers() {
         List<Manager> managers = managerRepository.findAll();
 
@@ -53,7 +55,6 @@ public class ManagerService {
                 .collect(Collectors.toList());
     }
 
-    // 매니저 여부 확인 메서드
     public boolean isManager(String userNum) {
         return managerRepository.existsByUser_UserNum(userNum);
     }

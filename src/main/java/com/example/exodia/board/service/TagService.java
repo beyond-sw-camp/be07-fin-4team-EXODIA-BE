@@ -41,7 +41,6 @@ public class TagService {
                 .collect(Collectors.toList());
     }
 
-
     @Transactional
     public void deleteTag(Long id) {
         boardTagRepository.deleteByTagId(id);
