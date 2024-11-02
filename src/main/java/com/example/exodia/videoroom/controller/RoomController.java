@@ -73,5 +73,18 @@ public class RoomController {
         return ResponseEntity.ok(rooms);
     }
 
+    // 참가자 추가 (join)
+    @PostMapping("/{sessionId}/join")
+    public ResponseEntity<Map<String, String>> joinRoom(@PathVariable String sessionId, @RequestParam String userNum) {
+        try {
+            String token = roomService.joinRoom(sessionId, userNum);
+            Map<String, String> response = new HashMap<>();
+            response.put("token", token);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
 }
