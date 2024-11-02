@@ -1,10 +1,8 @@
 package com.example.exodia.notification.service;
 
 import com.example.exodia.common.service.SseEmitters;
-import com.example.exodia.notification.domain.Notification;
 import com.example.exodia.notification.domain.NotificationType;
 import com.example.exodia.notification.dto.NotificationDTO;
-import com.example.exodia.notification.repository.NotificationRepository;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 import com.example.exodia.user.service.UserService;
@@ -22,16 +20,15 @@ import java.util.stream.Collectors;
 
 @Service
 public class NotificationService {
-    private final NotificationRepository notificationRepository;
+//    private final NotificationRepository notificationRepository;
 
     private final UserRepository userRepository;
     private final RedisTemplate<String, Object> notificationRedisTemplate;
     private final SseEmitters sseEmitters;
 
     @Autowired
-    public NotificationService(NotificationRepository notificationRepository, UserRepository userRepository, @Qualifier("notification") RedisTemplate<String, Object> notificationRedisTemplate,
+    public NotificationService(UserRepository userRepository, @Qualifier("notification") RedisTemplate<String, Object> notificationRedisTemplate,
                                SseEmitters sseEmitters) {
-        this.notificationRepository = notificationRepository;
         this.userRepository = userRepository;
         this.notificationRedisTemplate = notificationRedisTemplate;
         this.sseEmitters = sseEmitters;

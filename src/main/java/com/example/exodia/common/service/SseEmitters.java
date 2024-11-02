@@ -1,7 +1,7 @@
 package com.example.exodia.common.service;
 
 import com.example.exodia.chat.dto.ChatAlarmResponse;
-import com.example.exodia.notification.domain.Notification;
+
 import com.example.exodia.notification.dto.NotificationDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -42,12 +42,13 @@ public class SseEmitters {
     }
 
     // 모든 사용자에게 알림 전송
-    public void sendToAll(Notification notification) {
+    public void sendToAll(NotificationDTO notificationDTO) {
         emitters.forEach((userNum, emitter) -> {
             try {
-                emitter.send(SseEmitter.event().data(notification));
+                emitter.send(SseEmitter.event().data(notificationDTO));
             } catch (IOException e) {
                 emitters.remove(userNum);
+                System.out.println("SSE 연결 해제: " + userNum);
             }
         });
     }
@@ -55,7 +56,7 @@ public class SseEmitters {
     // 특정 사용자에게 알림 전송
     public void sendToUser(String userNum, NotificationDTO dto) {
         SseEmitter emitter = emitters.get(userNum);
-        cache.put(userNum, dto); // 캐시에 저장
+        cache.put(userNum, dto);
         if (emitter != null) {
             try {
                 emitter.send(SseEmitter.event().data(dto));
