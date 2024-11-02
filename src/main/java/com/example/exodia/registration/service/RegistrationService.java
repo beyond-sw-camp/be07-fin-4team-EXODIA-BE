@@ -58,6 +58,7 @@ public class RegistrationService {
             return "이미 해당 강좌에 등록된 사용자입니다.";
         }
 
+
         String redisKey = "course:" + courseId + ":participants";
         RLock lock = redissonClient.getLock("courseLock:" + courseId);  // Redisson 락 생성
 
