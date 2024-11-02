@@ -48,5 +48,7 @@ public class OpenViduController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("토큰 생성 실패: " + e.getMessage());
         }
+
     }
+
 }
