@@ -269,7 +269,7 @@ public class RedisConfig {
         return redisTemplate;
     }
 
-
+    // 알림
     @Bean
     @Qualifier("notification")
     public LettuceConnectionFactory notificationConnectionFactory() {
