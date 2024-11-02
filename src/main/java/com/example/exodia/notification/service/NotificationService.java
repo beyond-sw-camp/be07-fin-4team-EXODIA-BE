@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -66,7 +67,14 @@ public class NotificationService {
         String redisKey = "notifications:" + userNum;
         Map<Object, Object> notifications = notificationRedisTemplate.opsForHash().entries(redisKey);
         return notifications.values().stream()
-                .map(obj -> (NotificationDTO) obj)
+                .map(obj -> {
+                    NotificationDTO notification = (NotificationDTO) obj;
+
+                    if (notification.getNotificationTime() == null) {
+                        notification.setNotificationTime(LocalDateTime.now());
+                    }
+                    return notification;
+                })
                 .collect(Collectors.toList());
     }
 
