@@ -125,8 +125,6 @@ public class BoardController {
             return new ResponseEntity<>("Invalid category", HttpStatus.BAD_REQUEST);
         }
 
-        // 변환된 cate 값을 확인
-        System.out.println("Converted category: " + cate);  // 디버그: 변환된 카테고리 확인
 
         // cate 변수를 사용하여 BoardListWithSearch 호출
         Page<BoardListResDto> boardListResDto = boardService.BoardListWithSearch(pageable, searchType, searchQuery, cate, tagIds);
@@ -223,4 +221,23 @@ public class BoardController {
             return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
     }
+
+    @GetMapping("/pinned")
+    public ResponseEntity<?> getPinnedBoards() {
+        try {
+            // 고정된 게시물만 가져오기
+            List<BoardListResDto> pinnedBoards = boardService.getPinnedBoards();
+
+            // 성공 응답 반환
+            CommonResDto response = new CommonResDto(HttpStatus.OK, "고정된 게시물 목록을 반환합니다.", pinnedBoards);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+
+        } catch (Exception e) {
+            // 기타 예외 처리
+            e.printStackTrace();
+            CommonErrorDto errorResponse = new CommonErrorDto(HttpStatus.INTERNAL_SERVER_ERROR, "고정된 게시물을 가져오는 중 오류가 발생했습니다.");
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }
