@@ -1,6 +1,7 @@
 package com.example.exodia.videoroom.controller;
 
 import com.example.exodia.videoroom.domain.Room;
+import com.example.exodia.videoroom.repository.RoomRepository;
 import com.example.exodia.videoroom.service.RoomService;
 import io.openvidu.java.client.OpenViduJavaClientException;
 import io.openvidu.java.client.OpenViduHttpException;
@@ -19,23 +20,40 @@ public class RoomController {
 
     @Autowired
     private RoomService roomService;
+    private RoomRepository roomRepository;
 
     // 방 생성
     @PostMapping("/create")
     public ResponseEntity<Map<String, String>> createRoom(@RequestBody Map<String, String> request) {
         String title = request.get("title");
         String userNum = request.get("userNum");
+        String password = request.get("password");
 
         if (title == null || userNum == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         try {
-            Map<String, String> roomInfo = roomService.createRoom(title, userNum);
+            Map<String, String> roomInfo = roomService.createRoom(title, userNum, password);
             return new ResponseEntity<>(roomInfo, HttpStatus.CREATED);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @PostMapping("/verify-password")
+    public ResponseEntity<Map<String, Boolean>> verifyPassword(@RequestBody Map<String, String> requestData) {
+        String sessionId = requestData.get("sessionId");
+        String password = requestData.get("password");
+
+        Room room = roomRepository.findBySessionId(sessionId)
+                .orElseThrow(() -> new IllegalArgumentException("Room not found"));
+
+        boolean isPasswordCorrect = room.getPassword() != null && room.getPassword().equals(password);
+
+        Map<String, Boolean> response = new HashMap<>();
+        response.put("success", isPasswordCorrect);
+        return ResponseEntity.ok(response);
     }
 
 

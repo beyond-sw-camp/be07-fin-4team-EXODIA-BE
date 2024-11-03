@@ -38,13 +38,14 @@ public class RoomService {
 
 
     @Transactional
-    public Map<String, String> createRoom(String title, String userNum) throws OpenViduJavaClientException, OpenViduHttpException {
+    public Map<String, String> createRoom(String title, String userNum,String password) throws OpenViduJavaClientException, OpenViduHttpException {
         // 세션 생성
         String sessionId = openViduService.createSession();
 
         Room room = new Room();
         room.setTitle(title);
         room.setSessionId(sessionId);
+        room.setPassword(password);
         room = roomRepository.save(room);
 
         String token = joinRoom(sessionId, userNum);

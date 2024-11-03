@@ -32,6 +32,10 @@ public class Room {
     @Column(nullable = false)
     private int participantCount = 0;
 
+    @Column(nullable = true)
+    private String password;
+
+
     // 참가자 추가
     public void addParticipant(Participant participant) {
         participants.add(participant);
@@ -43,5 +47,9 @@ public class Room {
     public void removeParticipant(Participant participant) {
         participants.remove(participant);
         participantCount = participants.size();
+    }
+
+    public boolean hasPassword() {
+        return this.password != null && !this.password.isEmpty();
     }
 }
