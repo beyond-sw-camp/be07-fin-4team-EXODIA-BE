@@ -16,14 +16,14 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class NotificationDTO implements Serializable {
     private static final long serialVersionUID = 2713346395385810094L;
-    private Long id; // redis 고유값으로 사용할꺼
+    private Long id;
     private NotificationType type;
     private String message;
     private boolean isRead;
     private String userName;
     private String userNum;
     private LocalDateTime notificationTime;
-    private Long targetId; // 알림 라우팅 경로
+    private Long targetId;
 
     public NotificationDTO(String message, boolean isRead, String userName, String userNum, NotificationType type) {
         this.message = message;
@@ -32,5 +32,9 @@ public class NotificationDTO implements Serializable {
         this.userName = userName;
         this.userNum = userNum;
         this.notificationTime = LocalDateTime.now();
+    }
+
+    public static long getSerialVersionUID() {
+        return serialVersionUID;
     }
 }

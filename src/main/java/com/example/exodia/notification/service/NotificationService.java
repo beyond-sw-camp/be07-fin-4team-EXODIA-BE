@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ObjectStreamClass;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -78,9 +79,13 @@ public class NotificationService {
         Map<Object, Object> notifications = notificationRedisTemplate.opsForHash().entries(redisKey);
 
         List<NotificationDTO> notificationList = notifications.values().stream()
-                .map(obj -> {
-                    NotificationDTO notification = (NotificationDTO) obj;
-
+                .map(obj -> (NotificationDTO) obj)
+                .filter(notification -> {
+                    long currentSerialVersionUID = NotificationDTO.getSerialVersionUID();
+                    long storedSerialVersionUID = ObjectStreamClass.lookup(notification.getClass()).getSerialVersionUID();
+                    return currentSerialVersionUID == storedSerialVersionUID;
+                })
+                .map(notification -> {
                     if (notification.getNotificationTime() == null) {
                         notification.setNotificationTime(LocalDateTime.now());
                     }
@@ -101,17 +106,39 @@ public class NotificationService {
     public void markNotificationAsRead(String userNum, String notificationId) {
         String redisKey = "notifications:" + userNum;
         NotificationDTO notification = (NotificationDTO) notificationRedisTemplate.opsForHash().get(redisKey, notificationId);
+
         if (notification != null) {
-            notification.setRead(true);
-            notificationRedisTemplate.opsForHash().put(redisKey, notificationId, notification);
-            notificationRedisTemplate.expire(redisKey, Duration.ofDays(3)); // TTL 갱신 //
+            // serialVersionUID가 일치하는지 확인
+            long currentSerialVersionUID = NotificationDTO.getSerialVersionUID();
+            long storedSerialVersionUID = ObjectStreamClass.lookup(notification.getClass()).getSerialVersionUID();
+
+            if (currentSerialVersionUID == storedSerialVersionUID) {
+                notification.setRead(true);
+                notificationRedisTemplate.opsForHash().put(redisKey, notificationId, notification);
+                notificationRedisTemplate.expire(redisKey, Duration.ofDays(3)); // TTL 갱신
+            } else {
+                System.out.println("알림의 serialVersionUID가 일치하지 않아 읽음 처리되지 않았습니다.");
+            }
         }
     }
-    /* 읽음 처리 여부 조회 */
+
     public boolean isNotificationRead(String userNum, String notificationId) {
         String redisKey = "notifications:" + userNum;
         NotificationDTO notificationDTO = (NotificationDTO) notificationRedisTemplate.opsForHash().get(redisKey, notificationId);
-        return notificationDTO != null && notificationDTO.isRead();
+
+        if (notificationDTO != null) {
+            // serialVersionUID가 일치하는지 확인
+            long currentSerialVersionUID = NotificationDTO.getSerialVersionUID();
+            long storedSerialVersionUID = ObjectStreamClass.lookup(notificationDTO.getClass()).getSerialVersionUID();
+
+            if (currentSerialVersionUID == storedSerialVersionUID) {
+                return notificationDTO.isRead();
+            } else {
+                System.out.println("알림의 serialVersionUID가 일치하지 않아 읽음 여부를 확인할 수 없습니다.");
+                return false;
+            }
+        }
+        return false;
     }
 
 
