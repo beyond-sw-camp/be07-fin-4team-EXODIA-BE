@@ -17,6 +17,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -113,6 +114,13 @@ public class NotificationService {
         return notificationDTO != null && notificationDTO.isRead();
     }
 
+
+    public void clearAllNotifications() {
+        Set<String> keys = notificationRedisTemplate.keys("notifications:*");
+        if (keys != null && !keys.isEmpty()) {
+            notificationRedisTemplate.delete(keys);
+        }
+    }
 //    // 읽지 않은 알림의 개수를 반환
 //    public long countUnreadNotifications(String userNum) {
 //        User user = userRepository.findByUserNum(userNum)

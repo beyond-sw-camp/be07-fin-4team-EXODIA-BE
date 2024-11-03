@@ -34,4 +34,5 @@ public class NotificationDTO implements Serializable {
         this.notificationTime = LocalDateTime.now();
     }
 
+
 }

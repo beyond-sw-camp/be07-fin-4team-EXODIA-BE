@@ -11,6 +11,7 @@ import com.example.exodia.user.service.CustomUserService;
 import com.example.exodia.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -79,7 +80,12 @@ public class NotificationController {
         return ResponseEntity.ok(isRead);
     }
 
-
+    @DeleteMapping("/clear-all")
+    @PreAuthorize("hasRole('ADMIN')") // 관리자만 접근 가능하도록 설정
+    public ResponseEntity<Void> clearAllNotifications() {
+        notificationService.clearAllNotifications();
+        return ResponseEntity.noContent().build();
+    }
 
 //    // 사용자별 알림 리스트를 가져오는 API
 //    @GetMapping("/list")
