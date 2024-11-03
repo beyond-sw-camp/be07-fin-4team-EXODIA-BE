@@ -1,6 +1,5 @@
 package com.example.exodia.evalutionFrame.subevalution.service;
 
-import com.example.exodia.department.domain.Department;
 import com.example.exodia.evalutionFrame.subevalution.dto.SubEvalutionDto;
 import com.example.exodia.evalutionFrame.evalutionMiddle.domain.Evalutionm;
 import com.example.exodia.evalutionFrame.evalutionMiddle.repository.EvalutionmRepository;
@@ -12,7 +11,6 @@ import com.example.exodia.evalutionFrame.subevalution.repository.SubEvalutionRep
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 
-import org.hibernate.Hibernate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 public class SubEvalutionService {

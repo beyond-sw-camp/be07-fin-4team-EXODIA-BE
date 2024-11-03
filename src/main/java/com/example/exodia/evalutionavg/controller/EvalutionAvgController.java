@@ -1,7 +1,6 @@
 package com.example.exodia.evalutionavg.controller;
 
 import com.example.exodia.evalution.service.EvalutionService;
-import com.example.exodia.evalutionavg.domain.EvalutionAvg;
 import com.example.exodia.evalutionavg.service.EvalutionAvgService;
 
 import org.springframework.http.ResponseEntity;

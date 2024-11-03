@@ -5,7 +5,6 @@ import com.example.exodia.evalution.dto.EvalutionDto;
 import com.example.exodia.evalution.repository.EvalutionRepository;
 import com.example.exodia.evalutionFrame.subevalution.domain.SubEvalution;
 import com.example.exodia.evalutionFrame.subevalution.repository.SubEvalutionRepository;
-import com.example.exodia.evalutionavg.domain.EvalutionAvg;
 import com.example.exodia.evalutionavg.repository.EvalutionAvgRepository;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;

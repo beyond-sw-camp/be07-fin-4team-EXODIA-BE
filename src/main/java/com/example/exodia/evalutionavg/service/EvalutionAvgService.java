@@ -8,7 +8,6 @@ import com.example.exodia.evalutionavg.domain.EvalutionAvg;
 import com.example.exodia.evalutionavg.repository.EvalutionAvgRepository;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
-import com.nimbusds.jose.proc.SecurityContext;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
