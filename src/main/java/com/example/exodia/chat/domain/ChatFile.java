@@ -22,7 +22,7 @@ public class ChatFile extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // 채팅파일고유의 id
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chat_message_id", nullable = false)
     private ChatMessage chatMessage;
 
