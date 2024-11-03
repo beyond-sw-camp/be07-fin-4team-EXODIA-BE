@@ -24,7 +24,6 @@ public class NotificationDTO implements Serializable {
     private LocalDateTime notificationTime;
     private Long targetId; // 알림 라우팅 경로
 
-
     public NotificationDTO(String message, boolean isRead, String userName, String userNum, NotificationType type) {
         this.message = message;
         this.type = type;
