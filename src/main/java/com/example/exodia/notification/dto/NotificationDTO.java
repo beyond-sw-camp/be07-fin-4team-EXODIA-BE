@@ -1,6 +1,7 @@
 package com.example.exodia.notification.dto;
 
 import com.example.exodia.notification.domain.NotificationType;
+import com.example.exodia.user.domain.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,6 +22,7 @@ public class NotificationDTO implements Serializable {
     private String userName;
     private String userNum;
     private LocalDateTime notificationTime;
+    private Long targetId; // 알림 라우팅 경로
 
 
     public NotificationDTO(String message, boolean isRead, String userName, String userNum, NotificationType type) {
@@ -31,4 +33,5 @@ public class NotificationDTO implements Serializable {
         this.userNum = userNum;
         this.notificationTime = LocalDateTime.now();
     }
+
 }

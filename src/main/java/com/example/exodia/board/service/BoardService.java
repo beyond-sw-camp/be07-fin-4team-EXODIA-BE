@@ -15,6 +15,9 @@ import com.example.exodia.comment.repository.CommentRepository;
 import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.common.service.KafkaProducer;
 import com.example.exodia.common.service.UploadAwsFileService;
+import com.example.exodia.notification.domain.NotificationType;
+import com.example.exodia.notification.dto.NotificationDTO;
+import com.example.exodia.notification.service.NotificationService;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -26,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,11 +46,12 @@ public class BoardService {
     private final BoardTagRepository boardTagRepository;
     private final BoardTagsRepository boardTagsRepository;
     private final KafkaProducer kafkaProducer;
+    private final NotificationService notificationService;
     @Autowired
     public BoardService(BoardRepository boardRepository, UploadAwsFileService uploadAwsFileService,
                         BoardFileRepository boardFileRepository, UserRepository userRepository,
                         CommentRepository commentRepository, BoardHitsService boardHitsService,
-                        BoardTagRepository boardTagRepository, BoardTagsRepository boardTagsRepository, KafkaProducer kafkaProducer) {
+                        BoardTagRepository boardTagRepository, BoardTagsRepository boardTagsRepository, KafkaProducer kafkaProducer, NotificationService notificationService) {
         this.boardRepository = boardRepository;
         this.uploadAwsFileService = uploadAwsFileService;
         this.boardFileRepository = boardFileRepository;
@@ -56,6 +61,7 @@ public class BoardService {
         this.boardTagRepository = boardTagRepository;
         this.boardTagsRepository = boardTagsRepository;
         this.kafkaProducer = kafkaProducer;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -73,7 +79,23 @@ public class BoardService {
 
         String departmentName = (user.getDepartment() != null) ? user.getDepartment().getName() : "부서 없음";
         String title = (dto.getTitle() != null) ? dto.getTitle() : "제목 없음";
+
+
         String message = departmentName + " 에서 " + title + "를 작성했습니다";
+
+        Long targetPath = board.getId();
+        NotificationDTO notificationDTO = NotificationDTO.builder()
+                .message(message)
+                .type(NotificationType.공지사항)
+                .isRead(false)
+                .userName(user.getName())
+                .userNum(user.getUserNum())
+                .notificationTime(LocalDateTime.now())
+                .targetId(board.getId())
+                .build();
+
+        notificationService.saveNotification(user.getUserNum(), notificationDTO);
+
         kafkaProducer.sendBoardEvent("notice-events", message);
 
         return board;
