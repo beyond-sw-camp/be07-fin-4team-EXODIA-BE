@@ -6,6 +6,7 @@ import com.example.exodia.attendance.dto.*;
 import com.example.exodia.attendance.repository.AttendanceRepository;
 import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.department.domain.Department;
+import com.example.exodia.department.repository.DepartmentRepository;
 import com.example.exodia.user.domain.NowStatus;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.dto.UserStatusAndTime;
@@ -28,14 +29,16 @@ import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class AttendanceService {
-    @Autowired
+
     private final AttendanceRepository attendanceRepository;
-    @Autowired
+    private final DepartmentRepository departmentRepository;
     private final UserRepository userRepository;
 
-    public AttendanceService(AttendanceRepository attendanceRepository, UserRepository userRepository) {
+    @Autowired
+    public AttendanceService(AttendanceRepository attendanceRepository, DepartmentRepository departmentRepository, UserRepository userRepository) {
         this.attendanceRepository = attendanceRepository;
-        this.userRepository = userRepository;
+		this.departmentRepository = departmentRepository;
+		this.userRepository = userRepository;
     }
 
     /*출근시간 기록 용*/
@@ -283,17 +286,37 @@ public class AttendanceService {
         return attendanceStatusMap;
     }
 
+    private void collectAllChildrenById(Long departmentId, List<Department> allChildren, Set<Long> visited) {
+        if (visited.contains(departmentId)) return;
+        visited.add(departmentId);
+
+        Department department = departmentRepository.findById(departmentId)
+            .orElseThrow(() -> new RuntimeException("부서 정보가 존재하지 않습니다."));
+        allChildren.add(department);
+
+        for (Department child : department.getChildren()) {
+            collectAllChildrenById(child.getId(), allChildren, visited);
+        }
+    }
+
+    public List<Department> getAllNestedChildrenById(Long departmentId) {
+        List<Department> allChildren = new ArrayList<>();
+        collectAllChildrenById(departmentId, allChildren, new HashSet<>());
+        return allChildren;
+    }
+
+    @Transactional
     public List<?> getTodayRecords() throws IOException {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         // 로그인한 유저 정보 가져오기
         User loggedInUser = userRepository.findByUserNum(userNum)
             .orElseThrow(() -> new IOException("로그인한 유저 정보를 찾을 수 없습니다."));
 
-        List<Department> departments = loggedInUser.getDepartment().getChildren();
-        departments.add(loggedInUser.getDepartment());
+        Long departmentId = (Long)userRepository.findDepartmentIdByUserNum(userNum)
+            .orElseThrow(() -> new IOException("로그인한 유저 정보를 찾을 수 없습니다."));
+        List<Department> departments = getAllNestedChildrenById(departmentId);
 
         List<User> users = new ArrayList<>();
-
         for (Department department : departments) {
             List<User> departmentUsers = userRepository.findAllByDepartmentIdAndDelYn(department.getId(), DelYN.N); //같은 부서 사람들
             for (User user : departmentUsers) {

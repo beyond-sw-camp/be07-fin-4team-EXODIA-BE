@@ -294,6 +294,9 @@ public class SubmitService {
 
 		// 대기중 상태 일 때만 삭제 가능
 		if (submit.getSubmitStatus() == SubmitStatus.대기중) {
+			for(SubmitLine submitLine : submit.getSubmitLines()){
+				submitLine.softDelete();
+			}
 			submit.softDelete();
 		}
 	}
