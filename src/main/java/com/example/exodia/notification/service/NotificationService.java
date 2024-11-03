@@ -6,6 +6,7 @@ import com.example.exodia.notification.dto.NotificationDTO;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 import com.example.exodia.user.service.UserService;
+import io.jsonwebtoken.io.SerializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -74,12 +76,20 @@ public class NotificationService {
     /* 사용자 조회 */
     public List<NotificationDTO> getNotifications(String userNum) {
         String redisKey = "notifications:" + userNum;
-        Map<Object, Object> notifications = notificationRedisTemplate.opsForHash().entries(redisKey);
+        Map<Object, Object> notifications;
 
-        List<NotificationDTO> notificationList = notifications.values().stream()
+        try {
+            notifications = notificationRedisTemplate.opsForHash().entries(redisKey);
+        } catch (SerializationException e) {
+            // 역직렬화 오류 발생 시 Redis 데이터 삭제
+            notificationRedisTemplate.delete(redisKey);
+            System.out.println("Redis 데이터 삭제: 이전 serialVersionUID 불일치로 인한 역직렬화 오류");
+            return new ArrayList<>(); // 빈 리스트 반환
+        }
+
+        return notifications.values().stream()
                 .map(obj -> {
                     NotificationDTO notification = (NotificationDTO) obj;
-
                     if (notification.getNotificationTime() == null) {
                         notification.setNotificationTime(LocalDateTime.now());
                     }
@@ -90,8 +100,8 @@ public class NotificationService {
                     return notification;
                 })
                 .collect(Collectors.toList());
-        return notificationList;
     }
+
 
     /* 읽음 처리 */
     @Transactional
