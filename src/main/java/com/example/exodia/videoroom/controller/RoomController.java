@@ -20,7 +20,9 @@ public class RoomController {
 
     @Autowired
     private RoomService roomService;
-    private RoomRepository roomRepository;
+
+    @Autowired
+    private RoomRepository roomRepository
 
     // 방 생성
     @PostMapping("/create")
