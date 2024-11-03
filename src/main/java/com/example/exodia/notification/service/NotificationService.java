@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -62,12 +63,34 @@ public class NotificationService {
     }
 
     /* 사용자 조회 */
+//    public List<NotificationDTO> getNotifications(String userNum) {
+//        String redisKey = "notifications:" + userNum;
+//        Map<Object, Object> notifications = notificationRedisTemplate.opsForHash().entries(redisKey);
+//        return notifications.values().stream()
+//                .map(obj -> (NotificationDTO) obj)
+//                .collect(Collectors.toList());
+//    }
+
+    /* 사용자 조회 */
     public List<NotificationDTO> getNotifications(String userNum) {
         String redisKey = "notifications:" + userNum;
         Map<Object, Object> notifications = notificationRedisTemplate.opsForHash().entries(redisKey);
-        return notifications.values().stream()
-                .map(obj -> (NotificationDTO) obj)
+
+        List<NotificationDTO> notificationList = notifications.values().stream()
+                .map(obj -> {
+                    NotificationDTO notification = (NotificationDTO) obj;
+
+                    if (notification.getNotificationTime() == null) {
+                        notification.setNotificationTime(LocalDateTime.now());
+                    }
+                    if (!notification.isRead()) {
+                        notification.setRead(true);
+                        notificationRedisTemplate.opsForHash().put(redisKey, notification.getId().toString(), notification);
+                    }
+                    return notification;
+                })
                 .collect(Collectors.toList());
+        return notificationList;
     }
 
     /* 읽음 처리 */
@@ -78,6 +101,7 @@ public class NotificationService {
         if (notification != null) {
             notification.setRead(true);
             notificationRedisTemplate.opsForHash().put(redisKey, notificationId, notification);
+            notificationRedisTemplate.expire(redisKey, Duration.ofDays(3)); // TTL 갱신 //
         }
     }
     /* 읽음 처리 여부 조회 */
