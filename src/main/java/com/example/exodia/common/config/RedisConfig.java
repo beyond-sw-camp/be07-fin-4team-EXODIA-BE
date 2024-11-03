@@ -292,6 +292,7 @@ public class RedisConfig {
         return redisTemplate;
     }
 
+    /* 백업 본 안될경우 사용 */
 //    @Bean
 //    @Qualifier("notification")
 //    public RedisTemplate<String, Object> notificationRedisTemplate(@Qualifier("notification") LettuceConnectionFactory notificationConnectionFactory) {

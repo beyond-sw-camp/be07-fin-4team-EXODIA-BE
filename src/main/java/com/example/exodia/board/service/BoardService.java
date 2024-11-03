@@ -83,18 +83,18 @@ public class BoardService {
 
         String message = departmentName + " 에서 " + title + "를 작성했습니다";
 
-//        Long targetPath = board.getId();
-//        NotificationDTO notificationDTO = NotificationDTO.builder()
-//                .message(message)
-//                .type(NotificationType.공지사항)
-//                .isRead(false)
-//                .userName(user.getName())
-//                .userNum(user.getUserNum())
-//                .notificationTime(LocalDateTime.now())
-//                .targetId(board.getId())
-////                .build();
-//
-//        notificationService.saveNotification(user.getUserNum(), notificationDTO);
+        Long targetPath = board.getId();
+        NotificationDTO notificationDTO = NotificationDTO.builder()
+                .message(message)
+                .type(NotificationType.공지사항)
+                .isRead(false)
+                .userName(user.getName())
+                .userNum(user.getUserNum())
+                .notificationTime(LocalDateTime.now())
+                .targetId(board.getId())
+                .build();
+
+        notificationService.saveNotification(user.getUserNum(), notificationDTO);
 
         kafkaProducer.sendBoardEvent("notice-events", message);
 
