@@ -277,31 +277,31 @@ public class RedisConfig {
         return redisConnectionFactory(14);
     }
 
-    @Bean
-    @Qualifier("notification")
-    public RedisTemplate<String, Object> notificationRedisTemplate(@Qualifier("notification") LettuceConnectionFactory notificationConnectionFactory) {
-        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
-        redisTemplate.setConnectionFactory(notificationConnectionFactory);
-        redisTemplate.setKeySerializer(new StringRedisSerializer());
-
-        // JSON Serializer 사용
-        Jackson2JsonRedisSerializer<NotificationDTO> serializer = new Jackson2JsonRedisSerializer<>(NotificationDTO.class);
-        redisTemplate.setValueSerializer(serializer);
-        redisTemplate.setHashValueSerializer(serializer);
-
-        return redisTemplate;
-    }
-
-    /* 백업 본 안될경우 사용 */
 //    @Bean
 //    @Qualifier("notification")
 //    public RedisTemplate<String, Object> notificationRedisTemplate(@Qualifier("notification") LettuceConnectionFactory notificationConnectionFactory) {
 //        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
 //        redisTemplate.setConnectionFactory(notificationConnectionFactory);
 //        redisTemplate.setKeySerializer(new StringRedisSerializer());
-//        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+//
+//        // JSON Serializer 사용
+//        Jackson2JsonRedisSerializer<NotificationDTO> serializer = new Jackson2JsonRedisSerializer<>(NotificationDTO.class);
+//        redisTemplate.setValueSerializer(serializer);
+//        redisTemplate.setHashValueSerializer(serializer);
+//
 //        return redisTemplate;
 //    }
+
+
+    @Bean
+    @Qualifier("notification")
+    public RedisTemplate<String, Object> notificationRedisTemplate(@Qualifier("notification") LettuceConnectionFactory notificationConnectionFactory) {
+        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(notificationConnectionFactory);
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        return redisTemplate;
+    }
 
 
 }

@@ -83,6 +83,7 @@ public class BoardService {
 
         String message = departmentName + " 에서 " + title + "를 작성했습니다";
 
+        /**/
         Long targetPath = board.getId();
         NotificationDTO notificationDTO = NotificationDTO.builder()
                 .message(message)
@@ -95,9 +96,9 @@ public class BoardService {
                 .build();
 
         notificationService.saveNotification(user.getUserNum(), notificationDTO);
+        /**/
 
         kafkaProducer.sendBoardEvent("notice-events", message);
-
         return board;
     }
 
