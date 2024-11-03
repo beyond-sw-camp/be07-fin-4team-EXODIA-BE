@@ -81,7 +81,7 @@ public class NotificationController {
     }
 
     @DeleteMapping("/clear-all")
-    @PreAuthorize("hasRole('ADMIN')") // 관리자만 접근 가능하도록 설정
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> clearAllNotifications() {
         notificationService.clearAllNotifications();
         return ResponseEntity.noContent().build();
