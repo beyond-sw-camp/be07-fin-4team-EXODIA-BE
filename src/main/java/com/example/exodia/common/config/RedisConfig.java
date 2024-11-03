@@ -2,6 +2,7 @@ package com.example.exodia.common.config;
 
 
 import com.example.exodia.chat.service.RedisSubscriber;
+import com.example.exodia.notification.dto.NotificationDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
@@ -282,9 +283,24 @@ public class RedisConfig {
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(notificationConnectionFactory);
         redisTemplate.setKeySerializer(new StringRedisSerializer());
-        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+
+        // JSON Serializer 사용
+        Jackson2JsonRedisSerializer<NotificationDTO> serializer = new Jackson2JsonRedisSerializer<>(NotificationDTO.class);
+        redisTemplate.setValueSerializer(serializer);
+        redisTemplate.setHashValueSerializer(serializer);
+
         return redisTemplate;
     }
+
+//    @Bean
+//    @Qualifier("notification")
+//    public RedisTemplate<String, Object> notificationRedisTemplate(@Qualifier("notification") LettuceConnectionFactory notificationConnectionFactory) {
+//        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+//        redisTemplate.setConnectionFactory(notificationConnectionFactory);
+//        redisTemplate.setKeySerializer(new StringRedisSerializer());
+//        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+//        return redisTemplate;
+//    }
 
 
 }
