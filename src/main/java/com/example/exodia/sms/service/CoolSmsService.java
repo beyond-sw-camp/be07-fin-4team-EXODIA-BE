@@ -20,7 +20,11 @@ public class CoolSmsService {
     private String fromPhoneNumber;
 
     public String sendSms(String to) throws CoolsmsException {
-        String textMessage = "황요한 푸푸핑... ";
+        String textMessage = "[엑조디아 경조] \n"
+                + "인사팀 이명규(팀장)님의 결혼 소식을 알려드립니다.\n"
+                + "일시: 2025-02-13\n";
+//                + "장소: 대구 동구 예식장\n";
+
 
         Message coolsms = new Message(apiKey, apiSecret);
 
@@ -33,6 +37,6 @@ public class CoolSmsService {
         coolsms.send(params);
 
         return textMessage;
-
     }
+
 }
