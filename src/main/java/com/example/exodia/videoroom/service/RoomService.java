@@ -36,6 +36,7 @@ public class RoomService {
         this.participantRepository = participantRepository;
     }
 
+
     @Transactional
     public Map<String, String> createRoom(String title, String userNum) throws OpenViduJavaClientException, OpenViduHttpException {
         // 세션 생성
@@ -62,6 +63,11 @@ public class RoomService {
         User user = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
+        Optional<Participant> existingParticipant = participantRepository.findByUserAndRoom(user, room);
+        if (existingParticipant.isPresent()) {
+            return existingParticipant.get().getToken();
+        }
+
         String token = openViduService.createConnection(sessionId);
 
         Participant participant = new Participant();
@@ -77,10 +83,11 @@ public class RoomService {
     }
 
 
+
+    @Transactional
     public void leaveRoom(String sessionId, String userNum) {
         Room room = roomRepository.findBySessionId(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Room not found"));
-
         User user = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
