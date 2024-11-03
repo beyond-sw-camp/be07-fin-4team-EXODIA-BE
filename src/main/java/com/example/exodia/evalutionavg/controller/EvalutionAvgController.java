@@ -1,7 +1,8 @@
 package com.example.exodia.evalutionavg.controller;
 
 import com.example.exodia.evalution.service.EvalutionService;
-import com.example.exodia.evalutionavg.domain.EvalutionAvg;
+import com.example.exodia.evalutionavg.service.EvalutionAvgService;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,9 +10,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/evalution-avg")
 public class EvalutionAvgController {
     private final EvalutionService evalutionService;
+    private final EvalutionAvgService evalutionAvgService;
 
-    public EvalutionAvgController(EvalutionService evalutionService) {
+    public EvalutionAvgController(EvalutionService evalutionService, EvalutionAvgService evalutionAvgService) {
         this.evalutionService = evalutionService;
+        this.evalutionAvgService = evalutionAvgService;
     }
 
 
@@ -21,4 +24,11 @@ public class EvalutionAvgController {
 //        evalutionService.calAndSaveEvaluatorAvg(evalutionId);
 //        return ResponseEntity.ok().build();
 //    }
+
+    @PostMapping("/calculate")
+       public ResponseEntity<Void> calculateEvaluatorTargetScore() {
+            evalutionAvgService.getUserAndSubEvaluations();
+           return ResponseEntity.ok().build();
+       }
+
 }

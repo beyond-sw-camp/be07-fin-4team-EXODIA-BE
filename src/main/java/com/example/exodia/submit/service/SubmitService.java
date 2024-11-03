@@ -88,6 +88,7 @@ public class SubmitService {
 		User submitUser = userRepository.findByUserNum(userNum)
 			.orElseThrow(() -> new EntityNotFoundException("회원정보가 존재하지 않습니다."));
 
+		String receiverUserNum = null;
 		if (dto.getSubmitUserDtos() == null) {
 			throw new IOException("결재 라인을 등록하십시오.");
 		}
@@ -103,6 +104,9 @@ public class SubmitService {
 				.orElseThrow(() -> new EntityNotFoundException("회원정보가 존재하지 않습니다."));
 
 			submitLine = dto.toLineEntity(user);
+			if (receiverUserNum == null) {
+				receiverUserNum = submitLine.getUserNum();
+			}
 
 			submit.getSubmitLines().add(submitLine);
 			submitLine.updateSubmit(submit);
@@ -110,6 +114,11 @@ public class SubmitService {
 
 		submitRepository.save(submit);
 		submitLineRepository.save(submitLine);
+
+
+		kafkaProducer.sendSubmitNotification("submit-events", dto.getSubmitUserDtos().get(0).getUserName(),
+			receiverUserNum,
+			LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM.dd")));
 		return submit;
 	}
 
@@ -285,6 +294,9 @@ public class SubmitService {
 
 		// 대기중 상태 일 때만 삭제 가능
 		if (submit.getSubmitStatus() == SubmitStatus.대기중) {
+			for(SubmitLine submitLine : submit.getSubmitLines()){
+				submitLine.softDelete();
+			}
 			submit.softDelete();
 		}
 	}

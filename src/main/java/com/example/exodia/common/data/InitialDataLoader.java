@@ -109,11 +109,11 @@ public class InitialDataLoader implements CommandLineRunner {
         evalutionbRepository.saveAll(List.of(workAbility, problemSolving, responsibility, teamworkCommunication));
 
         List<Evalutionm> evalutionms = List.of(
-                new Evalutionm(null, "업무달성도", workAbility),
-                new Evalutionm(null, "업무처리능력", workAbility),
+                new Evalutionm(null, "업무 달성도", workAbility),
+                new Evalutionm(null, "업무 처리 능력", workAbility),
                 new Evalutionm(null, "문제 해결 능력", problemSolving),
                 new Evalutionm(null, "주도성", problemSolving),
-                new Evalutionm(null, "협력태도", responsibility),
+                new Evalutionm(null, "협력 태도", responsibility),
                 new Evalutionm(null, "팀워크", teamworkCommunication),
                 new Evalutionm(null, "의사소통", teamworkCommunication)
         );
