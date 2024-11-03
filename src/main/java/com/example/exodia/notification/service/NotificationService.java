@@ -89,7 +89,9 @@ public class NotificationService {
                     }
                     return notification;
                 })
+                .sorted((a, b) -> b.getNotificationTime().compareTo(a.getNotificationTime())) // 시간순 정렬
                 .collect(Collectors.toList());
+
         return notificationList;
     }
 

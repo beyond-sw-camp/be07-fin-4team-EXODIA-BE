@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class NotificationDTO implements Serializable {
+    private static final long serialVersionUID = 2713346395385810094L;
     private Long id; // redis 고유값으로 사용할꺼
     private NotificationType type;
     private String message;
