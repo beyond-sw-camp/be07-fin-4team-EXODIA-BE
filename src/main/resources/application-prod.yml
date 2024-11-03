@@ -32,7 +32,7 @@ spring:
 
       max-lifetime: 500000
     tomcat:
-      max-active: 20
+      max-active: 25
 
 
   kafka:
@@ -80,6 +80,7 @@ jwt:
 google:
   credentials:
     file:
+#      path: credentials.json
       path: ${GOOGLE_FILE_PATH}
 cloud:
   aws:

@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class NotificationDTO implements Serializable {
-    private static final long serialVersionUID = 2713346395385810094L;
     private Long id;
     private NotificationType type;
     private String message;
@@ -34,7 +33,4 @@ public class NotificationDTO implements Serializable {
         this.notificationTime = LocalDateTime.now();
     }
 
-    public static long getSerialVersionUID() {
-        return serialVersionUID;
-    }
 }
