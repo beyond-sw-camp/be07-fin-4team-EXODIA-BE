@@ -20,6 +20,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.exodia.document.domain.Document;
 import com.example.exodia.document.domain.EsDocument;
@@ -60,6 +61,7 @@ public class DocumentSearchService {
 	}
 
 	// 인덱스 생성
+	@Transactional
 	public void createIndex() {
 		try {
 			CreateIndexRequest request = CreateIndexRequest.of(builder -> builder.index(INDEX_NAME));
@@ -70,6 +72,7 @@ public class DocumentSearchService {
 	}
 
 	//OpenSearch에 인덱싱(저장)
+	@Transactional
 	public void indexDocuments(EsDocument esDocument) {
 		try {
 			IndexRequest<EsDocument> indexRequest = IndexRequest.of(builder ->
@@ -85,6 +88,7 @@ public class DocumentSearchService {
 	}
 
 	// OpenSearch에서 검색
+	@Transactional
 	public Page<EsDocument> searchDocuments(DocumentSearchDto documentSearchDto, int page, int size) {
 		List<EsDocument> documents = new ArrayList<>();
 		try {
@@ -159,6 +163,7 @@ public class DocumentSearchService {
 	}
 
 	// 삭제
+	@Transactional
 	public void deleteDocument(String id) {
 		try {
 			DeleteRequest deleteRequest = DeleteRequest.of(builder ->

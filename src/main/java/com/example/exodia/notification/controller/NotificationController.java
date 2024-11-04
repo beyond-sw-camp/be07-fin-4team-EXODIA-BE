@@ -11,12 +11,14 @@ import com.example.exodia.user.service.CustomUserService;
 import com.example.exodia.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/notifications")
@@ -58,36 +60,63 @@ public class NotificationController {
         return emitter;
     }
 
-    // 사용자별 알림 리스트를 가져오는 API
-    @GetMapping("/list")
-    public ResponseEntity<List<NotificationDTO>> getUserNotifications() {
-        // 사용자 인증 정보를 가져옴 (서비스에서 처리)
-        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        // 사용자별 알림 리스트 가져오기
-        List<NotificationDTO> notificationDTOs = notificationService.getNotificationsByUser(userNum);
-
-        return ResponseEntity.ok(notificationDTOs);
+    /* 사용자의 모든 알림 조회 */
+    @GetMapping("/{userNum}")
+    public ResponseEntity<List<NotificationDTO>> getNotifications(@PathVariable String userNum) {
+        List<NotificationDTO> notifications = notificationService.getNotifications(userNum)
+                //
+                .stream()
+                .distinct()  // 중복 알림 제거
+                .collect(Collectors.toList());
+        //
+        return ResponseEntity.ok(notifications);
     }
 
-    // 안읽은 알림의 개수를 가져오는 API
-    @GetMapping("/unread-count")
-    public ResponseEntity<Long> getUnreadNotificationCount() {
-        // 사용자 인증 정보를 가져옴
-        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        // 읽지 않은 알림의 개수를 서비스에서 처리
-        long unreadCount = notificationService.countUnreadNotifications(userNum);
-
-        return ResponseEntity.ok(unreadCount);
-    }
-
-    // 알림을 읽음 처리
-    @PostMapping("/mark-as-read/{id}")
-    public ResponseEntity<Void> markNotificationAsRead(@PathVariable Long id) {
-        // 서비스에서 읽음 처리
-        notificationService.markNotificationAsRead(id);
-
+    // 특정 알림을 읽음 처리
+    @PutMapping("/{userNum}/read/{notificationId}")
+    public ResponseEntity<Void> markNotificationAsRead(@PathVariable String userNum, @PathVariable String notificationId) {
+        notificationService.markNotificationAsRead(userNum, notificationId);
         return ResponseEntity.ok().build();
     }
+
+    // 알림의 읽음 여부 조회
+    @GetMapping("/{userNum}/isRead/{notificationId}")
+    public ResponseEntity<Boolean> isNotificationRead(@PathVariable String userNum, @PathVariable String notificationId) {
+        boolean isRead = notificationService.isNotificationRead(userNum, notificationId);
+        return ResponseEntity.ok(isRead);
+    }
+
+
+//    // 사용자별 알림 리스트를 가져오는 API
+//    @GetMapping("/list")
+//    public ResponseEntity<List<NotificationDTO>> getUserNotifications() {
+//        // 사용자 인증 정보를 가져옴 (서비스에서 처리)
+//        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+//
+//        // 사용자별 알림 리스트 가져오기
+//        List<NotificationDTO> notificationDTOs = notificationService.getNotificationsByUser(userNum);
+//
+//        return ResponseEntity.ok(notificationDTOs);
+//    }
+//
+//    // 안읽은 알림의 개수를 가져오는 API
+//    @GetMapping("/unread-count")
+//    public ResponseEntity<Long> getUnreadNotificationCount() {
+//        // 사용자 인증 정보를 가져옴
+//        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+//
+//        // 읽지 않은 알림의 개수를 서비스에서 처리
+//        long unreadCount = notificationService.countUnreadNotifications(userNum);
+//
+//        return ResponseEntity.ok(unreadCount);
+//    }
+//
+//    // 알림을 읽음 처리
+//    @PostMapping("/mark-as-read/{id}")
+//    public ResponseEntity<Void> markNotificationAsRead(@PathVariable Long id) {
+//        // 서비스에서 읽음 처리
+//        notificationService.markNotificationAsRead(id);
+//
+//        return ResponseEntity.ok().build();
+//    }
 }

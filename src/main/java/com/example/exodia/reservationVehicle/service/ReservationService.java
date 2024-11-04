@@ -39,8 +39,7 @@ public class ReservationService {
     private CarRepository carRepository;
     @Autowired
     private UserRepository userRepository;
-    @Autowired
-    private RedissonClient redissonClient; // Redisson 클라이언트 추가
+
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
     @Autowired
@@ -49,7 +48,8 @@ public class ReservationService {
     private NotificationService notificationService;
     @Autowired
     private KafkaProducer kafkaProducer;
-
+    @Autowired
+    private RedissonClient redissonClient; // Redisson 클라이언트 추가
 
     // 차량 예약 메서드
     @Transactional

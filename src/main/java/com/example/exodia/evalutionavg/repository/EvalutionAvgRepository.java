@@ -9,5 +9,4 @@ import java.util.Optional;
 
 @Repository
 public interface EvalutionAvgRepository extends JpaRepository<EvalutionAvg, Long> {
-    Optional<EvalutionAvg> findByEvaluatorAndTargetUser(User evaluator, User targetUser);
 }

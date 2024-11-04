@@ -22,6 +22,7 @@ public class ReservationController {
     @Autowired
     private ReservationService reservationService;
 
+
     /* 차량 예약 생성 API */
     @PostMapping("/car/create")
     //@Operation(summary= "[일반 사용자] 차량 예약 생성 API")
@@ -74,5 +75,7 @@ public class ReservationController {
         List<CarReservationStatusDto> carReservationStatusList = reservationService.getAllCarsWithReservationStatusForDay(date.atStartOfDay());
         return ResponseEntity.ok(carReservationStatusList);
     }
+
+
 
 }

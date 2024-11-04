@@ -1,12 +1,12 @@
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
-  name: letsencrypt-prod
-#  namespace: pot
+  name: letsencrypt-prod # letsencrypt 인증서의 이름
 spec:
   acme:
+    # 인증서 서버 주소. 해당 서버의 리소스를 통해 인증서 발행
     server: https://acme-v02.api.letsencrypt.org/directory
-    email: k8s@gmail.com
+    email: k8s@gmail.com # 인증서가 만료되거나 하면 여기로 알림간다!
     privateKeySecretRef:
       name: letsencrypt-prod
     solvers:

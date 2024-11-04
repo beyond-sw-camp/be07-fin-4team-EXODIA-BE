@@ -25,7 +25,7 @@ jobs:
           aws-region: ap-northeast-2
 
       - name: update cluster information
-        run: aws eks update-kubeconfig --name pot-cluster --region ap-northeast-2
+        run: aws eks update-kubeconfig --name exodia-cluster --region ap-northeast-2
 
       - name: login ECR
         id: login-ecr
@@ -44,3 +44,17 @@ jobs:
         run: |
           kubectl apply -f ./k8s/depl.yml
           kubectl rollout restart deployment pot-deployment
+
+#      - name: eks kubectl apply
+#        run: |
+#          kubectl apply -f ./k8s/depl.yml
+#          kubectl rollout restart deployment pot-deployment-green
+#
+#      - name: switch to green version
+#        run: |
+#          kubectl patch service pot-service -p '{"spec":{"selector":{"version":"green"}}}'
+#          kubectl rollout status deployment/pot-deployment-green
+#
+#      - name: cleanup old version
+#        run: |
+#          kubectl delete deployment pot-deployment-blue

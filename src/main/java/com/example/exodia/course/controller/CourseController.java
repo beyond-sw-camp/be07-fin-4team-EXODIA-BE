@@ -65,7 +65,6 @@ public class CourseController {
         String result = registrationService.registerParticipant(courseId);
         return ResponseEntity.ok(result);
     }
-
     /* 강좌 확정 인원 조회*/
     @GetMapping("/{courseId}/confirmed")
     public ResponseEntity<List<RegistrationDto>> getConfirmedParticipants(@PathVariable Long courseId) {
