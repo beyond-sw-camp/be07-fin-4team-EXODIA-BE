@@ -78,12 +78,14 @@ public class ReservationService {
                 Reservation reservation = dto.toEntity(car, user);
                 reservation.setStatus(Status.WAITING);
                 Reservation savedReservation = reservationRepository.save(reservation);
+
                 kafkaProducer.sendCarReservationNotification(
                         "car-reservation-events",
-                        reservation.getUser().getUserNum(),
-                        reservation.getCar().getCarNum(),
-                        reservation.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-                        reservation.getEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                        user.getUserNum(),
+                        user.getName(), // 유저명
+                        car.getCarNum(), // 차량 번호
+                        dto.getStartDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), //예약일
+                        dto.getEndDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), // 예약종료일
                         reservation.getId()
                 );
 
