@@ -29,10 +29,10 @@ spring:
       maximum-pool-size: 50
       minimum-idle: 10
       idle-timeout: 30000
-      connection-timeout: 60000
-      max-lifetime: 1800000
+
+      max-lifetime: 500000
     tomcat:
-      max-active: 5
+      max-active: 25
 
 
   kafka:
@@ -77,10 +77,10 @@ jwt:
   expirationRT: ${JWT_EXPIRATION_RT}
 
 
-
 google:
   credentials:
     file:
+#      path: credentials.json
       path: ${GOOGLE_FILE_PATH}
 cloud:
   aws:
@@ -113,3 +113,12 @@ logging:
 openvidu:
   url: ${OPENVIDU_URL}
   secret: ${OPENVIDU_SECRET}
+
+management:
+  endpoints:
+    jmx:
+      exposure:
+        include: "*"
+  endpoint:
+    jmx:
+      enabled: true

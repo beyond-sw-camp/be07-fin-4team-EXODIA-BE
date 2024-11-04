@@ -13,9 +13,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ObjectStreamClass;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -50,6 +54,9 @@ public class NotificationService {
 //    }
     /* kafka - > redis */
     public void saveNotification(String userNum, NotificationDTO notificationDTO) {
+        if (notificationDTO.getId() == null) {
+            notificationDTO.setId(UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE);
+        }
         String redisKey = "notifications:" + userNum;
         notificationDTO.setRead(false);
         notificationRedisTemplate.opsForHash().put(redisKey, notificationDTO.getId().toString(), notificationDTO);
@@ -58,30 +65,67 @@ public class NotificationService {
     }
 
     /* 사용자 조회 */
+//    public List<NotificationDTO> getNotifications(String userNum) {
+//        String redisKey = "notifications:" + userNum;
+//        Map<Object, Object> notifications = notificationRedisTemplate.opsForHash().entries(redisKey);
+//        return notifications.values().stream()
+//                .map(obj -> (NotificationDTO) obj)
+//                .collect(Collectors.toList());
+//    }
+
+    /* 사용자 조회 */
     public List<NotificationDTO> getNotifications(String userNum) {
         String redisKey = "notifications:" + userNum;
         Map<Object, Object> notifications = notificationRedisTemplate.opsForHash().entries(redisKey);
-        return notifications.values().stream()
+
+        List<NotificationDTO> notificationList = notifications.values().stream()
                 .map(obj -> (NotificationDTO) obj)
+                .map(notification -> {
+                    if (notification.getNotificationTime() == null) {
+                        notification.setNotificationTime(LocalDateTime.now());
+                    }
+                    if (!notification.isRead()) {
+                        notification.setRead(true);
+                        notificationRedisTemplate.opsForHash().put(redisKey, notification.getId().toString(), notification);
+                    }
+                    return notification;
+                })
+                .sorted((a, b) -> b.getNotificationTime().compareTo(a.getNotificationTime()))
                 .collect(Collectors.toList());
+
+        return notificationList;
     }
+
 
     /* 읽음 처리 */
     @Transactional
     public void markNotificationAsRead(String userNum, String notificationId) {
         String redisKey = "notifications:" + userNum;
         NotificationDTO notification = (NotificationDTO) notificationRedisTemplate.opsForHash().get(redisKey, notificationId);
+
         if (notification != null) {
             notification.setRead(true);
             notificationRedisTemplate.opsForHash().put(redisKey, notificationId, notification);
+            notificationRedisTemplate.expire(redisKey, Duration.ofDays(3)); // TTL 갱신
+        } else {
+            System.out.println("알림을 찾을 수 없어서 읽음 처리되지 않았습니다.");
         }
     }
-    /* 읽음 처리 여부 조회 */
+
+
     public boolean isNotificationRead(String userNum, String notificationId) {
         String redisKey = "notifications:" + userNum;
         NotificationDTO notificationDTO = (NotificationDTO) notificationRedisTemplate.opsForHash().get(redisKey, notificationId);
-        return notificationDTO != null && notificationDTO.isRead();
+
+        if (notificationDTO != null) {
+            return notificationDTO.isRead();
+        } else {
+            System.out.println("알림을 찾을 수 없어서 읽음 여부를 확인할 수 없습니다.");
+            return false;
+        }
     }
+
+
 
 //    // 읽지 않은 알림의 개수를 반환
 //    public long countUnreadNotifications(String userNum) {

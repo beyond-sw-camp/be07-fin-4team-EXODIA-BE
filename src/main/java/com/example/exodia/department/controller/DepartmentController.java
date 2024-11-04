@@ -91,6 +91,12 @@ public class DepartmentController {
         return ResponseEntity.ok(users);
     }
 
+    @GetMapping("/{departmentId}/parent/users")
+    public ResponseEntity<List<UserInfoDto>> getUsersByParentDepartment(@PathVariable Long departmentId) {
+        List<UserInfoDto> users = userService.getUsersByParentDepartment(departmentId);
+        return ResponseEntity.ok(users);
+    }
+
 
     // 부서 설명 업데이트 (POST 메서드)
     @PostMapping("/update")

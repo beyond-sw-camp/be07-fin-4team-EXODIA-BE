@@ -43,8 +43,8 @@ public class KafkaConsumer {
     @Transactional
     @KafkaListener(topics =
             {
-                    "notification-topic",
-                    "notice-events", "document-events", "submit-events",
+                    "notification-topic", "qanda-events",
+                    "notice-events", "document-events", "document-events-rollbacks","submit-events",
                     "family-event-notices", "meeting-room-reservations",
                     "car-reservation-events", "car-reservation-approval-events",
                     "car-reservation-rejection-events", "sendChatAlarm-events", "enterChatAlarm-events", "chatRoomList-events"
@@ -55,6 +55,9 @@ public class KafkaConsumer {
         switch (topic) {
             case "document-events":
                 processDocumentUpdateMessage(message);
+                break;
+            case "document-events-rollbacks":
+                sendDocumentRollBackEvent(message);
                 break;
             case "notice-events":
                 processBoardNotification(message);
@@ -105,6 +108,8 @@ public class KafkaConsumer {
 
 //    @KafkaListener(topics = "qanda-events", groupId = "notification-group")
     public void listenQnaEvents(String message) {
+        System.out.println("Kafka Q&A 이벤트 수신: " + message);
+
         String[] parts = message.split("\\|");
         String eventType = parts[0];
         String departmentId = parts[1];
@@ -144,24 +149,24 @@ public class KafkaConsumer {
     }
 
     private void sendNotificationToUser(User user, String message, NotificationType type) {
-        // 중복 확인 없이 Redis에 바로 저장하고 SSE 전송
+
         NotificationDTO dto = new NotificationDTO();
         dto.setMessage(message);
         dto.setRead(false);
-        dto.setType(type);
+        dto.setType(type != null ? type : NotificationType.NOTIFICATION);
 
         notificationService.saveNotification(user.getUserNum(), dto); // Redis에 저장 및 SSE 전송
     }
 
-    @Transactional
-    @KafkaListener(topics = {"document-events"}, groupId = "notification-group")
-    public void listenDocumentUpdateEvents(@Header(KafkaHeaders.RECEIVED_TOPIC) String topic, String message) {
-        System.out.println("Kafka 메시지 수신: " + message);
-
-        if ("document-events".equals(topic)) {
-            processDocumentUpdateMessage(message);
-        }
-    }
+//    @Transactional
+////    @KafkaListener(topics = {"document-events"}, groupId = "notification-group")
+//    public void listenDocumentUpdateEvents(@Header(KafkaHeaders.RECEIVED_TOPIC) String topic, String message) {
+//        System.out.println("Kafka 메시지 수신: " + message);
+//
+//        if ("document-events".equals(topic)) {
+//            processDocumentUpdateMessage(message);
+//        }
+//    }
 
     private void processDocumentUpdateMessage(String message) {
         if (message.contains("|")) {
@@ -174,6 +179,25 @@ public class KafkaConsumer {
                 NotificationDTO notificationDTO = new NotificationDTO();
                 notificationDTO.setMessage(actualMessage);
                 notificationDTO.setRead(false);
+                notificationDTO.setType(NotificationType.문서);
+
+                notificationService.saveNotification(user.getUserNum(), notificationDTO);
+            }
+        }
+    }
+
+    private void sendDocumentRollBackEvent(String message) {
+        if (message.contains("|")) {
+            String[] splitMessage = message.split("\\|", 2);
+            String departmentId = splitMessage[0];
+            String actualMessage = splitMessage[1];
+
+            List<User> departmentUsers = userRepository.findAllByDepartmentId(Long.parseLong(departmentId));
+            for (User user : departmentUsers) {
+                NotificationDTO notificationDTO = new NotificationDTO();
+                notificationDTO.setMessage(actualMessage);
+                notificationDTO.setRead(false);
+                notificationDTO.setType(NotificationType.문서);
 
                 notificationService.saveNotification(user.getUserNum(), notificationDTO);
             }
@@ -324,6 +348,7 @@ public class KafkaConsumer {
             NotificationDTO notificationDTO = new NotificationDTO();
             notificationDTO.setMessage(message);
             notificationDTO.setRead(false);
+            notificationDTO.setType(NotificationType.공지사항);
 
             notificationService.saveNotification(user.getUserNum(), notificationDTO);
         }

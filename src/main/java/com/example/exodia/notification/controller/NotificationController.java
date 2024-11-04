@@ -11,12 +11,14 @@ import com.example.exodia.user.service.CustomUserService;
 import com.example.exodia.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/notifications")
@@ -61,7 +63,12 @@ public class NotificationController {
     /* 사용자의 모든 알림 조회 */
     @GetMapping("/{userNum}")
     public ResponseEntity<List<NotificationDTO>> getNotifications(@PathVariable String userNum) {
-        List<NotificationDTO> notifications = notificationService.getNotifications(userNum);
+        List<NotificationDTO> notifications = notificationService.getNotifications(userNum)
+                //
+                .stream()
+                .distinct()  // 중복 알림 제거
+                .collect(Collectors.toList());
+        //
         return ResponseEntity.ok(notifications);
     }
 
@@ -78,7 +85,6 @@ public class NotificationController {
         boolean isRead = notificationService.isNotificationRead(userNum, notificationId);
         return ResponseEntity.ok(isRead);
     }
-
 
 
 //    // 사용자별 알림 리스트를 가져오는 API

@@ -31,7 +31,6 @@ public class OpenViduController {
         headers.set("Content-Type", "application/json");
 
 
-
         try {
             // 수정된 경로: /openvidu/api/sessions!!! 대박..
             HttpEntity<String> sessionRequest = new HttpEntity<>("{}", headers);
@@ -49,5 +48,7 @@ public class OpenViduController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("토큰 생성 실패: " + e.getMessage());
         }
+
     }
+
 }

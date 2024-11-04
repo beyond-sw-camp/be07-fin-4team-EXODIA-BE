@@ -1,6 +1,7 @@
 package com.example.exodia.videoroom.controller;
 
 import com.example.exodia.videoroom.domain.Room;
+import com.example.exodia.videoroom.repository.RoomRepository;
 import com.example.exodia.videoroom.service.RoomService;
 import io.openvidu.java.client.OpenViduJavaClientException;
 import io.openvidu.java.client.OpenViduHttpException;
@@ -20,27 +21,43 @@ public class RoomController {
     @Autowired
     private RoomService roomService;
 
+    @Autowired
+    private RoomRepository roomRepository;
+
     // 방 생성
     @PostMapping("/create")
     public ResponseEntity<Map<String, String>> createRoom(@RequestBody Map<String, String> request) {
         String title = request.get("title");
         String userNum = request.get("userNum");
+        String password = request.get("password");
 
         if (title == null || userNum == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-
         try {
-            Room room = roomService.createRoom(title, userNum);
-            Map<String, String> response = new HashMap<>();
-            response.put("sessionId", room.getSessionId());
-            response.put("title", room.getTitle());
-            return new ResponseEntity<>(response, HttpStatus.CREATED);
+            Map<String, String> roomInfo = roomService.createRoom(title, userNum, password);
+            return new ResponseEntity<>(roomInfo, HttpStatus.CREATED);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @PostMapping("/verify-password")
+    public ResponseEntity<Map<String, Boolean>> verifyPassword(@RequestBody Map<String, String> requestData) {
+        String sessionId = requestData.get("sessionId");
+        String password = requestData.get("password");
+
+        Room room = roomRepository.findBySessionId(sessionId)
+                .orElseThrow(() -> new IllegalArgumentException("Room not found"));
+
+        boolean isPasswordCorrect = room.getPassword() != null && room.getPassword().equals(password);
+
+        Map<String, Boolean> response = new HashMap<>();
+        response.put("success", isPasswordCorrect);
+        return ResponseEntity.ok(response);
+    }
+
 
     // 참가자 추가
     @PostMapping("/{sessionId}/leave")
@@ -73,5 +90,19 @@ public class RoomController {
         return ResponseEntity.ok(rooms);
     }
 
+    // 참가자 추가 (join)
+    @PostMapping("/{sessionId}/join")
+    public ResponseEntity<Map<String, String>> joinRoom(@PathVariable String sessionId, @RequestParam String userNum) {
+        try {
+            String token = roomService.joinRoom(sessionId, userNum);
+            Map<String, String> response = new HashMap<>();
+            response.put("token", token);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
 }
+

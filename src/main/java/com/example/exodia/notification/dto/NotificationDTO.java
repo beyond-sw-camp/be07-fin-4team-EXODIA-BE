@@ -1,6 +1,7 @@
 package com.example.exodia.notification.dto;
 
 import com.example.exodia.notification.domain.NotificationType;
+import com.example.exodia.user.domain.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,14 +15,14 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class NotificationDTO implements Serializable {
-    private Long id; // redis 고유값으로 사용할꺼
+    private Long id;
     private NotificationType type;
     private String message;
     private boolean isRead;
     private String userName;
     private String userNum;
     private LocalDateTime notificationTime;
-
+    private Long targetId;
 
     public NotificationDTO(String message, boolean isRead, String userName, String userNum, NotificationType type) {
         this.message = message;
@@ -31,4 +32,5 @@ public class NotificationDTO implements Serializable {
         this.userNum = userNum;
         this.notificationTime = LocalDateTime.now();
     }
+
 }

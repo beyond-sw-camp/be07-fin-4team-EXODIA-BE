@@ -39,8 +39,7 @@ public class ReservationService {
     private CarRepository carRepository;
     @Autowired
     private UserRepository userRepository;
-//    @Autowired
-//    private RedissonClient redissonClient; // Redisson 클라이언트 추가
+
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
     @Autowired
@@ -49,57 +48,58 @@ public class ReservationService {
     private NotificationService notificationService;
     @Autowired
     private KafkaProducer kafkaProducer;
-
+    @Autowired
+    private RedissonClient redissonClient; // Redisson 클라이언트 추가
 
     // 차량 예약 메서드
-//    @Transactional
-//    public ReservationDto carReservation(ReservationCreateDto dto) {
-//        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
-////        RLock lock = redissonClient.getLock("carReservationLock:" + dto.getCarId() + ":" + dto.getStartDate());
-//
-//        try {
-//            if (lock.tryLock(5, 10, TimeUnit.SECONDS)) {
-//                Car car = carRepository.findById(dto.getCarId())
-//                        .orElseThrow(() -> new IllegalArgumentException("차량이 존재하지 않습니다."));
-//                User user = userRepository.findByUserNum(userNum)
-//                        .orElseThrow(() -> new IllegalArgumentException("사용자가 존재하지 않습니다."));
-//
-//                // 예약 기간 내에 다른 예약이 있는지 확인
-//                List<Reservation> existingReservations = reservationRepository.findByCarIdAndDateRange(
-//                        car.getId(),
-//                        dto.getStartDate().atStartOfDay(),
-//                        dto.getEndDate().atTime(LocalTime.MAX));
-//
-//                boolean canReserve = existingReservations.stream().allMatch(Reservation::canReserve);
-//                if (!canReserve) {
-//                    throw new IllegalArgumentException("해당 기간에 차량이 이미 예약되어 있습니다.");
-//                }
-//
-//                Reservation reservation = dto.toEntity(car, user);
-//                reservation.setStatus(Status.WAITING);
-//                Reservation savedReservation = reservationRepository.save(reservation);
-//                kafkaProducer.sendCarReservationNotification(
-//                        "car-reservation-events",
-//                        user.getUserNum(),
-//                        user.getName(), // 유저명
-//                        car.getCarNum(), // 차량 번호
-//                        dto.getStartDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), //예약일
-//                        dto.getEndDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) // 예약종료일
-//                );
-//
-//                return ReservationDto.fromEntity(savedReservation);
-//            } else {
-//                throw new IllegalArgumentException("다른 사용자가 예약을 진행 중입니다. 잠시 후 다시 시도해주세요.");
-//            }
-//        } catch (InterruptedException e) {
-//            Thread.currentThread().interrupt();
-//            throw new RuntimeException("예약 중 문제가 발생했습니다. 다시 시도해주세요.");
-//        } finally {
-//            if (lock.isHeldByCurrentThread()) {
-//                lock.unlock();
-//            }
-//        }
-//    }
+    @Transactional
+    public ReservationDto carReservation(ReservationCreateDto dto) {
+        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+        RLock lock = redissonClient.getLock("carReservationLock:" + dto.getCarId() + ":" + dto.getStartDate());
+
+        try {
+            if (lock.tryLock(5, 10, TimeUnit.SECONDS)) {
+                Car car = carRepository.findById(dto.getCarId())
+                        .orElseThrow(() -> new IllegalArgumentException("차량이 존재하지 않습니다."));
+                User user = userRepository.findByUserNum(userNum)
+                        .orElseThrow(() -> new IllegalArgumentException("사용자가 존재하지 않습니다."));
+
+                // 예약 기간 내에 다른 예약이 있는지 확인
+                List<Reservation> existingReservations = reservationRepository.findByCarIdAndDateRange(
+                        car.getId(),
+                        dto.getStartDate().atStartOfDay(),
+                        dto.getEndDate().atTime(LocalTime.MAX));
+
+                boolean canReserve = existingReservations.stream().allMatch(Reservation::canReserve);
+                if (!canReserve) {
+                    throw new IllegalArgumentException("해당 기간에 차량이 이미 예약되어 있습니다.");
+                }
+
+                Reservation reservation = dto.toEntity(car, user);
+                reservation.setStatus(Status.WAITING);
+                Reservation savedReservation = reservationRepository.save(reservation);
+                kafkaProducer.sendCarReservationNotification(
+                        "car-reservation-events",
+                        user.getUserNum(),
+                        user.getName(), // 유저명
+                        car.getCarNum(), // 차량 번호
+                        dto.getStartDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), //예약일
+                        dto.getEndDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) // 예약종료일
+                );
+
+                return ReservationDto.fromEntity(savedReservation);
+            } else {
+                throw new IllegalArgumentException("다른 사용자가 예약을 진행 중입니다. 잠시 후 다시 시도해주세요.");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("예약 중 문제가 발생했습니다. 다시 시도해주세요.");
+        } finally {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
+        }
+    }
     @Transactional
     public ReservationDto approveReservation(Long reservationId) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();

@@ -18,8 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class RoomService {
@@ -37,18 +36,24 @@ public class RoomService {
         this.participantRepository = participantRepository;
     }
 
+
     @Transactional
-    public Room createRoom(String title, String userNum) throws OpenViduJavaClientException, OpenViduHttpException {
+    public Map<String, String> createRoom(String title, String userNum,String password) throws OpenViduJavaClientException, OpenViduHttpException {
+        // 세션 생성
         String sessionId = openViduService.createSession();
+
         Room room = new Room();
         room.setTitle(title);
         room.setSessionId(sessionId);
+        room.setPassword(password);
         room = roomRepository.save(room);
 
-        // 방 생성자가 자동으로 참여
-        joinRoom(sessionId, userNum);
+        String token = joinRoom(sessionId, userNum);
 
-        return room;
+        Map<String, String> response = new HashMap<>();
+        response.put("sessionId", sessionId);
+        response.put("token", token);
+        return response;
     }
 
 
@@ -58,6 +63,11 @@ public class RoomService {
 
         User user = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        Optional<Participant> existingParticipant = participantRepository.findByUserAndRoom(user, room);
+        if (existingParticipant.isPresent()) {
+            return existingParticipant.get().getToken();
+        }
 
         String token = openViduService.createConnection(sessionId);
 
@@ -74,10 +84,11 @@ public class RoomService {
     }
 
 
+
+    @Transactional
     public void leaveRoom(String sessionId, String userNum) {
         Room room = roomRepository.findBySessionId(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Room not found"));
-
         User user = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
