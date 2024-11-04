@@ -48,6 +48,8 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     // 고정된 게시글만 가져오는 메서드
     List<Board> findByIsPinnedTrue(Sort sort);
 
+    long countByCategoryAndDelYn(Category category, DelYN delYn);
+
     // 소프트 삭제 메서드
     @Modifying
     @Transactional

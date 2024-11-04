@@ -285,6 +285,22 @@ public class BoardService {
                 .collect(Collectors.toList());
     }
 
+    public long getTotalBoardCount(String category) {
+        Category boardCategory;
+
+        // 카테고리 변환
+        if ("familyevent".equalsIgnoreCase(category)) {
+            boardCategory = Category.FAMILY_EVENT;
+        } else if ("notice".equalsIgnoreCase(category)) {
+            boardCategory = Category.NOTICE;
+        } else {
+            throw new IllegalArgumentException("유효하지 않은 카테고리입니다.");
+        }
+
+        // 해당 카테고리와 삭제 여부(N) 기준으로 전체 게시물 개수를 반환
+        return boardRepository.countByCategoryAndDelYn(boardCategory, DelYN.N);
+    }
+
 }
 
 

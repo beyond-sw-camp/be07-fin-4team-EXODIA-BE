@@ -240,4 +240,10 @@ public class BoardController {
         }
     }
 
+    @GetMapping("/totalCount")
+    public ResponseEntity<?> getTotalBoardCount(@RequestParam("category") String category) {
+        long totalCount = boardService.getTotalBoardCount(category);
+        return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "전체 게시물 수 반환", totalCount));
+    }
+
 }
