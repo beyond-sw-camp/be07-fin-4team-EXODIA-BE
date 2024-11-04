@@ -207,6 +207,7 @@ public class SubmitService {
 	}
 
 	// 결재 타입 리스트 전체 조회
+	@Transactional
 	public List<?> getTypeList() {
 		List<SubmitType> types = submitTypeRepository.findAll();
 		return types.stream()
@@ -249,6 +250,7 @@ public class SubmitService {
 	}
 
 	// 내가 요청한 결재 리스트 조회
+	@Transactional
 	public List<?> getMySubmitList() {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 		User user = userRepository.findByUserNum(userNum)
