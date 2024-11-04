@@ -116,10 +116,13 @@ public class SubmitService {
 		submitRepository.save(submit);
 		submitLineRepository.save(submitLine);
 
-
-		kafkaProducer.sendSubmitNotification("submit-events", dto.getSubmitUserDtos().get(0).getUserName(),
-			receiverUserNum,
-			LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM.dd")));
+		kafkaProducer.sendSubmitNotification(
+				"submit-events",
+				dto.getSubmitUserDtos().get(0).getUserName(),
+				receiverUserNum,
+				LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM.dd")),
+				submit.getId()
+		);
 		return submit;
 	}
 
@@ -157,7 +160,7 @@ public class SubmitService {
 					changeToReject(dto.getSubmitId(), dto.getReason());
 
 					// 반려 시 kafka 알림
-					kafkaProducer.revokeSubmitNotification("submit-events", submit.getUserNum());
+					kafkaProducer.revokeSubmitNotification("submit-events", submit.getUserNum(), submit.getId());
 
 					break;
 				} else if (dto.getStatus() == SubmitStatus.승인) {
@@ -168,7 +171,7 @@ public class SubmitService {
 						submit.updateStatus(SubmitStatus.승인, null);
 
 						// kafka 결재 승인 알림(최종 찐 승인)
-						kafkaProducer.allSubmitNotification("submit-events", submit.getUserNum());
+						kafkaProducer.allSubmitNotification("submit-events", submit.getUserNum(), submit.getId());
 
 						checkVacationType(submit);
 						// 경조사 신청서인 경우 자동 게시판 업로드 처리
@@ -185,7 +188,7 @@ public class SubmitService {
 						// 알림(1->2 2->3)
 						kafkaProducer.sendSubmitNotification("submit-events", nextUser.getName(),
 							nextUser.getUserNum(),
-							LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM.dd")));
+								LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM.dd")), submit.getId());
 						break;
 					}
 				}

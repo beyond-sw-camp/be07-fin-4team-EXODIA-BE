@@ -86,7 +86,11 @@ public class NotificationController {
         return ResponseEntity.ok(isRead);
     }
 
-
+    @GetMapping("/unread-count/{userNum}")
+    public ResponseEntity<Long> getUnreadNotificationCount(@PathVariable String userNum) {
+        long unreadCount = notificationService.countUnreadNotifications(userNum);
+        return ResponseEntity.ok(unreadCount);
+    }
 //    // 사용자별 알림 리스트를 가져오는 API
 //    @GetMapping("/list")
 //    public ResponseEntity<List<NotificationDTO>> getUserNotifications() {

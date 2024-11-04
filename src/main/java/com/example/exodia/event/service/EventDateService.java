@@ -7,12 +7,16 @@ import com.example.exodia.event.domain.EventHistory;
 import com.example.exodia.event.dto.EventHistoryDto;
 import com.example.exodia.event.repository.EventDateRepository;
 import com.example.exodia.event.repository.EventHistoryRepository;
+import com.example.exodia.notification.domain.NotificationType;
+import com.example.exodia.notification.dto.NotificationDTO;
+import com.example.exodia.notification.service.NotificationService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,6 +28,7 @@ public class EventDateService {
     private final EventHistoryRepository eventHistoryRepository;
     private final CalendarService calendarService;
     private final KafkaProducer kafkaProducer;
+    private final NotificationService notificationService;
 
     @Transactional
     public void setEventDate(String eventType, LocalDate startDate, LocalDate endDate, String userNum) {
@@ -48,6 +53,18 @@ public class EventDateService {
         // 인사평가 알림 전송 조건 추가
         if ("인사평가".equals(eventType)) {
             String message = startDate + " ~ " + endDate + " 는 인사평가 기간입니다.";
+
+            NotificationDTO notificationDTO = NotificationDTO.builder()
+                    .message(message)
+                    .type(NotificationType.공지사항)
+                    .isRead(false)
+                    .userName(userNum)
+                    .notificationTime(LocalDateTime.now())
+                    .targetId(history.getId())
+                    .build();
+
+            notificationService.saveNotification(userNum, notificationDTO);
+
             kafkaProducer.sendBoardEvent("notice-events", message); // Kafka로 메시지 전송
         }
     }

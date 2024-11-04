@@ -10,6 +10,9 @@ import com.example.exodia.common.service.KafkaProducer;
 import com.example.exodia.common.service.UploadAwsFileService;
 import com.example.exodia.department.domain.Department;
 import com.example.exodia.department.repository.DepartmentRepository;
+import com.example.exodia.notification.domain.NotificationType;
+import com.example.exodia.notification.dto.NotificationDTO;
+import com.example.exodia.notification.service.NotificationService;
 import com.example.exodia.qna.domain.Manager;
 import com.example.exodia.qna.domain.QnA;
 import com.example.exodia.qna.dto.*;
@@ -43,11 +46,12 @@ public class QnAService {
     private final BoardFileRepository boardFileRepository;
     private final ManagerRepository managerRepository;
     private final KafkaProducer kafkaProducer;
+    private final NotificationService notificationService;
 
     @Autowired
     public QnAService(QnARepository qnARepository, CommentRepository commentRepository,
                       UploadAwsFileService uploadAwsFileService, UserRepository userRepository,
-                      DepartmentRepository departmentRepository, BoardFileRepository boardFileRepository, ManagerRepository managerRepository, KafkaProducer kafkaProducer) {
+                      DepartmentRepository departmentRepository, BoardFileRepository boardFileRepository, ManagerRepository managerRepository, KafkaProducer kafkaProducer, NotificationService notificationService) {
         this.qnARepository = qnARepository;
         this.commentRepository = commentRepository;
         this.uploadAwsFileService = uploadAwsFileService;
@@ -56,6 +60,7 @@ public class QnAService {
         this.departmentRepository = departmentRepository;
         this.managerRepository = managerRepository;
         this.kafkaProducer = kafkaProducer;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -94,6 +99,18 @@ public class QnAService {
         // 알림 전송: 해당 부서의 모든 매니저에게 알림
         List<User> managers = userRepository.findManagersByDepartmentId(department.getId());
         String message = "Q&A 질문이 도착했습니다: ";
+        NotificationDTO notificationDTO = NotificationDTO.builder()
+                .message(message)
+                .type(NotificationType.문의)
+                .isRead(false)
+                .userName(questioner.getName())
+                .userNum(questioner.getUserNum())
+                .notificationTime(LocalDateTime.now())
+                .targetId(qna.getId())
+                .build();
+        for (User manager : managers) {
+            notificationService.saveNotification(manager.getUserNum(), notificationDTO);
+        }
         kafkaProducer.sendQnaEvent("QUESTION_REGISTERED", department.getId().toString(), userNum, message);
 
         return qna;
@@ -182,6 +199,16 @@ public class QnAService {
 
         // 질문자에게 답변 알림 전송
         String message = "질문에 대한 답변이 등록되었습니다.";
+        NotificationDTO answerNotification = NotificationDTO.builder()
+                .message(message)
+                .type(NotificationType.문의)
+                .isRead(false)
+                .userName(answerer.getName())
+                .userNum(answerer.getUserNum())
+                .notificationTime(LocalDateTime.now())
+                .targetId(qna.getId())
+                .build();
+        notificationService.saveNotification(qna.getQuestioner().getUserNum(), answerNotification);
         kafkaProducer.sendQnaEvent("ANSWER_REGISTERED", qna.getDepartment().getId().toString(), qna.getQuestioner().getUserNum(), message);
 
         return qnARepository.save(qna);

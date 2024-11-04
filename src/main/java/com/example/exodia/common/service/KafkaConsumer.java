@@ -170,18 +170,24 @@ public class KafkaConsumer {
 
     private void processDocumentUpdateMessage(String message) {
         if (message.contains("|")) {
-            String[] splitMessage = message.split("\\|", 2);
-            String departmentId = splitMessage[0];
-            String actualMessage = splitMessage[1];
+            String[] splitMessage = message.split("\\|", 3);
+            if (splitMessage.length == 3) {
+                String departmentId = splitMessage[0];
+                Long targetId = Long.parseLong(splitMessage[1]);
+                String actualMessage = splitMessage[2];
 
-            List<User> departmentUsers = userRepository.findAllByDepartmentId(Long.parseLong(departmentId));
-            for (User user : departmentUsers) {
-                NotificationDTO notificationDTO = new NotificationDTO();
-                notificationDTO.setMessage(actualMessage);
-                notificationDTO.setRead(false);
-                notificationDTO.setType(NotificationType.문서);
+                List<User> departmentUsers = userRepository.findAllByDepartmentId(Long.parseLong(departmentId));
+                for (User user : departmentUsers) {
+                    NotificationDTO notificationDTO = new NotificationDTO();
+                    notificationDTO.setMessage(actualMessage);
+                    notificationDTO.setRead(false);
+                    notificationDTO.setType(NotificationType.문서);
+                    notificationDTO.setTargetId(targetId);
 
-                notificationService.saveNotification(user.getUserNum(), notificationDTO);
+                    notificationService.saveNotification(user.getUserNum(), notificationDTO);
+                }
+            } else {
+                System.out.println("잘못된 메세지 형식 : expected departmentId|documentId|message");
             }
         }
     }
@@ -247,22 +253,25 @@ public class KafkaConsumer {
     // 차량 예약 요청 이벤트 처리
     private void processCarReservationEvent(String message) {
         if (message.contains("|")) {
-            String[] splitMessage = message.split("\\|", 5);
-            if (splitMessage.length == 5) {
+            String[] splitMessage = message.split("\\|", 6);
+            if (splitMessage.length == 6) {
                 String userNum = splitMessage[0];
                 String userName = splitMessage[1];
                 String carNum = splitMessage[2];
                 String startDate = splitMessage[3];
                 String endDate = splitMessage[4];
+                Long targetId = Long.parseLong(splitMessage[5]);
                 String notificationMessage = String.format("%s 님이 차량 %s 을 %s부터 %s까지 예약하였습니다.", userName, carNum, startDate, endDate);
 
                 Long hrDepartmentId = 4L;
-                List<User> hrDepartmentUsers = userRepository.findAllByDepartmentId(hrDepartmentId);
+                List<User> hrDepartmentUsers = userRepository.findAllByDepartmentId(4L);
 
                 for (User user : hrDepartmentUsers) {
                     NotificationDTO notificationDTO = new NotificationDTO();
                     notificationDTO.setMessage(notificationMessage);
                     notificationDTO.setRead(false);
+                    notificationDTO.setType(NotificationType.예약);
+                    notificationDTO.setTargetId(targetId);
 
                     notificationService.saveNotification(user.getUserNum(), notificationDTO);
                 }
@@ -277,14 +286,21 @@ public class KafkaConsumer {
     // 차량 예약 승인 이벤트 처리
     private void processCarReservationApproval(String message) {
         if (message.contains("|")) {
-            String[] splitMessage = message.split("\\|", 5);
-            if (splitMessage.length == 5) {
+            String[] splitMessage = message.split("\\|", 6);
+            if (splitMessage.length == 6) {
                 String userNum = splitMessage[0];
+                String carNum = splitMessage[1];
+                String startTime = splitMessage[2];
+                String endTime = splitMessage[3];
+                Long targetId = Long.parseLong(splitMessage[5]); // Extract targetId
+
                 String approvalMessage = splitMessage[4];
 
                 NotificationDTO notificationDTO = new NotificationDTO();
                 notificationDTO.setMessage(approvalMessage);
                 notificationDTO.setRead(false);
+                notificationDTO.setType(NotificationType.예약);
+                notificationDTO.setTargetId(targetId);
 
                 notificationService.saveNotification(userNum, notificationDTO);
             }
@@ -296,14 +312,20 @@ public class KafkaConsumer {
     // 차량 예약 거절 이벤트 처리
     private void processCarReservationRejection(String message) {
         if (message.contains("|")) {
-            String[] splitMessage = message.split("\\|", 5);
-            if (splitMessage.length == 5) {
+            String[] splitMessage = message.split("\\|", 6);
+            if (splitMessage.length == 6) {
                 String userNum = splitMessage[0];
+                String carNum = splitMessage[1];
+                String startTime = splitMessage[2];
+                String endTime = splitMessage[3];
+                Long targetId = Long.parseLong(splitMessage[5]);
                 String rejectionMessage = splitMessage[4];
 
                 NotificationDTO notificationDTO = new NotificationDTO();
                 notificationDTO.setMessage(rejectionMessage);
                 notificationDTO.setRead(false);
+                notificationDTO.setType(NotificationType.예약);
+                notificationDTO.setTargetId(targetId);
 
                 notificationService.saveNotification(userNum, notificationDTO);
             }
