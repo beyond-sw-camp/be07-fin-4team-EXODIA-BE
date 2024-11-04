@@ -9,6 +9,8 @@ import com.example.exodia.registration.dto.RegistrationDto;
 import com.example.exodia.registration.repository.RegistrationRepository;
 import com.example.exodia.registration.service.RegistrationService;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -47,8 +49,8 @@ public class CourseController {
 
     /* 강좌 리스트 */
     @GetMapping("/list")
-    public ResponseEntity<List<CourseListDto>> listCourses() {
-        List<CourseListDto> courses = courseService.listCourses();
+    public ResponseEntity<Page<CourseListDto>> listCourses(Pageable pageable) {
+        Page<CourseListDto> courses = courseService.listCourses(pageable);
         return ResponseEntity.ok(courses);
     }
 
