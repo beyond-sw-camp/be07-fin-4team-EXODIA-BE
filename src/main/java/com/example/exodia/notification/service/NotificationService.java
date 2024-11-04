@@ -53,6 +53,7 @@ public class NotificationService {
 //                .collect(Collectors.toList());
 //    }
     /* kafka - > redis */
+@Transactional
     public void saveNotification(String userNum, NotificationDTO notificationDTO) {
         if (notificationDTO.getId() == null) {
             notificationDTO.setId(UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE);

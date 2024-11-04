@@ -49,7 +49,7 @@ public class SubEvalutionService {
 	}
 
 	/* 소분류 조회 */
-	@Transactional(readOnly = true)
+//	@Transactional(readOnly = true)
 	public List<SubEvalution> getAllSubEvalutionsForUser() {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 		User user = userRepository.findByUserNum(userNum)
@@ -81,7 +81,7 @@ public class SubEvalutionService {
 
 	/* 리스트 */
 	/* 소분류 조회(대*중분류명 추가) */
-	@Transactional(readOnly = true)
+//	@Transactional(readOnly = true)
 	public List<SubEvalutionResponseDto> getAllSubEvalutionsWithCategoriesForUser() {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 		User user = userRepository.findByUserNum(userNum)
@@ -108,7 +108,7 @@ public class SubEvalutionService {
 	}
 
 	/* 팀장이 자신의 팀원의 평가 조회 */
-	@Transactional(readOnly = true)
+//	@Transactional(readOnly = true)
 	public List<SubEvalutionWithUserDetailsDto> getTeamMembersSubEvalutions(String userNum) {
 		String loginUser = SecurityContextHolder.getContext().getAuthentication().getName();
 		User teamLeader = userRepository.findByUserNum(loginUser)

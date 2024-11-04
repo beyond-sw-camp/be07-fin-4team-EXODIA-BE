@@ -10,6 +10,7 @@ import com.example.exodia.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -24,6 +25,7 @@ public class MeetingRoomService {
     private UserService userService;
 
     /* 회의실 추가 */
+    @Transactional
     public MeetingRoom createMeetRoom(MeetingRoomCreateDto createDto) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUserNum(userNum)
@@ -47,6 +49,7 @@ public class MeetingRoomService {
     }
 
     /* 회의실 이름 변경 */
+    @Transactional
     public MeetingRoom updateMeetRoom(Long id, MeetingRoomUpdateDto updateDto) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUserNum(userNum)
@@ -61,6 +64,7 @@ public class MeetingRoomService {
     }
 
     /* 회의실 삭제 */
+    @Transactional
     public void deleteMeetRoom(Long id) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUserNum(userNum)

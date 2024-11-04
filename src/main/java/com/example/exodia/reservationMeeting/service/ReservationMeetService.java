@@ -123,7 +123,7 @@ public class ReservationMeetService {
     }
 
     /* 로그인 한 유저의 예약 내역 조회 */
-    @Transactional(readOnly = true)
+//    @Transactional(readOnly = true)
     public List<ReservationMeetListDto> getUserReservations() {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUserNum(userNum)
@@ -137,7 +137,7 @@ public class ReservationMeetService {
     }
 
     /* 모든 예약 내역 조회(ADMIN) */
-    @Transactional(readOnly = true)
+//    @Transactional(readOnly = true)
     public List<ReservationMeetListDto> getAllReservations() {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUserNum(userNum)
@@ -154,7 +154,7 @@ public class ReservationMeetService {
                 .collect(Collectors.toList());
     }
     /* 날짜에 대한 예약 일정 조회*/
-    @Transactional(readOnly = true)
+//    @Transactional(readOnly = true)
     public List<ReservationMeetListDto> getReservationsByDate(LocalDate date) {
         // 해당 날짜의 시작 시간과 끝 시간 계산 (00:00부터 23:59까지)
         LocalDateTime startOfDay = date.atStartOfDay();
