@@ -66,8 +66,6 @@ spring:
     show-sql: true
 #    open-in-view: false
 
-
-
 jwt:
   secretKeyRT: ${JWT_SECRET_RT}
   expirationRT: ${JWT_EXPIRATION_RT}
