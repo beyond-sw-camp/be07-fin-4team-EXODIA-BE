@@ -1,5 +1,6 @@
 package com.example.exodia.evalutionFrame.subevalution.controller;
 
+import com.example.exodia.common.dto.CommonResDto;
 import com.example.exodia.evalutionFrame.subevalution.dto.SubEvalutionDto;
 import com.example.exodia.evalutionFrame.subevalution.dto.SubEvalutionResponseDto;
 import com.example.exodia.evalutionFrame.subevalution.dto.SubEvalutionWithUserDetailsDto;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -68,6 +70,13 @@ public class SubEvalutionController {
     public ResponseEntity<List<SubEvalution>> createMultipleSubEvalutions(@RequestBody List<SubEvalutionDto> subEvalutionDtoList) {
         List<SubEvalution> createdSubEvalutions = subEvalutionService.createMultipleSubEvalutions(subEvalutionDtoList);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdSubEvalutions);
+    }
+
+    // 인사 평가를 위한 하위 부서 직원들 조회
+    @GetMapping("/user/list")
+    public ResponseEntity<?> getTeamMembersSubEvalutions() throws IOException {
+        List<?> evalutions = subEvalutionService.getDepartmentChilUsers();
+        return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "하위 부서 직원들 조회 성공", evalutions));
     }
 
 }
