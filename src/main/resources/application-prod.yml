@@ -47,9 +47,9 @@ spring:
 
       notification-group:
         group-id: notification-group
-
-      chat-group:
-        group-id: chat-group
+#
+#      chat-group:
+#        group-id: chat-group
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
