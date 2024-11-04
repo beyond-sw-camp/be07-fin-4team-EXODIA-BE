@@ -30,11 +30,11 @@ public class ChatMessage extends BaseTimeEntity {
     private Long id; // 채팅메세지고유의 id
 
     //    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chat_user_id", nullable = false)
     private User chatUser; // 누가 보냈는지
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chat_room_id", nullable = false)
     private ChatRoom chatRoom; // 어느 방의 채팅인지
 
