@@ -25,6 +25,7 @@ public class EventDateService {
     private final CalendarService calendarService;
     private final KafkaProducer kafkaProducer;
 
+    @Transactional
     public void setEventDate(String eventType, LocalDate startDate, LocalDate endDate, String userNum) {
         EventDate existingEventDate = eventDateRepository.findByEventType(eventType)
                 .orElse(new EventDate());

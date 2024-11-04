@@ -103,8 +103,7 @@ public class BoardService {
         return board;
     }
 
-
-
+    @Transactional
     private void addTagsToBoard(Board board, List<Long> tagIds) {
         List<BoardTags> tags = boardTagsRepository.findAllById(tagIds);
 
@@ -118,6 +117,7 @@ public class BoardService {
     }
 
 
+    @Transactional
     private void processFiles(List<MultipartFile> files, Board board) {
         List<MultipartFile> validFiles = files != null ? files.stream()
                 .filter(file -> !file.isEmpty())
@@ -159,6 +159,7 @@ public class BoardService {
         return user;
     }
 
+    @Transactional
     public Page<BoardListResDto> BoardListWithSearch(Pageable pageable, String searchType, String searchQuery, Category category, List<Long> tagIds) {
         Page<Board> boards;
         if (searchQuery != null && !searchQuery.isEmpty()) {
@@ -189,9 +190,6 @@ public class BoardService {
 
         return boards.map(Board::listFromEntity);
     }
-
-
-
 
 
 
@@ -288,6 +286,7 @@ public class BoardService {
     }
 
     // BoardService.java
+    @Transactional
     public List<BoardListResDto> getPinnedBoards() {
         // 고정된 게시물 필터링 및 변환
         List<Board> pinnedBoards = boardRepository.findByIsPinnedTrue(Sort.by(Sort.Direction.DESC, "createdAt"));

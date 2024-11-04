@@ -149,6 +149,7 @@ public class DocumentService {
 	}
 
 	// 	전체 문서 조회
+	@Transactional
 	public Page<DocListResDto> getDocList(Pageable pageable) {
 		// 생성시간 == 수정시간 doc만 조회 -> 수정되지 않은 모든 데이터
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -161,6 +162,7 @@ public class DocumentService {
 	}
 
 	// 최근 열람 문서 조회
+	@Transactional
 	public Page<DocListResDto> getDocListByViewedAt(Pageable pageable) {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 		List<Object> docIds = redisService.getViewdListValue(userNum);
@@ -184,6 +186,7 @@ public class DocumentService {
 	}
 
 	// 최근 수정 문서 조회
+	@Transactional
 	public Page<DocListResDto> getDocListByUpdatedAt(Pageable pageable) {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 		List<Object> docIds = redisService.getUpdatedListValue(userNum);
@@ -231,6 +234,7 @@ public class DocumentService {
 	}
 
 	// 문서 업데이트
+	@Transactional
 	public Document updateDoc(List<MultipartFile> files, DocUpdateReqDto docUpdateReqDto) throws IOException {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 		User user = userRepository.findByUserNum(userNum)
