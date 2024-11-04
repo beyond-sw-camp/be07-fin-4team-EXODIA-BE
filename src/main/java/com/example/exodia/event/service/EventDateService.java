@@ -25,6 +25,7 @@ public class EventDateService {
     private final CalendarService calendarService;
     private final KafkaProducer kafkaProducer;
 
+    @Transactional
     public void setEventDate(String eventType, LocalDate startDate, LocalDate endDate, String userNum) {
         EventDate existingEventDate = eventDateRepository.findByEventType(eventType)
                 .orElse(new EventDate());
@@ -57,7 +58,6 @@ public class EventDateService {
                 .map(EventHistory::toDto)
                 .collect(Collectors.toList());
     }
-
     public EventDate getEventDate(String eventType) {
         return eventDateRepository.findByEventType(eventType)
                 .orElseThrow(() -> new RuntimeException("Event date not found for eventType: " + eventType));

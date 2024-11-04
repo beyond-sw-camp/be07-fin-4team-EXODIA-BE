@@ -32,9 +32,7 @@ spring:
 
       max-lifetime: 500000
     tomcat:
-      max-active: 20
-
-
+      max-active: 25
   kafka:
     bootstrap-servers: ${KAFKA_SERVER}:9092
     consumer:
@@ -49,11 +47,9 @@ spring:
 
       notification-group:
         group-id: notification-group
-
-      chat-group:
-        group-id: chat-group
-
-
+#
+#      chat-group:
+#        group-id: chat-group
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -68,9 +64,7 @@ spring:
       format_sql: false
       ddl-auto: update
     show-sql: true
-#    open-in-view: false
-
-
+    open-in-view: false
 
 jwt:
   secretKeyRT: ${JWT_SECRET_RT}
@@ -80,6 +74,7 @@ jwt:
 google:
   credentials:
     file:
+#      path: credentials.json
       path: ${GOOGLE_FILE_PATH}
 cloud:
   aws:

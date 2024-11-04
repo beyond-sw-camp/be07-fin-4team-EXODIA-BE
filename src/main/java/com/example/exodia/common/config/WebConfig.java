@@ -14,7 +14,11 @@ public class WebConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
+<<<<<<< HEAD
 
+=======
+      
+>>>>>>> e6b9fcd147052383a4584fd7e04d91b1979d3a68
         config.addAllowedOriginPattern("https://*.exodiapot.xyz");
 //        config.addAllowedOriginPattern("http://localhost:[8082,8087,8088,4443]");
         config.addAllowedOriginPattern("https://openvidu.exodiapot.xyz");
@@ -24,4 +28,8 @@ public class WebConfig {
         return new CorsFilter(source);
 
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> e6b9fcd147052383a4584fd7e04d91b1979d3a68

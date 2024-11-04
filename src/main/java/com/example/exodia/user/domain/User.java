@@ -2,9 +2,12 @@ package com.example.exodia.user.domain;
 
 import com.example.exodia.common.domain.BaseTimeEntity;
 import com.example.exodia.department.domain.Department;
+import com.example.exodia.evalutionFrame.subevalution.dto.EvaluationResDto;
 import com.example.exodia.position.domain.Position;
 import com.example.exodia.user.dto.UserRegisterDto;
 import com.example.exodia.user.dto.UserUpdateDto;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -75,6 +78,7 @@ public class User extends BaseTimeEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "position_id", nullable = false)
+    @JsonIgnore
     private Position position;
 
     @Column(nullable = false)
@@ -153,5 +157,16 @@ public class User extends BaseTimeEntity {
 
     public void setMeetingStatus(){
         this.n_status = NowStatus.자리비움;
+    }
+
+    public EvaluationResDto fromUserEntity(){
+        return EvaluationResDto.builder()
+            .name(this.getName())
+            .userNum(this.getUserNum())
+            .positionName(this.getPosition().getName())
+            .positionId(this.getPosition().getId())
+            .departmentName(this.getDepartment().getName())
+            .departmentId(this.getDepartment().getId())
+            .build();
     }
 }

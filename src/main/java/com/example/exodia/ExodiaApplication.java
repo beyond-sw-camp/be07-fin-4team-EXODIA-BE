@@ -11,7 +11,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class ExodiaApplication {
 
 	public static void main(String[] args) {
-
 		SpringApplication.run(ExodiaApplication.class, args);
 	}
 

@@ -18,6 +18,8 @@ import com.example.exodia.board.repository.BoardRepository;
 import com.example.exodia.board.service.BoardAutoUploadService;
 import com.example.exodia.common.service.KafkaProducer;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -88,6 +90,7 @@ public class SubmitService {
 		User submitUser = userRepository.findByUserNum(userNum)
 			.orElseThrow(() -> new EntityNotFoundException("회원정보가 존재하지 않습니다."));
 
+		String receiverUserNum = null;
 		if (dto.getSubmitUserDtos() == null) {
 			throw new IOException("결재 라인을 등록하십시오.");
 		}
@@ -103,6 +106,9 @@ public class SubmitService {
 				.orElseThrow(() -> new EntityNotFoundException("회원정보가 존재하지 않습니다."));
 
 			submitLine = dto.toLineEntity(user);
+			if (receiverUserNum == null) {
+				receiverUserNum = submitLine.getUserNum();
+			}
 
 			submit.getSubmitLines().add(submitLine);
 			submitLine.updateSubmit(submit);
@@ -110,6 +116,11 @@ public class SubmitService {
 
 		submitRepository.save(submit);
 		submitLineRepository.save(submitLine);
+
+
+		kafkaProducer.sendSubmitNotification("submit-events", dto.getSubmitUserDtos().get(0).getUserName(),
+			receiverUserNum,
+			LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM.dd")));
 		return submit;
 	}
 
@@ -198,6 +209,7 @@ public class SubmitService {
 	}
 
 	// 결재 타입 리스트 전체 조회
+	@Transactional
 	public List<?> getTypeList() {
 		List<SubmitType> types = submitTypeRepository.findAll();
 		return types.stream()
@@ -240,22 +252,17 @@ public class SubmitService {
 	}
 
 	// 내가 요청한 결재 리스트 조회
-	public List<?> getMySubmitList() {
+	public Page<SubmitListResDto> getMySubmitList(Pageable pageable) {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 		User user = userRepository.findByUserNum(userNum)
-			.orElseThrow(() -> new EntityNotFoundException("회원 정보가 존재하지 않습니다."));
+				.orElseThrow(() -> new EntityNotFoundException("회원 정보가 존재하지 않습니다."));
 
-		List<Submit> submits = submitRepository.findAllByUserOrderByCreatedAtDesc(user);
+		Page<Submit> submits = submitRepository.findAllByUserOrderByCreatedAtDesc(user, pageable);
 
-		List<SubmitListResDto> mySubmitList = submits.stream()
-			.map(submit -> {
-				return new SubmitListResDto().fromEntity(submit);
-			})
-			.collect(Collectors.toList());
-		return mySubmitList;
+		return submits.map(submit -> new SubmitListResDto().fromEntity(submit));
 	}
-
 	// 결재 상세 조회
+	@Transactional
 	public SubmitDetResDto getSubmitDetail(Long id) {
 		Submit submit = submitRepository.findById(id)
 			.orElseThrow(() -> new EntityNotFoundException("결재 정보가 존재하지 않습니다."));
@@ -285,6 +292,9 @@ public class SubmitService {
 
 		// 대기중 상태 일 때만 삭제 가능
 		if (submit.getSubmitStatus() == SubmitStatus.대기중) {
+			for(SubmitLine submitLine : submit.getSubmitLines()){
+				submitLine.softDelete();
+			}
 			submit.softDelete();
 		}
 	}
@@ -353,6 +363,7 @@ public class SubmitService {
 	}
 
 	// 결재 라인 조회
+	@Transactional
 	public List<SubmitLineResDto> getSubmitLines(Long submitId) {
 		Submit submit = submitRepository.findById(submitId)
 			.orElseThrow(() -> new EntityNotFoundException("결재 정보가 존재하지 않습니다."));

@@ -2,16 +2,15 @@ package com.example.exodia.submit.controller;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import com.example.exodia.submit.dto.SubmitListResDto;
 import jakarta.persistence.EntityNotFoundException;
 
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.parameters.P;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,14 +20,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.exodia.common.dto.CommonErrorDto;
 import com.example.exodia.common.dto.CommonResDto;
-import com.example.exodia.document.dto.DocDetailResDto;
 import com.example.exodia.submit.domain.Submit;
 import com.example.exodia.submit.domain.SubmitLine;
 import com.example.exodia.submit.dto.SubmitDetResDto;
 import com.example.exodia.submit.dto.SubmitSaveReqDto;
 import com.example.exodia.submit.dto.SubmitStatusUpdateDto;
 import com.example.exodia.submit.repository.SubmitRepository;
-import com.example.exodia.submit.repository.SubmitTypeRepository;
 import com.example.exodia.submit.service.SubmitService;
 
 @RestController
@@ -88,8 +85,8 @@ public class SubmitController {
 
 	// 내가 요청한 결재 리스트 조회
 	@GetMapping("/list/my")
-	public ResponseEntity<?> findMySubmits() {
-		List<?> submitTypes = submitService.getMySubmitList();
+	public ResponseEntity<?> findMySubmits(Pageable pageable) {
+		Page<SubmitListResDto> submitTypes = submitService.getMySubmitList(pageable);
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "내가 요청한 결재 리스트 조회 성공", submitTypes));
 	}
 
