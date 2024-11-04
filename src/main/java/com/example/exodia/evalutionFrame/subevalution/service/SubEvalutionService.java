@@ -127,16 +127,16 @@ public class SubEvalutionService {
 	/* 팀장이 자신의 팀원의 평가 조회 */
 	@Transactional(readOnly = true)
 	public List<SubEvalutionWithUserDetailsDto> getTeamMembersSubEvalutions(String userNum) {
-		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
-		// 평가한 직원
-		User loginUser = userRepository.findByUserNum(userNum)
+		// 평가자
+		String loginUser = SecurityContextHolder.getContext().getAuthentication().getName();
+		User teamLeader = userRepository.findByUserNum(loginUser)
 			.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
 
 		// if (!teamLeader.getPosition().getName().equals("팀장")) {
 		// 	throw new RuntimeException("팀장만 접근할 수 있습니다.");
 		// }
 
-		// 평가당한 직원
+		// 평가 대상자
 		User selectedUser = userRepository.findByUserNum(userNum)
 			.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
 
@@ -145,10 +145,9 @@ public class SubEvalutionService {
 		// }
 
 		List<SubEvalution> subEvalutions = subEvalutionRepository.findByUser(selectedUser);
-		List<Evalution> evalutions = new ArrayList<>();
 		List<SubEvalutionWithUserDetailsDto> dto = new ArrayList<>();
 		subEvalutions.forEach(subEvalution -> {
-			Evalution evalution = evalutionRepository.findByTargetAndSubEvalution(loginUser, subEvalution);
+			Evalution evalution = evalutionRepository.findByTargetAndSubEvalution(teamLeader, subEvalution);
 			dto.add(SubEvalutionWithUserDetailsDto.fromEntity(subEvalution, selectedUser, evalution));
 		});
 
@@ -214,8 +213,8 @@ public class SubEvalutionService {
 		User loggedInUser = userRepository.findByUserNum(userNum)
 			.orElseThrow(() -> new IOException("로그인한 유저 정보를 찾을 수 없습니다."));
 
-		Long departmentId = (Long)userRepository.findDepartmentIdByUserNum(userNum)
-			.orElseThrow(() -> new IOException("로그인한 유저 정보를 찾을 수 없습니다."));
+		Long departmentId = loggedInUser.getDepartment().getId();
+
 		List<Department> departments = getAllNestedChildrenById(departmentId);
 
 		List<User> users = new ArrayList<>();
@@ -232,7 +231,6 @@ public class SubEvalutionService {
 		for(User user : users){
 			evaluationResDtos.add(user.fromUserEntity());
 		}
-
 		return evaluationResDtos;
 	}
 }
