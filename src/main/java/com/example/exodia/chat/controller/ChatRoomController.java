@@ -23,6 +23,7 @@ public class ChatRoomController {
         this.chatRoomService = chatRoomService;
     }
 
+
     // 채팅방 생성
     @PostMapping("/create")
     public ResponseEntity<?> chatRoomCreate(@RequestBody ChatRoomRequest dto){

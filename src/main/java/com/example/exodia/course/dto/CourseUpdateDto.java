@@ -18,6 +18,7 @@ public class CourseUpdateDto {
     private String courseUrl;
     private int maxParticipants;
 
+
     public Course toEntity(Course existingCourse, User user) {
         return Course.builder()
                 .id(existingCourse.getId())

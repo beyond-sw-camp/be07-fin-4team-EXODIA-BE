@@ -23,6 +23,7 @@ public class ChatFileController {
         this.fileUploadService = fileUploadService;
     }
 
+
     @PostMapping("/presigned-urls")
     public ResponseEntity<?> generatePresignedUrls(@RequestBody List<ChatFileRequest> files) {
         Map<String, String> presignedUrls = fileUploadService.generatePresignedUrls(files);

@@ -6,6 +6,7 @@ import com.example.exodia.attendance.dto.*;
 import com.example.exodia.attendance.repository.AttendanceRepository;
 import com.example.exodia.common.domain.DelYN;
 import com.example.exodia.department.domain.Department;
+import com.example.exodia.department.repository.DepartmentRepository;
 import com.example.exodia.user.domain.NowStatus;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.dto.UserStatusAndTime;
@@ -28,14 +29,16 @@ import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class AttendanceService {
-    @Autowired
+
     private final AttendanceRepository attendanceRepository;
-    @Autowired
+    private final DepartmentRepository departmentRepository;
     private final UserRepository userRepository;
 
-    public AttendanceService(AttendanceRepository attendanceRepository, UserRepository userRepository) {
+    @Autowired
+    public AttendanceService(AttendanceRepository attendanceRepository, DepartmentRepository departmentRepository, UserRepository userRepository) {
         this.attendanceRepository = attendanceRepository;
-        this.userRepository = userRepository;
+		this.departmentRepository = departmentRepository;
+		this.userRepository = userRepository;
     }
 
     /*출근시간 기록 용*/
@@ -105,38 +108,38 @@ public class AttendanceService {
                 .collect(Collectors.toList());
     }
 
-    @Transactional
-    public Map<String, List<AttendanceDetailDto>> getWeeklyDetails(LocalDate startDate, LocalDate endDate) {
-        String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        User user = userRepository.findByUserNum(userNum).orElseThrow(()
-                -> new RuntimeException("존재하지 않는 사원입니다"));
-
-        // 주어진 기간 내의 출퇴근 시간 데이터 가져오기
-        List<Attendance> attendances = attendanceRepository.findAllByMemberAndInTimeBetween(user, startDate.atStartOfDay(), endDate.atTime(LocalTime.MAX));
-        Map<String, List<AttendanceDetailDto>> weeklyDetails = new HashMap<>();
-
-        for (Attendance attendance : attendances) {
-            LocalDate attendanceDate = attendance.getInTime().toLocalDate();
-            String dayOfWeek = attendanceDate.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREAN); // 월, 화, 수, 목, 금
-
-            double workHours = calculateWorkHours(attendance);
-            double overtimeHours = calculateOvertimeHours(attendance); // 초과 근무 시간 계산
-
-            // 요일별로 출퇴근 시간을 Dto로 만들어서 저장
-            AttendanceDetailDto dto = new AttendanceDetailDto(
-                    attendance.getInTime(),
-                    attendance.getOutTime(),
-                    workHours,
-                    overtimeHours
-            );
-
-            weeklyDetails.putIfAbsent(dayOfWeek, new ArrayList<>());
-            weeklyDetails.get(dayOfWeek).add(dto);
-        }
-
-        return weeklyDetails;
-    }
+    // @Transactional
+    // public Map<String, List<AttendanceDetailDto>> getWeeklyDetails(LocalDate startDate, LocalDate endDate) {
+    //     String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+    //
+    //     User user = userRepository.findByUserNum(userNum).orElseThrow(()
+    //             -> new RuntimeException("존재하지 않는 사원입니다"));
+    //
+    //     // 주어진 기간 내의 출퇴근 시간 데이터 가져오기
+    //     List<Attendance> attendances = attendanceRepository.findAllByMemberAndInTimeBetween(user, startDate.atStartOfDay(), endDate.atTime(LocalTime.MAX));
+    //     Map<String, List<AttendanceDetailDto>> weeklyDetails = new HashMap<>();
+    //
+    //     for (Attendance attendance : attendances) {
+    //         LocalDate attendanceDate = attendance.getInTime().toLocalDate();
+    //         String dayOfWeek = attendanceDate.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREAN); // 월, 화, 수, 목, 금
+    //
+    //         double workHours = calculateWorkHours(attendance);
+    //         double overtimeHours = calculateOvertimeHours(attendance); // 초과 근무 시간 계산
+    //
+    //         // 요일별로 출퇴근 시간을 Dto로 만들어서 저장
+    //         AttendanceDetailDto dto = new AttendanceDetailDto(
+    //                 attendance.getInTime(),
+    //                 attendance.getOutTime(),
+    //                 workHours,
+    //                 overtimeHours
+    //         );
+    //
+    //         weeklyDetails.putIfAbsent(dayOfWeek, new ArrayList<>());
+    //         weeklyDetails.get(dayOfWeek).add(dto);
+    //     }
+    //
+    //     return weeklyDetails;
+    // }
 
     // 근무 시간 계산 (출근 시간과 퇴근 시간 차이)
     private double calculateWorkHours(Attendance attendance) {
@@ -205,6 +208,7 @@ public class AttendanceService {
 
         return weeklyDetails;
     }
+
     private double calculateOvertimeHours(Attendance attendance) {
         LocalTime standardStartTime = LocalTime.of(9, 0);
         LocalTime standardEndTime = LocalTime.of(18, 0);
@@ -241,6 +245,7 @@ public class AttendanceService {
         return DailyAttendanceDto.fromEntity(attendance);
     }
 
+    @Transactional  // 일단 보류
     public Map<String, List<User>> getDepartmentUsersAttendanceStatus() {
         // 로그인한 유저의 userNum 가져오기
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -281,17 +286,37 @@ public class AttendanceService {
         return attendanceStatusMap;
     }
 
+    private void collectAllChildrenById(Long departmentId, List<Department> allChildren, Set<Long> visited) {
+        if (visited.contains(departmentId)) return;
+        visited.add(departmentId);
+
+        Department department = departmentRepository.findById(departmentId)
+            .orElseThrow(() -> new RuntimeException("부서 정보가 존재하지 않습니다."));
+        allChildren.add(department);
+
+        for (Department child : department.getChildren()) {
+            collectAllChildrenById(child.getId(), allChildren, visited);
+        }
+    }
+
+    public List<Department> getAllNestedChildrenById(Long departmentId) {
+        List<Department> allChildren = new ArrayList<>();
+        collectAllChildrenById(departmentId, allChildren, new HashSet<>());
+        return allChildren;
+    }
+
+    @Transactional
     public List<?> getTodayRecords() throws IOException {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         // 로그인한 유저 정보 가져오기
         User loggedInUser = userRepository.findByUserNum(userNum)
             .orElseThrow(() -> new IOException("로그인한 유저 정보를 찾을 수 없습니다."));
 
-        List<Department> departments = loggedInUser.getDepartment().getChildren();
-        departments.add(loggedInUser.getDepartment());
+        Long departmentId = (Long)userRepository.findDepartmentIdByUserNum(userNum)
+            .orElseThrow(() -> new IOException("로그인한 유저 정보를 찾을 수 없습니다."));
+        List<Department> departments = getAllNestedChildrenById(departmentId);
 
         List<User> users = new ArrayList<>();
-
         for (Department department : departments) {
             List<User> departmentUsers = userRepository.findAllByDepartmentIdAndDelYn(department.getId(), DelYN.N); //같은 부서 사람들
             for (User user : departmentUsers) {

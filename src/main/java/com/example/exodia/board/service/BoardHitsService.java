@@ -17,10 +17,7 @@ public class BoardHitsService {
 
     public Long incrementBoardHits(Long boardId, String userNum) {
         String key = "board_hits:" + boardId;
-
         String userKey = "board_hits_user:" + boardId;
-
-
         Boolean hasViewed = redisTemplate.opsForSet().isMember(userKey, userNum);
 
 
@@ -50,10 +47,7 @@ public class BoardHitsService {
 
     public void resetBoardHits(Long boardId) {
         String key = "board_hits:" + boardId;
-
-
         String userKey = "board_hits_user:" + boardId;
-
 
         redisTemplate.delete(key);
         redisTemplate.delete(userKey);

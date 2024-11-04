@@ -88,6 +88,7 @@ public class SubmitService {
 		User submitUser = userRepository.findByUserNum(userNum)
 			.orElseThrow(() -> new EntityNotFoundException("회원정보가 존재하지 않습니다."));
 
+		String receiverUserNum = null;
 		if (dto.getSubmitUserDtos() == null) {
 			throw new IOException("결재 라인을 등록하십시오.");
 		}
@@ -103,6 +104,9 @@ public class SubmitService {
 				.orElseThrow(() -> new EntityNotFoundException("회원정보가 존재하지 않습니다."));
 
 			submitLine = dto.toLineEntity(user);
+			if (receiverUserNum == null) {
+				receiverUserNum = submitLine.getUserNum();
+			}
 
 			submit.getSubmitLines().add(submitLine);
 			submitLine.updateSubmit(submit);
@@ -110,63 +114,13 @@ public class SubmitService {
 
 		submitRepository.save(submit);
 		submitLineRepository.save(submitLine);
+
+
+		kafkaProducer.sendSubmitNotification("submit-events", dto.getSubmitUserDtos().get(0).getUserName(),
+			receiverUserNum,
+			LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM.dd")));
 		return submit;
 	}
-
-	// 결재 상태 변경
-	//   @Transactional
-	//   public List<SubmitLine> updateSubmit(SubmitStatusUpdateDto dto) throws IOException, EntityNotFoundException {
-	//      String userNum = SecurityContextHolder.getContext().getAuthentication().getName();    // 사용자
-	//      // 이전 결재자들의 결재 상태를 확인하기 위해 필요
-	//      List<SubmitLine> submitLines = submitLineRepository.findBySubmitIdOrderByUserPositionId(
-	//            dto.getSubmitId());    // 직급 순서대로 가져오는걸로
-	//      Submit submit = submitRepository.findById(dto.getSubmitId())
-	//            .orElseThrow(() -> new EntityNotFoundException("결재 정보가 존재하지 않습니다."));
-	//
-	//      // 나의 결재 상태를 확인하기 위해서 필요
-	//
-	//      // 1. 내가 이미 처리한 결재인 경우
-	//      SubmitLine mySubmitLine = submitLineRepository.findBySubmitIdAndUserNum(dto.getSubmitId(), userNum);
-	//      if (mySubmitLine.getSubmitStatus() != SubmitStatus.WAITING) {
-	//         throw new IOException("이미 처리 된 결재입니다.");
-	//      }
-	//
-	//      int idx = 0;
-	//      for (SubmitLine submitLine : submitLines) {
-	//         if (!submitLine.getUserNum().equals(userNum)) {
-	//            // 2. 이전 결재자의 결재가 필요한 경우
-	//            if (submitLine.getSubmitStatus() == SubmitStatus.WAITING) {
-	//               throw new IOException("이전 결재자의 결재가 필요합니다.");
-	//            }
-	//         } else {
-	//            // REJECT
-	//            if (dto.getStatus() == SubmitStatus.REJECT) {
-	//               if (dto.getReason() == null) {
-	//                  throw new IOException("반려 사유를 입력해주세요.");
-	//               } else {
-	//                  //    submitLine, submit 모든걸 reject로
-	//                  changeToReject(dto.getSubmitId(), dto.getReason());
-	//               }
-	//            } else {
-	//               //    ACCEPT
-	//               //    subLine상태 바꾸기
-	//               //    내가 최상단 결재자라면 submit상태도 바꾸기
-	//               submitLine.updateStatus(SubmitStatus.ACCEPT);
-	//               if (idx == submitLines.size() - 1) {
-	//                  submit.updateStatus(SubmitStatus.ACCEPT,null);
-	//
-	//               if (submit.isUploadBoard()) {
-	//                     Board board = dto.toEntity(submit);
-	//                     boardRepository.save(board);
-	//               }
-	//
-	//               }
-	//            }
-	//         }
-	//         idx++;
-	//      }
-	//      return submitLines;
-	//   }
 
 	@Transactional
 	public List<SubmitLine> updateSubmit(SubmitStatusUpdateDto dto) throws IOException, EntityNotFoundException {
@@ -261,6 +215,7 @@ public class SubmitService {
 	}
 
 	// 나에게 요청 들어온 결재 리스트 조회
+	@Transactional
 	public List<?> getSubmitList() {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 
@@ -339,6 +294,9 @@ public class SubmitService {
 
 		// 대기중 상태 일 때만 삭제 가능
 		if (submit.getSubmitStatus() == SubmitStatus.대기중) {
+			for(SubmitLine submitLine : submit.getSubmitLines()){
+				submitLine.softDelete();
+			}
 			submit.softDelete();
 		}
 	}

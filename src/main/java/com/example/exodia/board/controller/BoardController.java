@@ -28,6 +28,7 @@ public class BoardController {
 
     private final BoardService boardService;
 
+
     @Autowired
     public BoardController(BoardService boardService) {
         this.boardService = boardService;
@@ -38,12 +39,8 @@ public class BoardController {
         return "/board/create";
     }
 
-    /**
-     * 새로운 게시물 작성 기능
-     * @param dto - 사용자가 작성한 게시물 정보가 담긴 객체
-     * @param tagIds - 게시물에 추가할 태그 리스트
-     * @return HTTP 응답 본문과 상태 코드를 포함한 ResponseEntity 반환
-     */
+
+
     @PostMapping("/{category}/create")
     public ResponseEntity<?> createBoard(@ModelAttribute BoardSaveReqDto dto, @RequestParam List<Long> tagIds) {
         try {

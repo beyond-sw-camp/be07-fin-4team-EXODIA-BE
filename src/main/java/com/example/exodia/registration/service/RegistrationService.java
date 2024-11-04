@@ -46,7 +46,6 @@ public class RegistrationService {
 
     }
 
-    @Transactional
     public String registerParticipant(Long courseId) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUserNum(userNum)
@@ -63,28 +62,28 @@ public class RegistrationService {
         RLock lock = redissonClient.getLock("courseLock:" + courseId);  // Redisson 락 생성
 
         try {
-            // 락을 걸고 10초 안에 작업 완료, 락이 풀리지 않으면 30초 후 자동 해제
             if (lock.tryLock(10, 30, TimeUnit.SECONDS)) {
                 try {
-                    Long currentParticipants = redisTemplate.opsForValue().increment(redisKey); // 참가자 수 증가
+                    Long currentParticipants = redisTemplate.opsForValue().increment(redisKey);
 
                     if (currentParticipants > getMaxParticipants(courseId)) {
-                        // 초과 시 참가자 수 롤백
                         redisTemplate.opsForValue().decrement(redisKey);
                         return "참가자 수가 초과되었습니다.";
                     }
-                    // 참가자 수가 최대 인원에 도달하면 `triggerCourseTransmission` 호출
+
+                    // 현재 등록을 확정하여 DB에 저장
+                    confirmRegistration(courseId, userNum);
+
                     if (currentParticipants.equals(getMaxParticipants(courseId))) {
-                        System.out.println("maxParticipants 도달, triggerCourseTransmission 호출"); // 로그 확인용
-                        triggerCourseTransmission(courseId); // 강좌 전송 로직 호출
+                        triggerCourseTransmission(courseId);
                     }
-                    // Kafka producer를 통해 등록 이벤트 전송
+
                     String message = "User " + userNum + " has registered for course " + courseId;
                     kafkaProducer.sendCourseRegistrationEvent(courseId.toString(), message);
 
                     return "등록 완료";
                 } finally {
-                    lock.unlock();  // 작업이 끝나면 락 해제
+                    lock.unlock();
                 }
             } else {
                 return "잠시 후 다시 시도해 주세요.";
@@ -94,6 +93,7 @@ public class RegistrationService {
             return "등록 처리 중 문제가 발생했습니다.";
         }
     }
+
 
     // 데이터베이스에서 강좌의 최대 참가자 수 조회
     public int getMaxParticipants(Long courseId) {
