@@ -1,5 +1,12 @@
 package com.example.exodia.evalutionFrame.subevalution.service;
 
+import com.example.exodia.attendance.domain.Attendance;
+import com.example.exodia.common.domain.DelYN;
+import com.example.exodia.department.domain.Department;
+import com.example.exodia.department.repository.DepartmentRepository;
+import com.example.exodia.evalution.domain.Evalution;
+import com.example.exodia.evalution.repository.EvalutionRepository;
+import com.example.exodia.evalutionFrame.subevalution.dto.EvaluationResDto;
 import com.example.exodia.evalutionFrame.subevalution.dto.SubEvalutionDto;
 import com.example.exodia.evalutionFrame.evalutionMiddle.domain.Evalutionm;
 import com.example.exodia.evalutionFrame.evalutionMiddle.repository.EvalutionmRepository;
@@ -8,16 +15,21 @@ import com.example.exodia.evalutionFrame.subevalution.dto.SubEvalutionResponseDt
 import com.example.exodia.evalutionFrame.subevalution.dto.SubEvalutionUpdateDto;
 import com.example.exodia.evalutionFrame.subevalution.dto.SubEvalutionWithUserDetailsDto;
 import com.example.exodia.evalutionFrame.subevalution.repository.SubEvalutionRepository;
+import com.example.exodia.user.domain.NowStatus;
 import com.example.exodia.user.domain.User;
+import com.example.exodia.user.dto.UserStatusAndTime;
 import com.example.exodia.user.repository.UserRepository;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,12 +37,17 @@ public class SubEvalutionService {
 	private final SubEvalutionRepository subEvalutionRepository; // 소분류
 	private final EvalutionmRepository evalutionmRepository; // 중분류
 	private final UserRepository userRepository;
+	private final DepartmentRepository departmentRepository;
+	private final EvalutionRepository evalutionRepository;
 
 	public SubEvalutionService(SubEvalutionRepository subEvalutionRepository, EvalutionmRepository evalutionmRepository,
-		UserRepository userRepository) {
+		UserRepository userRepository, DepartmentRepository departmentRepository,
+		EvalutionRepository evalutionRepository) {
 		this.subEvalutionRepository = subEvalutionRepository;
 		this.evalutionmRepository = evalutionmRepository;
 		this.userRepository = userRepository;
+		this.departmentRepository = departmentRepository;
+		this.evalutionRepository = evalutionRepository;
 	}
 
 	/* 소분류 content 생성 */
@@ -110,24 +127,28 @@ public class SubEvalutionService {
 	/* 팀장이 자신의 팀원의 평가 조회 */
 	@Transactional(readOnly = true)
 	public List<SubEvalutionWithUserDetailsDto> getTeamMembersSubEvalutions(String userNum) {
+		// 평가자
 		String loginUser = SecurityContextHolder.getContext().getAuthentication().getName();
 		User teamLeader = userRepository.findByUserNum(loginUser)
 			.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
 
-		if (!teamLeader.getPosition().getName().equals("팀장")) {
-			throw new RuntimeException("팀장만 접근할 수 있습니다.");
-		}
+		// if (!teamLeader.getPosition().getName().equals("팀장")) {
+		// 	throw new RuntimeException("팀장만 접근할 수 있습니다.");
+		// }
 
+		// 평가 대상자
 		User selectedUser = userRepository.findByUserNum(userNum)
 			.orElseThrow(() -> new RuntimeException("존재하지 않는 사원입니다"));
-		if (!selectedUser.getDepartment().getId().equals(teamLeader.getDepartment().getId())) {
-			throw new RuntimeException("해당 팀원의 평가 정보에 접근할 수 없습니다.");
-		}
+
+		// if (!selectedUser.getDepartment().getId().equals(teamLeader.getDepartment().getId())) {
+		// 	throw new RuntimeException("해당 팀원의 평가 정보에 접근할 수 없습니다.");
+		// }
 
 		List<SubEvalution> subEvalutions = subEvalutionRepository.findByUser(selectedUser);
 		List<SubEvalutionWithUserDetailsDto> dto = new ArrayList<>();
 		subEvalutions.forEach(subEvalution -> {
-			dto.add(SubEvalutionWithUserDetailsDto.fromEntity(subEvalution, selectedUser));
+			Evalution evalution = evalutionRepository.findByTargetAndSubEvalution(teamLeader, subEvalution);
+			dto.add(SubEvalutionWithUserDetailsDto.fromEntity(subEvalution, selectedUser, evalution));
 		});
 
 		return dto;
@@ -163,5 +184,53 @@ public class SubEvalutionService {
 			}
 		}
 		return savedSubEvalutions;
+	}
+
+	private void collectAllChildrenById(Long departmentId, List<Department> allChildren, Set<Long> visited) {
+		if (visited.contains(departmentId))
+			return;
+		visited.add(departmentId);
+
+		Department department = departmentRepository.findById(departmentId)
+			.orElseThrow(() -> new RuntimeException("부서 정보가 존재하지 않습니다."));
+		allChildren.add(department);
+
+		for (Department child : department.getChildren()) {
+			collectAllChildrenById(child.getId(), allChildren, visited);
+		}
+	}
+
+	public List<Department> getAllNestedChildrenById(Long departmentId) {
+		List<Department> allChildren = new ArrayList<>();
+		collectAllChildrenById(departmentId, allChildren, new HashSet<>());
+		return allChildren;
+	}
+
+	@Transactional
+	public List<?> getDepartmentChilUsers() throws IOException {
+		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+		// 로그인한 유저 정보 가져오기
+		User loggedInUser = userRepository.findByUserNum(userNum)
+			.orElseThrow(() -> new IOException("로그인한 유저 정보를 찾을 수 없습니다."));
+
+		Long departmentId = loggedInUser.getDepartment().getId();
+
+		List<Department> departments = getAllNestedChildrenById(departmentId);
+
+		List<User> users = new ArrayList<>();
+		for (Department department : departments) {
+			List<User> departmentUsers = userRepository.findAllByDepartmentIdAndDelYn(department.getId(),
+				DelYN.N); //같은 부서 사람들
+			for (User user : departmentUsers) {
+				if (user.getPosition().getId() <= 7) {
+					users.add(user);
+				}
+			}
+		}
+		List<EvaluationResDto> evaluationResDtos = new ArrayList<>();
+		for(User user : users){
+			evaluationResDtos.add(user.fromUserEntity());
+		}
+		return evaluationResDtos;
 	}
 }
