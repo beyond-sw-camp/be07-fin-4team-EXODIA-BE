@@ -68,7 +68,7 @@ spring:
       format_sql: false
       ddl-auto: update
     show-sql: true
-#    open-in-view: false
+    open-in-view: false
 
 jwt:
   secretKeyRT: ${JWT_SECRET_RT}
