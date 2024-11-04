@@ -139,9 +139,9 @@ public class UserController {
         return ResponseEntity.ok(userProfile);
     }
     @GetMapping("/department-users/{departmentId}")
-    public ResponseEntity<List<UserInfoDto>> getUsersByDepartment(@PathVariable Long departmentId) {
+    public ResponseEntity<?> getUsersByDepartment(@PathVariable Long departmentId) {
         List<UserInfoDto> users = userService.getUsersByDepartment(departmentId);
-        return ResponseEntity.ok(users); // 리스트를 HTTP 200 OK와 함께 반환
+        return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "팀원 근태 정보 조회 성공",users));
     }
 
     @GetMapping("/search")

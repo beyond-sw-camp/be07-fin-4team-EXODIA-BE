@@ -13,9 +13,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class UserStatusAndTime {
-	private String userName;
+	private String name;
 	private String userNum;
 	private String positionName;
+	private Long positionId;
 	private String departmentName;
 	private String profileImage;
 	private NowStatus nowStatus;
