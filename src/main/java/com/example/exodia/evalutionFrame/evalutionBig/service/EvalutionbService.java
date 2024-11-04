@@ -5,6 +5,7 @@ import com.example.exodia.evalutionFrame.evalutionBig.dto.EvalutionbDto;
 import com.example.exodia.evalutionFrame.evalutionBig.repository.EvalutionbRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -16,7 +17,9 @@ public class EvalutionbService {
     public EvalutionbService(EvalutionbRepository evalutionbRepository) {
         this.evalutionbRepository = evalutionbRepository;
     }
+
     /*대분류 생성*/
+    @Transactional
     public Evalutionb createEvalutionb(EvalutionbDto evalutionbDto) {
 
         Evalutionb evalutionb = new Evalutionb();

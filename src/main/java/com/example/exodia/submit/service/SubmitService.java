@@ -209,6 +209,7 @@ public class SubmitService {
 	}
 
 	// 결재 타입 리스트 전체 조회
+	@Transactional
 	public List<?> getTypeList() {
 		List<SubmitType> types = submitTypeRepository.findAll();
 		return types.stream()
@@ -260,8 +261,8 @@ public class SubmitService {
 
 		return submits.map(submit -> new SubmitListResDto().fromEntity(submit));
 	}
-
 	// 결재 상세 조회
+	@Transactional
 	public SubmitDetResDto getSubmitDetail(Long id) {
 		Submit submit = submitRepository.findById(id)
 			.orElseThrow(() -> new EntityNotFoundException("결재 정보가 존재하지 않습니다."));
@@ -362,6 +363,7 @@ public class SubmitService {
 	}
 
 	// 결재 라인 조회
+	@Transactional
 	public List<SubmitLineResDto> getSubmitLines(Long submitId) {
 		Submit submit = submitRepository.findById(submitId)
 			.orElseThrow(() -> new EntityNotFoundException("결재 정보가 존재하지 않습니다."));

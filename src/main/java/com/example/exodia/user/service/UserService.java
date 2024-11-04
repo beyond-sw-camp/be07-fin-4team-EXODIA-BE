@@ -155,6 +155,7 @@ public class UserService {
         }
     }
 
+    @Transactional
     public Page<User> getAllUsers(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return userRepository.findAllByDelYn(DelYN.N, pageable);
@@ -181,7 +182,7 @@ public class UserService {
         deleteHistoryRepository.save(deleteHistory);
     }
 
-    @Transactional(readOnly = true)
+//    @Transactional(readOnly = true)
     public UserProfileDto getUserProfile(String userNum) {
         User user = userRepository.findByUserNumAndDelYn(userNum, DelYN.N)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
@@ -189,7 +190,8 @@ public class UserService {
         return UserProfileDto.fromProfileEntity(user);
     }
 
-    @Transactional(readOnly = true)
+//    @Transactional(readOnly = true)
+@Transactional
     public List<UserInfoDto> getUsersByDepartment(Long departmentId) {
         Department department = departmentRepository.findById(departmentId)
                 .orElseThrow(() -> new RuntimeException("해당 부서가 존재하지 않습니다."));
@@ -202,6 +204,7 @@ public class UserService {
     }
 
 
+    @Transactional
     public Page<User> searchUsers(String search, String searchType, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         if (search == null || search.isEmpty()) {
@@ -263,8 +266,6 @@ public class UserService {
         return userRepository.save(newUser);
     }
 
-
-
     @Transactional
     public List<User> searchUsersInDepartment(Long departmentId, String searchQuery) {
         if (searchQuery == null || searchQuery.isEmpty()) {
@@ -297,6 +298,7 @@ public class UserService {
     }
 
     // 상위 부서의 모든 yser들
+    @Transactional
     public List<UserInfoDto> getUsersByParentDepartment(Long departmentId) {
         Department department = departmentRepository.findById(departmentId)
             .orElseThrow(() -> new RuntimeException("해당 부서가 존재하지 않습니다."));

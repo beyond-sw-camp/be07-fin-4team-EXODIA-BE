@@ -66,6 +66,7 @@ public class CourseService {
     }
 
     /* 강좌 업데이트 */
+    @Transactional
     public CourseListDto updateCourse(CourseUpdateDto dto, Long courseId) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUserNum(userNum)

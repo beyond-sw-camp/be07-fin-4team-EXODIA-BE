@@ -33,7 +33,7 @@ public class SalaryService {
     private final double[] INCOME_TAX_RATES = {0.06, 0.15, 0.24, 0.35, 0.38, 0.40, 0.42, 0.45};
     private final double[] INCOME_TAX_FIXED_AMOUNTS = {0, 1260000, 5670000, 14900000, 34200000, 62200000, 112200000};
 
-    @Transactional(readOnly = true)
+//    @Transactional(readOnly = true)
     public Salary getSalarySlip(User user) {
         Optional<Salary> salaryOpt = salaryRepository.findByUser(user);
 
@@ -97,17 +97,17 @@ public class SalaryService {
         return tax;
     }
 
-    @Transactional(readOnly = true)
+//    @Transactional(readOnly = true)
     public Page<Salary> getAllSalaries(Pageable pageable) {
         return salaryRepository.findAll(pageable);
     }
 
-    @Transactional(readOnly = true)
+//    @Transactional(readOnly = true)
     public Optional<Salary> getSalaryByUserNum(String userNum) {
         return salaryRepository.findByUser_UserNum(userNum);
     }
 
-    @Transactional(readOnly = true)
+//    @Transactional(readOnly = true)
     public Page<Salary> getSalariesByPosition(Long positionId, Pageable pageable) {
         return salaryRepository.findByUser_Position_Id(positionId, pageable);
     }
@@ -118,6 +118,8 @@ public class SalaryService {
         LocalDate currentDate = LocalDate.now();
         return Period.between(joinDate, currentDate).getYears();
     }
+
+    @Transactional
     public Salary createSalaryForUser(User user) {
         double baseSalary = user.getPosition().getBaseSalary();
 
@@ -130,6 +132,7 @@ public class SalaryService {
         return salaryRepository.save(salary);
     }
 
+    @Transactional
     public void updateSalary(SalaryUpdateDto salaryUpdateDto) {
         Salary salary = salaryRepository.findByUserUserNum(salaryUpdateDto.getUserNum())
                 .orElseThrow(() -> new RuntimeException("Salary not found for user: " + salaryUpdateDto.getUserNum()));
@@ -146,6 +149,7 @@ public class SalaryService {
         salaryRepository.save(salary);
     }
 
+    @Transactional
     public void updateSalaryByPercentage(String userNum, double percentage) {
         Salary salary = salaryRepository.findByUserUserNum(userNum)
                 .orElseThrow(() -> new IllegalArgumentException("Salary not found"));

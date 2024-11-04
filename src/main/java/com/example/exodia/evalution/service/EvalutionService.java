@@ -80,7 +80,7 @@ public class EvalutionService {
     }
 
     /* 평가 조회 */
-    @Transactional(readOnly = true)
+//    @Transactional(readOnly = true)
     public List<EvalutionDto> getAllEvalutions() {
         List<Evalution> evalutions = evalutionRepository.findAll();
         return evalutions.stream().map(Evalution::fromEntity).collect(Collectors.toList());

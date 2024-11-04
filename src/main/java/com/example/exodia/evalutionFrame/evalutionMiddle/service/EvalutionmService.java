@@ -7,6 +7,7 @@ import com.example.exodia.evalutionFrame.evalutionMiddle.dto.EvalutionmDto;
 import com.example.exodia.evalutionFrame.evalutionMiddle.repository.EvalutionmRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -23,6 +24,7 @@ public class EvalutionmService {
     }
 
     /*중분류 생성*/
+    @Transactional
     public Evalutionm createEvalutionm(EvalutionmDto evalutionmDto) {
         Evalutionb evalutionb = evalutionbRepository.findById(evalutionmDto.getEvalutionbId())
                 .orElseThrow(() -> new IllegalArgumentException("없는 대분류 아이디 : " + evalutionmDto.getEvalutionbId()));
@@ -31,6 +33,7 @@ public class EvalutionmService {
 
         return evalutionmRepository.save(evalutionm);
     }
+
     /*중분류 리스트*/
     public List<Evalutionm> getAllEvalutionms() {
         return evalutionmRepository.findAll();
