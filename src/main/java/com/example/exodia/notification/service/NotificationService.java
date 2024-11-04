@@ -58,11 +58,15 @@ public class NotificationService {
         if (notificationDTO.getId() == null) {
             notificationDTO.setId(UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE);
         }
-        String redisKey = "notifications:" + userNum;
-        notificationDTO.setRead(false);
-        notificationRedisTemplate.opsForHash().put(redisKey, notificationDTO.getId().toString(), notificationDTO);
-        notificationRedisTemplate.expire(redisKey, Duration.ofDays(3)); // 알림 TTL 설정
-        sseEmitters.sendToUser(userNum, notificationDTO);
+        if (notificationDTO.getTargetId() != null) {  // targetId가 있는 경우에만 저장
+            String redisKey = "notifications:" + userNum;
+            notificationDTO.setRead(false);
+            notificationRedisTemplate.opsForHash().put(redisKey, notificationDTO.getId().toString(), notificationDTO);
+            notificationRedisTemplate.expire(redisKey, Duration.ofDays(3)); // 알림 TTL 설정
+            sseEmitters.sendToUser(userNum, notificationDTO);
+        } else {
+            System.out.println("targetId가 설정되지 않은 알림은 저장되지 않습니다.");
+        }
     }
 
     /* 사용자 조회 */
@@ -126,7 +130,14 @@ public class NotificationService {
         }
     }
 
+    public long countUnreadNotifications(String userNum) {
+        String redisKey = "notifications:" + userNum;
+        Map<Object, Object> notifications = notificationRedisTemplate.opsForHash().entries(redisKey);
 
+        return notifications.values().stream()
+                .filter(notification -> !((NotificationDTO) notification).isRead())
+                .count();
+    }
 
 //    // 읽지 않은 알림의 개수를 반환
 //    public long countUnreadNotifications(String userNum) {
