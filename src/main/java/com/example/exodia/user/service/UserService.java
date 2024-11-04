@@ -60,12 +60,15 @@ public class UserService {
         this.uploadAwsFileService = uploadAwsFileService;
     }
 
+
     public String login(UserLoginDto loginDto) {
         User user = userRepository.findByUserNumAndDelYn(loginDto.getUserNum(), DelYN.N)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 아이디입니다."));
         if (user.isDeleted()) {
             throw new RuntimeException("비활성화 상태의 계정입니다.");
         }
+
+
         if (!passwordEncoder.matches(loginDto.getPassword(), user.getPassword())) {
             user.incrementLoginFailCount();
             if (user.getLoginFailCount() > 5) {
@@ -220,7 +223,6 @@ public class UserService {
                 return userRepository.findByDelYn(DelYN.N, pageable);
         }
     }
-
 
     //  userNum으로 회원 이름 찾아오기
     public String getUserName() {

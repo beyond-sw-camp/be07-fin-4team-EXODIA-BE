@@ -8,5 +8,6 @@ public enum NotificationType {
     차량예약거절,
     문서,
     결재,
-    강좌
+    강좌,
+    NOTIFICATION
 }

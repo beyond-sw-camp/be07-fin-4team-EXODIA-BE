@@ -15,6 +15,7 @@ public class RedisMessagePublisher {
         this.roomEventsTopic = roomEventsTopic;
     }
 
+
     public void publish(String message) {
         redisTemplate.convertAndSend(roomEventsTopic.getTopic(), message);
     }

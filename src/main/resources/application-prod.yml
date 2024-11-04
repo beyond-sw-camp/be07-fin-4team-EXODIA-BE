@@ -7,8 +7,9 @@ spring:
       on-profile: prod
   data:
     redis:
-      host: ${REDIS_HOST}:6379
-      port: ${REDIS_PORT}
+      host: ${REDIS_HOST}
+      port: 6379
+
     elasticsearch:
       uris: ${ELASTIC_SEARCH_URI}
       username: ${ELASTIC_SEARCH_USERNAME}
@@ -25,27 +26,39 @@ spring:
     password: ${DB_PASSWORD}
     driver-class-name: org.mariadb.jdbc.Driver
     hikari:
-      maximum-pool-size: 20
-      minimum-idle: 5
+      maximum-pool-size: 50
+      minimum-idle: 10
       idle-timeout: 30000
-      connection-timeout: 30000
+      connection-timeout: 60000
       max-lifetime: 1800000
+    tomcat:
+      max-active: 5
 
 
   kafka:
     bootstrap-servers: ${KAFKA_SERVER}:9092
     consumer:
-      group-id: notification-group
-      enable-auto-commit: true
-      auto-offset-reset: earliest
+      enable-auto-commit: false
+      retry-backoff-ms: 1000
+      max-poll-records: 15
+      fetch-min-size: 10000
+      properties:
+        isolation.level: read_committed
+      listener:
+        missing-topics-fatal: false
 
-      session-timeout-ms: 15000
-      heartbeat-interval-ms: 3000
-      max-poll-interval-ms: 600000
+      notification-group:
+        group-id: notification-group
+
+      chat-group:
+        group-id: chat-group
+
 
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      linger-ms: 10
+      buffer-memory: 33554432
 
   jpa:
     database: mysql
@@ -53,8 +66,10 @@ spring:
     generate-ddl: true
     hibernate:
       format_sql: false
-      ddl-auto: create
-    show-sql: false
+      ddl-auto: update
+    show-sql: true
+#    open-in-view: false
+
 
 
 jwt:
@@ -62,8 +77,6 @@ jwt:
   expirationRT: ${JWT_EXPIRATION_RT}
 
 
-nginx:
-  proxy-port: 8080
 
 google:
   credentials:
@@ -88,6 +101,7 @@ coolsms:
 #테스트 진행 시 Hibernate 로그 삭제
 logging:
   level:
+    root: info
     org:
       hibernate:
         SQL: ERROR
@@ -99,4 +113,3 @@ logging:
 openvidu:
   url: ${OPENVIDU_URL}
   secret: ${OPENVIDU_SECRET}
-

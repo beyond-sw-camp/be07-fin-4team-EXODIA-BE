@@ -36,6 +36,7 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false)
     private Status status;
 
+
     @Column(nullable = false)
     private String password;
 
@@ -118,7 +119,6 @@ public class User extends BaseTimeEntity {
         user.setPosition(position);
         return user;
     }
-
 
 
     public void softDelete() {
