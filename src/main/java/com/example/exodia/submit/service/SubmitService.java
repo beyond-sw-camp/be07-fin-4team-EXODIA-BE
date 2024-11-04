@@ -18,6 +18,8 @@ import com.example.exodia.board.repository.BoardRepository;
 import com.example.exodia.board.service.BoardAutoUploadService;
 import com.example.exodia.common.service.KafkaProducer;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -250,22 +252,15 @@ public class SubmitService {
 	}
 
 	// 내가 요청한 결재 리스트 조회
-	@Transactional
-	public List<?> getMySubmitList() {
+	public Page<SubmitListResDto> getMySubmitList(Pageable pageable) {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 		User user = userRepository.findByUserNum(userNum)
-			.orElseThrow(() -> new EntityNotFoundException("회원 정보가 존재하지 않습니다."));
+				.orElseThrow(() -> new EntityNotFoundException("회원 정보가 존재하지 않습니다."));
 
-		List<Submit> submits = submitRepository.findAllByUserOrderByCreatedAtDesc(user);
+		Page<Submit> submits = submitRepository.findAllByUserOrderByCreatedAtDesc(user, pageable);
 
-		List<SubmitListResDto> mySubmitList = submits.stream()
-			.map(submit -> {
-				return new SubmitListResDto().fromEntity(submit);
-			})
-			.collect(Collectors.toList());
-		return mySubmitList;
+		return submits.map(submit -> new SubmitListResDto().fromEntity(submit));
 	}
-
 	// 결재 상세 조회
 	@Transactional
 	public SubmitDetResDto getSubmitDetail(Long id) {

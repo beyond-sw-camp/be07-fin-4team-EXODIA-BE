@@ -3,9 +3,12 @@ package com.example.exodia.submit.controller;
 import java.io.IOException;
 import java.util.List;
 
+import com.example.exodia.submit.dto.SubmitListResDto;
 import jakarta.persistence.EntityNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -82,8 +85,8 @@ public class SubmitController {
 
 	// 내가 요청한 결재 리스트 조회
 	@GetMapping("/list/my")
-	public ResponseEntity<?> findMySubmits() {
-		List<?> submitTypes = submitService.getMySubmitList();
+	public ResponseEntity<?> findMySubmits(Pageable pageable) {
+		Page<SubmitListResDto> submitTypes = submitService.getMySubmitList(pageable);
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "내가 요청한 결재 리스트 조회 성공", submitTypes));
 	}
 
