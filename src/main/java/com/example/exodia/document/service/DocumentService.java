@@ -231,6 +231,7 @@ public class DocumentService {
 	}
 
 	// 문서 업데이트
+	@Transactional
 	public Document updateDoc(List<MultipartFile> files, DocUpdateReqDto docUpdateReqDto) throws IOException {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 		User user = userRepository.findByUserNum(userNum)

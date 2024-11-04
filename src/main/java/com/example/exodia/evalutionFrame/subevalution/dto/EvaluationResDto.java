@@ -1,8 +1,10 @@
-package com.example.exodia.user.dto;
+package com.example.exodia.evalutionFrame.subevalution.dto;
 
 import java.time.LocalDateTime;
 
 import com.example.exodia.user.domain.NowStatus;
+import com.example.exodia.user.domain.User;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,15 +14,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserStatusAndTime {
+public class EvaluationResDto {
 	private String name;
 	private String userNum;
 	private String positionName;
 	private Long positionId;
 	private String departmentName;
-	private String profileImage;
-	private NowStatus nowStatus;
-	private LocalDateTime inTime;
-	private LocalDateTime outTime;
-
+	private Long departmentId;
 }

@@ -148,7 +148,7 @@ public class ReservationService {
         reservationRepository.delete(reservation);
     }
 
-    @Transactional
+//    @Transactional
     // 특정 날짜에 차량이 예약 가능한지 확인 메서드
     public boolean isCarAvailableForDate(Long carId, LocalDate date) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -172,7 +172,8 @@ public class ReservationService {
         return reservationRepository.findByStartTimeBetween(date, date.plusDays(1))
                 .stream().map(ReservationDto::fromEntity).collect(Collectors.toList());
     }
-    @Transactional
+
+//    @Transactional
     // 모든 예약 조회 메서드
     public List<ReservationDto> getAllReservations() {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -185,6 +186,7 @@ public class ReservationService {
                 .map(ReservationDto::fromEntity)
                 .collect(Collectors.toList());
     }
+
     @Transactional
     public List<CarReservationStatusDto> getAllCarsWithReservationStatusForDay(LocalDateTime date) {
         List<Car> cars = carRepository.findAll();

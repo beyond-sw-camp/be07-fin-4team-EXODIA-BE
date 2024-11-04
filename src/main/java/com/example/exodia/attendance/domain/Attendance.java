@@ -69,7 +69,7 @@ public class Attendance {
             out = this.getOutTime();
         }
         return UserStatusAndTime.builder()
-            .userName(this.user.getName())
+            .name(this.user.getName())
             .profileImage(this.user.getProfileImage())
             .nowStatus(user.getN_status())
             .inTime(in)

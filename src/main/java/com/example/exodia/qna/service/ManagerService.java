@@ -8,6 +8,7 @@ import com.example.exodia.user.domain.User;
 import com.example.exodia.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,6 +20,7 @@ public class ManagerService {
     private final ManagerRepository managerRepository;
     private final UserRepository userRepository;
 
+    @Transactional
     public ManagerListDto saveManager(ManagerSaveDto managerSaveDto) {
         User user = userRepository.findByUserNum(managerSaveDto.getUserNum())
                 .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
@@ -35,6 +37,7 @@ public class ManagerService {
 
 
     // 2. 매니저 삭제
+    @Transactional
     public void deleteManager(String userNum) {
         // 매니저 존재 여부 확인 후 삭제
         Manager manager = managerRepository.findByUser_UserNum(userNum)
