@@ -15,6 +15,8 @@ import com.example.exodia.user.repository.UserRepository;
 import com.example.exodia.user.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -84,12 +86,12 @@ public class CourseService {
     }
 
     /* 강좌 리스트*/
-    public List<CourseListDto> listCourses() {
-        return courseRepository.findByDelYn(DelYN.N).stream().map(course -> {
+    public Page<CourseListDto> listCourses(Pageable pageable) {
+        return courseRepository.findByDelYn(DelYN.N, pageable)
+                .map(course -> {
                     int currentParticipants = registrationRepository.countByCourse(course);
                     return CourseListDto.fromEntity(course, currentParticipants);
-                })
-                .collect(Collectors.toList());
+                });
     }
 
     /* 강좌 삭제 */
