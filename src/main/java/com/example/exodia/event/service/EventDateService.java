@@ -58,7 +58,6 @@ public class EventDateService {
                 .map(EventHistory::toDto)
                 .collect(Collectors.toList());
     }
-
     public EventDate getEventDate(String eventType) {
         return eventDateRepository.findByEventType(eventType)
                 .orElseThrow(() -> new RuntimeException("Event date not found for eventType: " + eventType));

@@ -1,6 +1,7 @@
 package com.example.exodia.evalutionavg.domain;
 
 import com.example.exodia.evalutionFrame.subevalution.domain.SubEvalution;
+import com.example.exodia.evalutionavg.dto.EvaluationAvgResDto;
 import com.example.exodia.user.domain.User;
 
 import jakarta.persistence.*;
@@ -35,8 +36,8 @@ public class EvalutionAvg {
 	private SubEvalution subEvalution; // 평가항목
 
 	@ManyToOne
-	@JoinColumn(name = "target_user_id", nullable = false)
-	private User targetUser; // 평가 대상자
+	@JoinColumn(name = "user_id", nullable = false)
+	private User user; // 평가 대상자
 
 	@Column(nullable = false)
 	private double avgScore; // 총점
@@ -48,8 +49,32 @@ public class EvalutionAvg {
 	public EvalutionAvg toEntity(SubEvalution subEvalution, User user, double score) {
 		return EvalutionAvg.builder()
 			.subEvalution(subEvalution)
-			.targetUser(user)
+			.user(user)
 			.avgScore(score)
+			.build();
+	}
+
+	// public EvaluationAvgResDto fromEntity(SubEvalution subEvalution, User user) {
+	// 	return EvaluationAvgResDto.builder()
+	// 		.subEvalutionId(subEvalution.getId())
+	// 		.subEvalutionContent(subEvalution.getContent())
+	// 		.midCategoryName(subEvalution.getEvalutionm().getMName())
+	// 		.bigCategoryName(subEvalution.getEvalutionm().getEvalutionb().getBName())
+	// 		.userName(user.getName())
+	// 		.userPosition(user.getPosition().getName())
+	// 		.avgScore(this.avgScore)
+	// 		.build();
+	// }
+
+	public EvaluationAvgResDto fromEntity() {
+		return EvaluationAvgResDto.builder()
+			.subEvalutionId(this.subEvalution.getId())
+			.subEvalutionContent(this.subEvalution.getContent())
+			.midCategoryName(this.subEvalution.getEvalutionm().getMName())
+			.bigCategoryName(subEvalution.getEvalutionm().getEvalutionb().getBName())
+			.userName(this.user.getName())
+			.userPosition(this.user.getPosition().getName())
+			.avgScore(this.avgScore)
 			.build();
 	}
 }

@@ -33,8 +33,6 @@ spring:
       max-lifetime: 500000
     tomcat:
       max-active: 25
-
-
   kafka:
     bootstrap-servers: ${KAFKA_SERVER}:9092
     consumer:
@@ -49,11 +47,9 @@ spring:
 
       notification-group:
         group-id: notification-group
-
-      chat-group:
-        group-id: chat-group
-
-
+#
+#      chat-group:
+#        group-id: chat-group
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
