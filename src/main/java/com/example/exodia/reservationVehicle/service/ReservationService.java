@@ -144,7 +144,7 @@ public class ReservationService {
                 reservation.getUser().getUserNum(), // 사용자 번호 추가
                 reservation.getCar().getCarNum(),
                 reservation.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-                reservation.getEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                reservation.getEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
                 reservation.getId()
         );
 
