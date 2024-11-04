@@ -21,6 +21,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -137,40 +138,36 @@ public class BoardService {
     }
 
     public Page<BoardListResDto> BoardListWithSearch(Pageable pageable, String searchType, String searchQuery, Category category, List<Long> tagIds) {
-        System.out.println("Received category in BoardListWithSearch: " + category); // 디버그: 전달된 카테고리 확인
-
         Page<Board> boards;
         if (searchQuery != null && !searchQuery.isEmpty()) {
             switch (searchType) {
                 case "title":
-                    boards = boardRepository.findByCategoryAndDelYnAndTitleContainingIgnoreCase(
+                    boards = boardRepository.findByCategoryAndDelYnAndIsPinnedFalseAndTitleContainingIgnoreCase(
                             category, DelYN.N, searchQuery, pageable);
                     break;
                 case "content":
-                    boards = boardRepository.findByCategoryAndDelYnAndContentContainingIgnoreCase(
+                    boards = boardRepository.findByCategoryAndDelYnAndIsPinnedFalseAndContentContainingIgnoreCase(
                             category, DelYN.N, searchQuery, pageable);
                     break;
                 case "tags":
-                    boards = boardRepository.findByCategoryAndDelYnAndTagsContainingIgnoreCase(
+                    boards = boardRepository.findByCategoryAndDelYnAndIsPinnedFalseAndTagsContainingIgnoreCase(
                             category, DelYN.N, searchQuery, pageable);
                     break;
                 case "title + content":
-                    boards = boardRepository.findByCategoryAndDelYnAndTitleOrContentContainingIgnoreCase(
+                    boards = boardRepository.findByCategoryAndDelYnAndIsPinnedFalseAndTitleOrContentContainingIgnoreCase(
                             category, DelYN.N, searchQuery, pageable);
                     break;
                 default:
-                    boards = boardRepository.findByCategoryAndDelYn(category, DelYN.N, pageable);
+                    boards = boardRepository.findByCategoryAndDelYnAndIsPinnedFalse(category, DelYN.N, pageable);
                     break;
             }
         } else {
-            boards = boardRepository.findByCategoryAndDelYn(category, DelYN.N, pageable);
+            boards = boardRepository.findByCategoryAndDelYnAndIsPinnedFalse(category, DelYN.N, pageable);
         }
-
-        // 결과 출력
-        System.out.println("Retrieved boards: " + boards.getContent());  // 디버그: 조회된 게시글 목록 출력
 
         return boards.map(Board::listFromEntity);
     }
+
 
 
 
@@ -268,6 +265,42 @@ public class BoardService {
         board.setIsPinned(isPinned);
         boardRepository.save(board);
     }
+
+    // BoardService.java
+    public List<BoardListResDto> getPinnedBoards() {
+        // 고정된 게시물 필터링 및 변환
+        List<Board> pinnedBoards = boardRepository.findByIsPinnedTrue(Sort.by(Sort.Direction.DESC, "createdAt"));
+        return pinnedBoards.stream()
+                .map(board -> BoardListResDto.builder()
+                        .id(board.getId())
+                        .title(board.getTitle())
+                        .category(board.getCategory())
+                        .hits(board.getHits())
+                        .user_num(board.getUser().getUserNum())
+                        .createdAt(board.getCreatedAt())
+                        .updatedAt(board.getUpdatedAt())
+                        .isPinned(board.getIsPinned())
+                        .build())
+
+                .collect(Collectors.toList());
+    }
+
+    public long getTotalBoardCount(String category) {
+        Category boardCategory;
+
+        // 카테고리 변환
+        if ("familyevent".equalsIgnoreCase(category)) {
+            boardCategory = Category.FAMILY_EVENT;
+        } else if ("notice".equalsIgnoreCase(category)) {
+            boardCategory = Category.NOTICE;
+        } else {
+            throw new IllegalArgumentException("유효하지 않은 카테고리입니다.");
+        }
+
+        // 해당 카테고리와 삭제 여부(N) 기준으로 전체 게시물 개수를 반환
+        return boardRepository.countByCategoryAndDelYn(boardCategory, DelYN.N);
+    }
+
 }
 
 

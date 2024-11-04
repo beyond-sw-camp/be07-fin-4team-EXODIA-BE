@@ -6,6 +6,7 @@ import com.example.exodia.common.domain.DelYN;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -15,33 +16,41 @@ import java.util.Optional;
 
 public interface BoardRepository extends JpaRepository<Board, Long> {
 
-    // 카테고리와 삭제 여부로만 필터링하여 검색
-    Page<Board> findByCategoryAndDelYn(Category category, DelYN delYN, Pageable pageable);
+    // 고정되지 않은 게시글만 필터링하여 카테고리와 삭제 여부로 검색
+    Page<Board> findByCategoryAndDelYnAndIsPinnedFalse(Category category, DelYN delYN, Pageable pageable);
 
     Optional<Board> findById(Long boardId);
 
-    @Query("SELECT b FROM Board b WHERE b.category = :category AND b.delYn = :delYn AND " +
+    // 고정되지 않은 게시글에서 제목을 검색
+    @Query("SELECT b FROM Board b WHERE b.category = :category AND b.delYn = :delYn AND b.isPinned = false AND " +
             "LOWER(b.title) LIKE LOWER(CONCAT('%', :searchQuery, '%'))")
-    Page<Board> findByCategoryAndDelYnAndTitleContainingIgnoreCase(
+    Page<Board> findByCategoryAndDelYnAndIsPinnedFalseAndTitleContainingIgnoreCase(
             Category category, DelYN delYn, String searchQuery, Pageable pageable);
 
-    @Query("SELECT b FROM Board b WHERE b.category = :category AND b.delYn = :delYn AND " +
+    // 고정되지 않은 게시글에서 내용을 검색
+    @Query("SELECT b FROM Board b WHERE b.category = :category AND b.delYn = :delYn AND b.isPinned = false AND " +
             "LOWER(b.content) LIKE LOWER(CONCAT('%', :searchQuery, '%'))")
-    Page<Board> findByCategoryAndDelYnAndContentContainingIgnoreCase(
+    Page<Board> findByCategoryAndDelYnAndIsPinnedFalseAndContentContainingIgnoreCase(
             Category category, DelYN delYn, String searchQuery, Pageable pageable);
 
-    // 태그 이름으로 검색하고 카테고리와 삭제 여부에 따라 필터링
-    @Query("SELECT b FROM Board b JOIN b.boardTags bt JOIN bt.boardTags t WHERE b.category = :category AND b.delYn = :delYn AND " +
+    // 고정되지 않은 게시글에서 태그를 검색
+    @Query("SELECT b FROM Board b JOIN b.boardTags bt JOIN bt.boardTags t WHERE b.category = :category AND b.delYn = :delYn AND b.isPinned = false AND " +
             "LOWER(t.tag) LIKE LOWER(CONCAT('%', :searchQuery, '%'))")
-    Page<Board> findByCategoryAndDelYnAndTagsContainingIgnoreCase(
+    Page<Board> findByCategoryAndDelYnAndIsPinnedFalseAndTagsContainingIgnoreCase(
             Category category, DelYN delYn, String searchQuery, Pageable pageable);
 
-    @Query("SELECT b FROM Board b WHERE b.category = :category AND b.delYn = :delYn AND " +
+    // 고정되지 않은 게시글에서 제목 또는 내용을 검색
+    @Query("SELECT b FROM Board b WHERE b.category = :category AND b.delYn = :delYn AND b.isPinned = false AND " +
             "(LOWER(b.title) LIKE LOWER(CONCAT('%', :searchQuery, '%')) OR LOWER(b.content) LIKE LOWER(CONCAT('%', :searchQuery, '%')))")
-    Page<Board> findByCategoryAndDelYnAndTitleOrContentContainingIgnoreCase(
+    Page<Board> findByCategoryAndDelYnAndIsPinnedFalseAndTitleOrContentContainingIgnoreCase(
             Category category, DelYN delYn, String searchQuery, Pageable pageable);
 
-    // 소프트 삭제
+    // 고정된 게시글만 가져오는 메서드
+    List<Board> findByIsPinnedTrue(Sort sort);
+
+    long countByCategoryAndDelYn(Category category, DelYN delYn);
+
+    // 소프트 삭제 메서드
     @Modifying
     @Transactional
     @Query("UPDATE Board b SET b.delYn = 'Y' WHERE b.id = :boardId")
