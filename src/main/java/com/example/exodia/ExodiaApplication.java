@@ -7,11 +7,10 @@ import org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestCli
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication(exclude = {ElasticsearchDataAutoConfiguration.class, ElasticsearchRestClientAutoConfiguration.class})
-// @EnableScheduling
+@EnableScheduling
 public class ExodiaApplication {
 
 	public static void main(String[] args) {
-
 		SpringApplication.run(ExodiaApplication.class, args);
 	}
 
