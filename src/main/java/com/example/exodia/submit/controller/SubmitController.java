@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 
 import com.example.exodia.submit.dto.SubmitListResDto;
+
 import jakarta.persistence.EntityNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.exodia.common.dto.CommonErrorDto;
@@ -59,12 +61,14 @@ public class SubmitController {
 		try {
 			List<SubmitLine> submits = submitService.updateSubmit(submitStatusUpdateDto);
 			return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "결재 상태 변경 성공", submits.size()));
-		}catch(EntityNotFoundException e) {
+		} catch (EntityNotFoundException e) {
 			e.printStackTrace();
-			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()), HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()),
+				HttpStatus.BAD_REQUEST);
 		} catch (IOException e) {
 			e.printStackTrace();
-			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()), HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()),
+				HttpStatus.BAD_REQUEST);
 
 		}
 	}
@@ -90,7 +94,6 @@ public class SubmitController {
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "내가 요청한 결재 리스트 조회 성공", submitTypes));
 	}
 
-
 	// 결재 상세조회
 	@GetMapping("/detail/{id}")
 	public ResponseEntity<?> detailSubmit(@PathVariable Long id) {
@@ -102,14 +105,21 @@ public class SubmitController {
 	@GetMapping("/delete/{id}")
 	public ResponseEntity<?> deleteSubmit(@PathVariable Long id) {
 		submitService.deleteSubmit(id);
-		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "결재 취소 성공", null ));
+		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "결재 취소 성공", null));
 	}
 
 	// 결재 라인 조회
 	@GetMapping("/list/submitLine/{id}")
-	public ResponseEntity<?> getSubmitLine(@PathVariable Long id){
+	public ResponseEntity<?> getSubmitLine(@PathVariable Long id) {
 		submitService.getSubmitLines(id);
-		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "결재라인 조회 성공", submitService.getSubmitLines(id) ));
+		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "결재라인 조회 성공", submitService.getSubmitLines(id)));
+	}
+
+	@GetMapping("/filter")
+	public ResponseEntity<?> filterSubmit(@RequestParam String filterType,
+		@RequestParam String filterValue, Pageable pageable) {
+		Page<SubmitListResDto> submits = submitService.filterSubmit(filterType,filterValue, pageable);
+		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "결재 필터링 성공", submits));
 	}
 
 }

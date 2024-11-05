@@ -27,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.exodia.department.domain.Department;
 import com.example.exodia.department.repository.DepartmentRepository;
-import com.example.exodia.meetingInvitation.domain.MeetingInvitation;
 import com.example.exodia.position.domain.Position;
 import com.example.exodia.position.repository.PositionRepository;
 import com.example.exodia.submit.domain.Submit;
@@ -255,6 +254,7 @@ public class SubmitService {
 	}
 
 	// 내가 요청한 결재 리스트 조회
+	@Transactional
 	public Page<SubmitListResDto> getMySubmitList(Pageable pageable) {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 		User user = userRepository.findByUserNum(userNum)
@@ -404,5 +404,19 @@ public class SubmitService {
 			user.setN_status(NowStatus.휴가);
 			userRepository.save(user);
 		});
+	}
+
+	@Transactional
+	public Page<SubmitListResDto> filterSubmit(String filterType, String  filterValue, Pageable pageable) {
+		Page<Submit> submits = Page.empty();
+		if(filterType.equals("submitStatus")){
+			SubmitStatus status = SubmitStatus.valueOf(filterValue);
+			submits = submitRepository.findBySubmitStatusOrderByCreatedAtDesc(status, pageable);
+		}else if(filterType.equals("submitType")){
+			SubmitType type = submitTypeRepository.findByTypeName(filterValue);
+			submits = submitRepository.findBySubmitTypeOrderByCreatedAtDesc(filterValue, pageable);
+		}
+		return submits.map(submit -> new SubmitListResDto().fromEntity(submit));
+
 	}
 }

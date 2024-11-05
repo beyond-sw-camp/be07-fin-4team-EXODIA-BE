@@ -33,7 +33,7 @@ public class SalaryService {
     private final double[] INCOME_TAX_RATES = {0.06, 0.15, 0.24, 0.35, 0.38, 0.40, 0.42, 0.45};
     private final double[] INCOME_TAX_FIXED_AMOUNTS = {0, 1260000, 5670000, 14900000, 34200000, 62200000, 112200000};
 
-//    @Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public Salary getSalarySlip(User user) {
         Optional<Salary> salaryOpt = salaryRepository.findByUser(user);
 
@@ -97,12 +97,12 @@ public class SalaryService {
         return tax;
     }
 
-//    @Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public Page<Salary> getAllSalaries(Pageable pageable) {
         return salaryRepository.findAll(pageable);
     }
 
-//    @Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public Optional<Salary> getSalaryByUserNum(String userNum) {
         return salaryRepository.findByUser_UserNum(userNum);
     }

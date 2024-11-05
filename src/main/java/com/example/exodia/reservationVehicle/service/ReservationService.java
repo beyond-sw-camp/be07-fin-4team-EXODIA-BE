@@ -177,7 +177,7 @@ public class ReservationService {
                 .stream().map(ReservationDto::fromEntity).collect(Collectors.toList());
     }
 
-//    @Transactional
+    @Transactional
     // 모든 예약 조회 메서드
     public List<ReservationDto> getAllReservations() {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();

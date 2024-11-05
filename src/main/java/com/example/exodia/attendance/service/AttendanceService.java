@@ -14,6 +14,9 @@ import com.example.exodia.user.repository.UserRepository;
 
 import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -316,7 +319,7 @@ public class AttendanceService {
 	}
 
 	@Transactional
-	public List<?> getTodayRecords() throws IOException {
+	public Page<UserStatusAndTime> getTodayRecords(Pageable pageable) throws IOException {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 		// 로그인한 유저 정보 가져오기
 		User loggedInUser = userRepository.findByUserNum(userNum)
@@ -338,11 +341,11 @@ public class AttendanceService {
 		LocalDateTime currentTime = LocalDateTime.now();
 
 		List<UserStatusAndTime> times = new ArrayList<>();
-		List<Attendance> at = attendanceRepository.findTodayRecords(startOfDay, currentTime);
+		Page<Attendance> attendanceRecords = attendanceRepository.findTodayRecords(startOfDay, currentTime, pageable);
 
 		for (User user : users) {
 			// User와 매칭되는 Attendance를 찾음
-			Attendance attendanceRecord = at.stream()
+			Attendance attendanceRecord = attendanceRecords.stream()
 				.filter(att -> att.getUser().getId().equals(user.getId()))
 				.findFirst()
 				.orElse(null);
@@ -353,7 +356,6 @@ public class AttendanceService {
 					.userNum(user.getUserNum())
 					.departmentName(user.getDepartment().getName())
 					.positionName(user.getPosition().getName())
-					.positionId(user.getPosition().getId())
 					.profileImage(user.getProfileImage())
 					.nowStatus(user.getN_status())
 					.inTime(attendanceRecord.getInTime())
@@ -367,7 +369,6 @@ public class AttendanceService {
 					.userNum(user.getUserNum())
 					.departmentName(user.getDepartment().getName())
 					.positionName(user.getPosition().getName())
-					.positionId(user.getPosition().getId())
 					.profileImage(user.getProfileImage())
 					.nowStatus(NowStatus.근무전)
 					.inTime(null)
@@ -376,8 +377,7 @@ public class AttendanceService {
 				);
 			}
 		}
-
-		return times;
+		return new PageImpl<>(times, pageable, attendanceRecords.getTotalElements());
 	}
 
 	@Transactional
