@@ -158,11 +158,11 @@ public class ChatRoomService {
             if(unreadNum != null){
                 unreadChat = Integer.parseInt(unreadNum);
             }
-            if(chatRoom.getRoomName().equals(searchValue)){
+            if(chatRoom.getRoomName().contains(searchValue)){
                 chatRoomResponseList.add(chatRoom.fromEntity(unreadChat));
             }
             for(ChatUser chatUser : chatRoom.getChatUsers()){
-                if(chatUser.getUser().getName().equals(searchValue)){
+                if(chatUser.getUser().getName().contains(searchValue)){
                     chatRoomResponseList.add(chatRoom.fromEntity(unreadChat));
                 }
             }
