@@ -24,6 +24,7 @@ public class DepartmentController {
     private final DepartmentService departmentService;
     private final UserService userService;
 
+
     @GetMapping("/hierarchy")
     public ResponseEntity<List<Map<String, Object>>> getDepartmentHierarchy() {
         List<Map<String, Object>> hierarchy = departmentService.getDepartmentHierarchy();
@@ -41,6 +42,7 @@ public class DepartmentController {
         return new ResponseEntity<>(department, HttpStatus.CREATED);
     }
 
+    @Transactional
     @PutMapping("/{id}")
     public ResponseEntity<Department> updateDepartment(
             @PathVariable Long id,
