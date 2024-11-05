@@ -22,14 +22,31 @@ public class OpenViduService {
     }
 
     // 연결 생성
-    public String createConnection(String sessionId) throws OpenViduJavaClientException, OpenViduHttpException {
+    public String createConnection(String sessionId, String userName) throws OpenViduJavaClientException, OpenViduHttpException {
         Session session = openVidu.getActiveSession(sessionId);
         if (session == null) {
             throw new RuntimeException("Session not found");
         }
-        Connection connection = session.createConnection(new ConnectionProperties.Builder().build());
+
+        ConnectionProperties connectionProperties = new ConnectionProperties.Builder()
+                .type(ConnectionType.WEBRTC)
+                .data(userName)
+                .build();
+
+        Connection connection = session.createConnection(connectionProperties);
         return connection.getToken();
     }
+
+//
+//    public String createConnection(String sessionId) throws OpenViduJavaClientException, OpenViduHttpException {
+//        Session session = openVidu.getActiveSession(sessionId);
+//        if (session == null) {
+//            throw new RuntimeException("Session not found");
+//        }
+//        Connection connection = session.createConnection(new ConnectionProperties.Builder().build());
+//        return connection.getToken();
+//    }
+//
 
     // 세션 종료
     public void closeSession(String sessionId) throws OpenViduJavaClientException, OpenViduHttpException {

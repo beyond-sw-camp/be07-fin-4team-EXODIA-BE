@@ -48,7 +48,8 @@ public class RoomService {
         room.setPassword(password);
         room = roomRepository.save(room);
 
-        String token = joinRoom(sessionId, userNum);
+        String userName = getUserNameByUserNum(userNum);
+        String token = joinRoom(sessionId, userNum, userName);
 
         Map<String, String> response = new HashMap<>();
         response.put("sessionId", sessionId);
@@ -62,7 +63,7 @@ public class RoomService {
     }
 
 
-    public String joinRoom(String sessionId, String userNum) throws OpenViduJavaClientException, OpenViduHttpException {
+    public String joinRoom(String sessionId, String userNum, String userName) throws OpenViduJavaClientException, OpenViduHttpException {
         Room room = roomRepository.findBySessionId(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Room not found"));
 
@@ -74,7 +75,7 @@ public class RoomService {
             return existingParticipant.get().getToken();
         }
 
-        String token = openViduService.createConnection(sessionId);
+        String token = openViduService.createConnection(sessionId, userName);
 
         Participant participant = new Participant();
         participant.setUser(user);
@@ -87,7 +88,6 @@ public class RoomService {
 
         return token;
     }
-
 
 
     @Transactional
@@ -123,4 +123,12 @@ public class RoomService {
     public List<Room> getRoomList() {
         return roomRepository.findAll();
     }
+
+
+    public String getUserNameByUserNum(String userNum) {
+        return userRepository.findByUserNum(userNum)
+                .map(User::getName)
+                .orElse("Unknown User");
+    }
+
 }
