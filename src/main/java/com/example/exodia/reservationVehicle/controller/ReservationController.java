@@ -6,6 +6,9 @@ import com.example.exodia.reservationVehicle.dto.ReservationCreateDto;
 import com.example.exodia.reservationVehicle.dto.ReservationDto;
 import com.example.exodia.reservationVehicle.service.ReservationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -61,14 +64,17 @@ public class ReservationController {
         return ResponseEntity.ok(reservations);
     }
 
-    // 모든 예약 조회 API (관리자 권한 필요)
     @GetMapping("/car/alllist")
     @PreAuthorize("hasRole('ADMIN')")
-    //@Operation(summary= "[관리자 사용자] 차량 예약 조회 API")
-    public ResponseEntity<List<ReservationDto>> getAllReservations() {
-        List<ReservationDto> reservations = reservationService.getAllReservations();
+    public ResponseEntity<Page<ReservationDto>> getAllReservations(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ReservationDto> reservations = reservationService.getAllReservations(pageable);
         return ResponseEntity.ok(reservations);
     }
+
 
     @GetMapping("/allcar/day")
     public ResponseEntity<List<CarReservationStatusDto>> getReservationsForDayAllCar(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {

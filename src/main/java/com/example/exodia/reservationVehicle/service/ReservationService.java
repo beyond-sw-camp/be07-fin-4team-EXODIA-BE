@@ -17,6 +17,8 @@ import com.example.exodia.user.service.UserService;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -178,18 +180,15 @@ public class ReservationService {
     }
 
     @Transactional
-    // 모든 예약 조회 메서드
-    public List<ReservationDto> getAllReservations() {
+    public Page<ReservationDto> getAllReservations(Pageable pageable) {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUserNum(userNum)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
-//        userService.checkHrAuthority(user.getDepartment().getId().toString());
-
-        return reservationRepository.findAll().stream()
-                .map(ReservationDto::fromEntity)
-                .collect(Collectors.toList());
+        Page<Reservation> reservations = reservationRepository.findAll(pageable);
+        return reservations.map(ReservationDto::fromEntity);
     }
+
 
     @Transactional
     public List<CarReservationStatusDto> getAllCarsWithReservationStatusForDay(LocalDateTime date) {
