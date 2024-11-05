@@ -6,7 +6,6 @@ import com.example.exodia.comment.dto.document.CommentDocListResDto;
 import com.example.exodia.common.domain.BaseTimeEntity;
 import com.example.exodia.document.domain.Document;
 import com.example.exodia.user.domain.User;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -20,8 +19,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -48,6 +49,7 @@ public class CommentDoc extends BaseTimeEntity {
 			return CommentDocListResDto.builder()
 				.id(this.id)
 				.userName(this.user.getName())
+				.userNum(this.user.getUserNum())
 				.userProfileImage(this.user.getProfileImage())
 				.contents(this.contents)
 				.createdAt(this.getCreatedAt())
