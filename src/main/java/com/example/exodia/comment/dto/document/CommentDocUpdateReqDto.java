@@ -2,6 +2,8 @@ package com.example.exodia.comment.dto.document;
 
 import java.time.LocalDateTime;
 
+import com.example.exodia.comment.domain.CommentDoc;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,11 +13,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CommentDocListResDto {
-	private Long id;
-	private String contents;
-	private String userName;
+public class CommentDocUpdateReqDto {
+	private Long commentId;
 	private String userNum;
-	private String userProfileImage;
-	private LocalDateTime createdAt;
+	private String contents;
 }

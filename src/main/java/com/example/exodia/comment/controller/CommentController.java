@@ -7,6 +7,7 @@ import com.example.exodia.comment.dto.CommentSaveReqDto;
 import com.example.exodia.comment.dto.CommentUpdateDto;
 import com.example.exodia.comment.dto.document.CommentDocListResDto;
 import com.example.exodia.comment.dto.document.CommentDocSaveReqDto;
+import com.example.exodia.comment.dto.document.CommentDocUpdateReqDto;
 import com.example.exodia.comment.service.CommentService;
 import com.example.exodia.common.dto.CommonErrorDto;
 import com.example.exodia.common.dto.CommonResDto;
@@ -163,14 +164,25 @@ public class CommentController {
         }
     }
 
+    @PutMapping("/document/update/{id}")
+    public ResponseEntity<?> updateComment(@PathVariable Long id, @RequestBody CommentDocUpdateReqDto dto) {
+        try {
+            commentService.updateDocComment(id, dto);
+            return ResponseEntity.ok("댓글이 성공적으로 수정되었습니다.");
+        } catch (SecurityException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
     // 	문서 댓글 삭제
     @DeleteMapping("/document/delete/{id}")
     public ResponseEntity<?> deleteDocComment(@PathVariable Long id) {
         try {
             commentService.deleteDocComment(id);
-            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "댓글이 성공적으로 삭제되었습니다.", ""));
+            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "파일에 대한 댓글이 성공적으로 삭제되었습니다.", ""));
         } catch (EntityNotFoundException e) {
-            e.printStackTrace();
             return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, e.getMessage()), HttpStatus.BAD_REQUEST);
         }
     }
