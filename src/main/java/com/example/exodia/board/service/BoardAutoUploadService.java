@@ -67,19 +67,16 @@ public class BoardAutoUploadService {
             String randomDate = eventType.equals("결혼") ? getRandomDate(4, ChronoUnit.MONTHS) : getRandomDate(2, ChronoUnit.WEEKS);
 
             String title = generateTitle(submit.getContents(), user, randomDate);
-            System.out.println("Final Generated Title: " + title); // 제목 확인
+            System.out.println("Final Generated Title: " + title);
 
             String content = generateContent(submit.getContents(), user, randomLocation, randomDate, eventType);
 
             BoardSaveReqDto boardDto = BoardSaveReqDto.builder()
                     .userNum(submit.getUserNum())
                     .category(Category.FAMILY_EVENT)
-                    .title(title)  // 제목 설정
-                    .content(content)  // 내용 설정
+                    .title(title)
+                    .content(content)
                     .build();
-
-            System.out.println("Final Board Title: " + boardDto.getTitle()); // 최종 저장 전 제목 출력 확인
-            System.out.println("Final Board Content: " + boardDto.getContent()); // 최종 저장 전 내용 출력 확인
 
             boardService.createBoard(boardDto, Collections.emptyList(), null);
         }
