@@ -79,8 +79,7 @@ jwt:
 google:
   credentials:
     file:
-#      path: credentials.json
-      path: ${GOOGLE_SECRET_FILE}
+      path: credentials.json
 cloud:
   aws:
     credentials:
