@@ -220,38 +220,65 @@ public class SubmitService {
 	}
 
 	// 나에게 요청 들어온 결재 리스트 조회
+	// @Transactional
+	// public List<?> getSubmitList(Pageable pageable) {
+	// 	String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+	//
+	// 	List<SubmitLine> submitLines = submitLineRepository.findAllByUserNumOrderByCreatedAtDesc(userNum);
+	// 	List<SubmitListResDto> submitList = new ArrayList<>();
+	//
+	// 	for (SubmitLine submitLine : submitLines) {
+	// 		User user = submitLine.getSubmit().getUser();
+	// 		Long submitLineId = submitLine.getId();
+	//
+	// 		Optional<SubmitLine> before = submitLineRepository.findById(submitLineId - 1L);
+	//
+	// 		if (!before.isEmpty()) {
+	// 				SubmitLine beforeSubmit = before.get();
+	//
+	// 			// 유일한 경우가 아니고 이전 결재가 승인 상태라면?
+	// 			if (beforeSubmit.getSubmit() == submitLine.getSubmit()) {
+	// 				if(beforeSubmit.getSubmitStatus() == SubmitStatus.승인){
+	// 					submitList.add(new SubmitListResDto().fromLineEntity(user, submitLine));
+	// 				}
+	// 			}else{
+	// 				// 있긴한데 다른 결재인 경우
+	// 				submitList.add(new SubmitListResDto().fromLineEntity(user, submitLine));
+	// 			}
+	// 		}else {
+	// 			// 이전 결재가 없는 경우
+	// 			submitList.add(new SubmitListResDto().fromLineEntity(user, submitLine));
+	// 		}
+	// 	}
+	// 	return submitList;
+	// }
+
 	@Transactional
-	public List<?> getSubmitList() {
+	public Page<SubmitListResDto> getSubmitList(Pageable pageable) {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 
-		List<SubmitLine> submitLines = submitLineRepository.findAllByUserNumOrderByCreatedAtDesc(userNum);
-		List<SubmitListResDto> submitList = new ArrayList<>();
+		Page<SubmitLine> submitLines = submitLineRepository.findAllByUserNumOrderByCreatedAtDesc(userNum, pageable);
 
-		for (SubmitLine submitLine : submitLines) {
+		Page<SubmitListResDto> submitList = submitLines.map(submitLine -> {
 			User user = submitLine.getSubmit().getUser();
 			Long submitLineId = submitLine.getId();
 
 			Optional<SubmitLine> before = submitLineRepository.findById(submitLineId - 1L);
 
-			if (!before.isEmpty()) {
-					SubmitLine beforeSubmit = before.get();
+			if (before.isPresent()) {
+				SubmitLine beforeSubmit = before.get();
 
-				// 유일한 경우가 아니고 이전 결재가 승인 상태라면?
-				if (beforeSubmit.getSubmit() == submitLine.getSubmit()) {
-					if(beforeSubmit.getSubmitStatus() == SubmitStatus.승인){
-						submitList.add(new SubmitListResDto().fromLineEntity(user, submitLine));
-					}
-				}else{
-					// 있긴한데 다른 결재인 경우
-					submitList.add(new SubmitListResDto().fromLineEntity(user, submitLine));
+				if (beforeSubmit.getSubmit() == submitLine.getSubmit() &&
+					beforeSubmit.getSubmitStatus() == SubmitStatus.승인) {
+					return new SubmitListResDto().fromLineEntity(user, submitLine);
 				}
-			}else {
-				// 이전 결재가 없는 경우
-				submitList.add(new SubmitListResDto().fromLineEntity(user, submitLine));
 			}
-		}
+			return new SubmitListResDto().fromLineEntity(user, submitLine);
+		});
+
 		return submitList;
 	}
+
 
 	// 내가 요청한 결재 리스트 조회
 	@Transactional
@@ -407,16 +434,21 @@ public class SubmitService {
 	}
 
 	@Transactional
-	public Page<SubmitListResDto> filterSubmit(String filterType, String  filterValue, Pageable pageable) {
+	public Page<SubmitListResDto> filterMySubmit(String filterType, String  filterValue, Pageable pageable) {
+		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+		User user = userRepository.findByUserNum(userNum)
+			.orElseThrow(() -> new EntityNotFoundException("회원정보가 존재하지 않습니다."));
+
 		Page<Submit> submits = Page.empty();
 		if(filterType.equals("submitStatus")){
 			SubmitStatus status = SubmitStatus.valueOf(filterValue);
-			submits = submitRepository.findBySubmitStatusOrderByCreatedAtDesc(status, pageable);
+			submits = submitRepository.findBySubmitStatusAndUserOrderByCreatedAtDesc(status, user, pageable);
 		}else if(filterType.equals("submitType")){
 			SubmitType type = submitTypeRepository.findByTypeName(filterValue);
-			submits = submitRepository.findBySubmitTypeOrderByCreatedAtDesc(filterValue, pageable);
+			submits = submitRepository.findBySubmitTypeAndUserOrderByCreatedAtDesc(filterValue, user,  pageable);
 		}
 		return submits.map(submit -> new SubmitListResDto().fromEntity(submit));
 
 	}
+
 }
