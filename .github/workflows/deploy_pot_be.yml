@@ -27,6 +27,14 @@ jobs:
       - name: update cluster information
         run: aws eks update-kubeconfig --name exodia-cluster --region ap-northeast-2
 
+
+      - name: create-google-json
+        uses: jsdaniell/create-json@v1.2.3
+        with:
+          name: "credentials.json"
+          json: ${{ secrets.GOOGLE_CREDENTIALS }}
+          dir: './src/main/resources'
+
       - name: login ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1

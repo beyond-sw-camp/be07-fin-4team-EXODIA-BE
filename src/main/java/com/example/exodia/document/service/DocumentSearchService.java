@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.opensearch.client.opensearch.OpenSearchClient;
+import org.opensearch.client.opensearch._types.FieldValue;
 import org.opensearch.client.opensearch.core.DeleteRequest;
 import org.opensearch.client.opensearch.core.DeleteResponse;
 import org.opensearch.client.opensearch.core.IndexRequest;
@@ -25,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.exodia.document.domain.Document;
 import com.example.exodia.document.domain.EsDocument;
 import com.example.exodia.document.dto.DocListResDto;
+import com.example.exodia.document.dto.DocumentFilterDto;
 import com.example.exodia.document.dto.DocumentSearchDto;
 import com.example.exodia.document.repository.DocumentRepository;
 
@@ -81,7 +83,7 @@ public class DocumentSearchService {
 					.document(esDocument)
 			);
 			IndexResponse response = openSearchClient.index(indexRequest);
-			System.out.println("OpenSearch에 인덱싱 : " + response);
+			// System.out.println("OpenSearch에 인덱싱 : " + response);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -100,7 +102,7 @@ public class DocumentSearchService {
 						.bool(bool -> {
 								String searchType = documentSearchDto.getSearchType();
 								String keyword = "*" + documentSearchDto.getKeyword() + "*";
-
+								// 작성자명에서 검색
 								if ("userName".equals(searchType)) {
 									bool.should(should -> should
 										.wildcard(wildcard -> wildcard
@@ -109,6 +111,7 @@ public class DocumentSearchService {
 										)
 									);
 								} else if ("title".equals(searchType)) {
+									// 제목에서 검색
 									bool.should(should -> should
 										.wildcard(wildcard -> wildcard
 											.field("fileName")
@@ -116,6 +119,7 @@ public class DocumentSearchService {
 										)
 									);
 								} else if ("description".equals(searchType)) {
+									// 설명에서 검색
 									bool.should(should -> should
 										.wildcard(wildcard -> wildcard
 											.field("description")
@@ -123,6 +127,7 @@ public class DocumentSearchService {
 										)
 									);
 								} else {
+									// 전체에서 검색하면 -> 파일 이름, 상세에서 검색
 									bool.should(should -> should
 										.wildcard(wildcard -> wildcard
 											.field("fileName")
@@ -162,6 +167,47 @@ public class DocumentSearchService {
 		return Page.empty();
 	}
 
+	// OpenSearch에서 필터링
+	@Transactional
+	public Page<EsDocument> filterDocuments(DocumentFilterDto documentFilterDto, int page, int size) {
+		List<EsDocument> documents = new ArrayList<>();
+		try {
+			SearchRequest request = SearchRequest.of(searchRequest ->
+				searchRequest.index(INDEX_NAME)
+					.from(page * size)
+					.size(size)
+					.query(query -> query
+						.bool(bool -> {
+								String filterType = documentFilterDto.getSearchType();
+								String keyword = documentFilterDto.getKeyword();
+								bool.filter(filter -> filter
+									.term(term -> term.field(filterType).value(FieldValue.of(keyword)))
+								);
+								return bool;
+							}
+						)
+					)
+			);
+
+			// 검색 결과
+			SearchResponse<EsDocument> response = openSearchClient.search(request, EsDocument.class);
+			List<Hit<EsDocument>> hits = response.hits().hits();
+
+			System.out.println("hits.size() : " + hits.size());
+			for (Hit<EsDocument> hit : hits) {
+				EsDocument esDocument = hit.source();
+				documents.add(esDocument);
+			}
+			Pageable pageable = PageRequest.of(page, size);
+			long totalHits = response.hits().total().value();  // Total number of hits for pagination
+
+			return new PageImpl<>(documents, pageable, totalHits);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return Page.empty();
+	}
+
 	// 삭제
 	@Transactional
 	public void deleteDocument(String id) {
@@ -175,7 +221,7 @@ public class DocumentSearchService {
 		}
 	}
 
-	// 기본 검색
+	// 기본 쿼리 검색 (전체에서 검색)
 	public List<DocListResDto> searchDocumentsQuery(String keyword) {
 		List<Document> docs = documentRepository.searchByKeyword(keyword);
 		List<DocListResDto> docListResDtos = new ArrayList<>();

@@ -4,6 +4,9 @@ import com.example.exodia.attendance.domain.Attendance;
 import com.example.exodia.department.domain.Department;
 import com.example.exodia.user.domain.User;
 import io.lettuce.core.dynamic.annotation.Param;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -30,6 +33,5 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
 
     // 사용자의 오늘 하루 기록
     @Query("SELECT a FROM Attendance a WHERE a.inTime >= :startOfDay AND a.inTime <= :currentTime")
-    List<Attendance> findTodayRecords(@Param("startOfDay") LocalDateTime startOfDay, @Param("currentTime") LocalDateTime currentTime);
-
+    Page<Attendance> findTodayRecords(LocalDateTime startOfDay, LocalDateTime currentTime, Pageable pageable);
 }
