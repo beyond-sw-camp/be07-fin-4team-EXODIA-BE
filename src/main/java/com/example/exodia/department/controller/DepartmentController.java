@@ -42,7 +42,7 @@ public class DepartmentController {
         return new ResponseEntity<>(department, HttpStatus.CREATED);
     }
 
-
+    @Transactional
     @PutMapping("/{id}")
     public ResponseEntity<Department> updateDepartment(
             @PathVariable Long id,
@@ -87,7 +87,7 @@ public class DepartmentController {
     public ResponseEntity<?> getDepartmentName(@PathVariable Long id) {
         return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "부서 이름 조회 성공", departmentService.getDepartmentName(id)));
     }
-
+    @Transactional
     @GetMapping("/{departmentId}/users")
     public ResponseEntity<List<UserInfoDto>> getUsersByDepartment(@PathVariable Long departmentId) {
         List<UserInfoDto> users = userService.getUsersByDepartment(departmentId);
