@@ -108,6 +108,7 @@ public class CourseService {
     }
 
     /* 강좌 리스트*/
+    @Transactional
     public Page<CourseListDto> listCourses(Pageable pageable) {
         return courseRepository.findByDelYn(DelYN.N, pageable)
                 .map(course -> {
@@ -136,7 +137,7 @@ public class CourseService {
         courseRepository.save(course);
     }
 
-
+    @Transactional
     public List<CourseListDto> getMyRegisteredCourses() {
         String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUserNum(userNum)

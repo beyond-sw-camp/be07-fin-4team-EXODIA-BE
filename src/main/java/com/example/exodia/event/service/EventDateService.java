@@ -77,7 +77,7 @@ public class EventDateService {
     }
     public EventDate getEventDate(String eventType) {
         return eventDateRepository.findByEventType(eventType)
-                .orElseThrow(() -> new RuntimeException("Event date not found for eventType: " + eventType));
+                .orElseThrow(() -> new RuntimeException("이벤트 타입에 대한 이벤트가 설정되지 않았습니다 : " + eventType));
     }
 
     public List<EventDate> getAllEvents() {
