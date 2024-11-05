@@ -82,8 +82,8 @@ public class SubmitController {
 
 	// 나에게 요청 들어온 결재 리스트 조회
 	@GetMapping("/list")
-	public ResponseEntity<?> findReqSubmits() {
-		List<?> submitTypes = submitService.getSubmitList();
+	public ResponseEntity<?> findReqSubmits(Pageable pageable) {
+		Page<?> submitTypes = submitService.getSubmitList(pageable);
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "나에게 요청 된 결재 리스트 조회 성공", submitTypes));
 	}
 
@@ -115,10 +115,10 @@ public class SubmitController {
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "결재라인 조회 성공", submitService.getSubmitLines(id)));
 	}
 
-	@GetMapping("/filter")
-	public ResponseEntity<?> filterSubmit(@RequestParam String filterType,
+	@GetMapping("/filter/my")
+	public ResponseEntity<?> filterMySubmit(@RequestParam String filterType,
 		@RequestParam String filterValue, Pageable pageable) {
-		Page<SubmitListResDto> submits = submitService.filterSubmit(filterType,filterValue, pageable);
+		Page<SubmitListResDto> submits = submitService.filterMySubmit(filterType,filterValue, pageable);
 		return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "결재 필터링 성공", submits));
 	}
 
