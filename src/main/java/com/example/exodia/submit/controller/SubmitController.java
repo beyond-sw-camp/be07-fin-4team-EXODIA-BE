@@ -3,7 +3,6 @@ package com.example.exodia.submit.controller;
 import java.io.IOException;
 import java.util.List;
 
-import com.example.exodia.submit.dto.SubmitFilterReqDto;
 import com.example.exodia.submit.dto.SubmitListResDto;
 
 import jakarta.persistence.EntityNotFoundException;

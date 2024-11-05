@@ -34,7 +34,6 @@ import com.example.exodia.submit.domain.SubmitLine;
 import com.example.exodia.submit.domain.SubmitStatus;
 import com.example.exodia.submit.domain.SubmitType;
 import com.example.exodia.submit.dto.SubmitDetResDto;
-import com.example.exodia.submit.dto.SubmitFilterReqDto;
 import com.example.exodia.submit.dto.SubmitLineResDto;
 import com.example.exodia.submit.dto.SubmitListResDto;
 import com.example.exodia.submit.dto.SubmitSaveReqDto;

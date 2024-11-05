@@ -7,7 +7,12 @@ import com.example.exodia.common.dto.CommonErrorDto;
 import com.example.exodia.common.dto.CommonResDto;
 import com.example.exodia.user.domain.User;
 import com.example.exodia.user.dto.UserAttendanceDto;
+import com.example.exodia.user.dto.UserStatusAndTime;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -110,9 +115,9 @@ public class AttendanceController {
 
 
     @GetMapping("/department/list")
-    public ResponseEntity<?> getTeamAttendance() {
+    public ResponseEntity<?> getTeamAttendance(@PageableDefault(size = 6)  Pageable pageable) {
         try {
-            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "팀원 근태 정보 조회 성공", attendanceService.getTodayRecords()));
+            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "팀원 근태 정보 조회 성공", attendanceService.getTodayRecords(pageable)));
         } catch (IOException e) {
             return new ResponseEntity<>(new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage()), HttpStatus.NOT_FOUND);
         }
