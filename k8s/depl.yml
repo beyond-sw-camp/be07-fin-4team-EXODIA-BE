@@ -141,10 +141,10 @@ spec:
                 secretKeyRef:
                   key: OPENVIDU_SECRET
                   name: pot-app-secrets
-            - name: GOOGLE_SECRET
+            - name: GOOGLE_SECRET_FILE
               valueFrom:
                 secretKeyRef:
-                  key: GOOGLE_SECRET
+                  key: GOOGLE_SECRET_FILE
                   name: pot-google-secrets
 
 #---
