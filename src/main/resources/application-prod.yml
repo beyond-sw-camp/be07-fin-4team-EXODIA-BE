@@ -80,7 +80,7 @@ google:
   credentials:
     file:
 #      path: credentials.json
-      path: ${GOOGLE_FILE_PATH}
+      path: ${GOOGLE_SECRET}
 cloud:
   aws:
     credentials:
