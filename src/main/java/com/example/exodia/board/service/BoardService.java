@@ -192,7 +192,7 @@ public class BoardService {
     }
 
 
-
+    @Transactional
     public BoardDetailDto BoardDetail(Long id, String userNum) {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("게시물을 찾을 수 없습니다."));

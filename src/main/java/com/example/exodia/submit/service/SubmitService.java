@@ -255,6 +255,7 @@ public class SubmitService {
 	}
 
 	// 내가 요청한 결재 리스트 조회
+	@Transactional
 	public Page<SubmitListResDto> getMySubmitList(Pageable pageable) {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 		User user = userRepository.findByUserNum(userNum)

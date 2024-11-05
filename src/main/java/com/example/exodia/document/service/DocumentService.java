@@ -210,6 +210,7 @@ public class DocumentService {
 	}
 
 	// 	문서 상세조회
+	@Transactional
 	public DocDetailResDto getDocDetail(Long id) {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 
@@ -320,6 +321,7 @@ public class DocumentService {
 	}
 
 	// 	문서 히스토리 조회
+	@Transactional
 	public List<DocHistoryResDto> getDocumentVersions(Long id) {
 		Document document = documentRepository.findById(id)
 				.orElseThrow(() -> new EntityNotFoundException("문서가 존재하지 않습니다."));
