@@ -139,6 +139,7 @@ public class CommentService {
 		commentDocRepository.save(commentDoc);
 	}
 	// 문서별 댓글 조회
+	@Transactional
 	public List<CommentDocListResDto> getDocCommentList(Long id) {
 		Document document = documentRepository.findById(id)
 			.orElseThrow(() -> new EntityNotFoundException("파일 정보가 존재하지 않습니다."));

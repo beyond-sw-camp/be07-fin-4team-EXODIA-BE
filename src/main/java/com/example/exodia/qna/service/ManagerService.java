@@ -47,6 +47,7 @@ public class ManagerService {
 
 
     // 3. 매니저 목록 조회
+    @Transactional
     public List<ManagerListDto> getAllManagers() {
         List<Manager> managers = managerRepository.findAll();
 
