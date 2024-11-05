@@ -9,6 +9,7 @@ import com.example.exodia.comment.dto.CommentSaveReqDto;
 import com.example.exodia.comment.dto.CommentUpdateDto;
 import com.example.exodia.comment.dto.document.CommentDocListResDto;
 import com.example.exodia.comment.dto.document.CommentDocSaveReqDto;
+import com.example.exodia.comment.dto.document.CommentDocUpdateReqDto;
 import com.example.exodia.comment.repository.CommentDocRepository;
 import com.example.exodia.comment.repository.CommentRepository;
 import com.example.exodia.common.domain.DelYN;
@@ -22,7 +23,6 @@ import com.example.exodia.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.EntityManager; // 추가된 부분
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -128,6 +128,19 @@ public class CommentService {
 		return commentDocRepository.save(commentDocSaveReqDto.toEntity(user, document));
 	}
 
+	@Transactional
+	public CommentDoc updateDocComment(Long id, CommentDocUpdateReqDto commentDocUpdateReqDto) {
+		User user = userRepository.findByUserNum(commentDocUpdateReqDto.getUserNum())
+			.orElseThrow(() -> new EntityNotFoundException("회원정보가 존재하지 않습니다."));
+
+		CommentDoc commentDoc = commentDocRepository.findById(commentDocUpdateReqDto.getCommentId())
+			.orElseThrow(() -> new EntityNotFoundException("댓글 정보가 존재하지 않습니다."));
+
+		commentDoc.setContents(commentDocUpdateReqDto.getContents());
+		commentDoc.updateTimestamp();
+		return commentDocRepository.save(commentDoc);
+	}
+
 	// 문서 댓글 삭제
 	@Transactional
 	public void deleteDocComment(Long id) {
@@ -138,6 +151,7 @@ public class CommentService {
 		commentDoc.softDelete();
 		commentDocRepository.save(commentDoc);
 	}
+
 	// 문서별 댓글 조회
 	@Transactional
 	public List<CommentDocListResDto> getDocCommentList(Long id) {
