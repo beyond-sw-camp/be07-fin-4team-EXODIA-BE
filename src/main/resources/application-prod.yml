@@ -30,6 +30,7 @@ spring:
       minimum-idle: 10
       idle-timeout: 30000
 
+
       max-lifetime: 500000
     tomcat:
       max-active: 25
