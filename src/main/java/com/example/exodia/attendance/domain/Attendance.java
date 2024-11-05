@@ -84,4 +84,17 @@ public class Attendance {
     public void setWorkIn(){
         this.nowStatus = NowStatus.출근;
     }
+
+    public UserStatusAndTime toEntity(User user){
+        return UserStatusAndTime.builder()
+            .name(user.getName())
+            .userNum(user.getUserNum())
+            .departmentName(user.getDepartment().getName())
+            .positionName(user.getPosition().getName())
+            .profileImage(user.getProfileImage())
+            .nowStatus(this == null? NowStatus.근무전 : user.getN_status())
+            .inTime(this == null? null: this.getInTime())
+            .outTime(this == null? null: this.getOutTime())
+            .build();
+    }
 }
