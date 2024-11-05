@@ -30,13 +30,13 @@ public class OpenViduController {
         headers.setBasicAuth("OPENVIDUAPP", OPENVIDU_SECRET);
         headers.set("Content-Type", "application/json");
 
-
         try {
-            // 수정된 경로: /openvidu/api/sessions!!! 대박..
-            HttpEntity<String> sessionRequest = new HttpEntity<>("{}", headers);
-            String sessionUrl = OPENVIDU_URL + "/openvidu/api/sessions";
-            ResponseEntity<Map> sessionResponse = restTemplate.exchange(sessionUrl, HttpMethod.POST, sessionRequest, Map.class);
-            String createdSessionId = (String) sessionResponse.getBody().get("id");
+            String sessionUrl = OPENVIDU_URL + "/openvidu/api/sessions/" + sessionId;
+            ResponseEntity<Map> existingSessionResponse = restTemplate.exchange(sessionUrl, HttpMethod.GET, new HttpEntity<>(headers), Map.class);
+
+            String createdSessionId = existingSessionResponse.getStatusCode() == HttpStatus.OK
+                    ? sessionId
+                    : createNewSession(headers);
 
             Map<String, Object> tokenBody = new HashMap<>();
             tokenBody.put("session", createdSessionId);
@@ -44,11 +44,18 @@ public class OpenViduController {
             String tokenUrl = OPENVIDU_URL + "/openvidu/api/tokens";
             ResponseEntity<Map> tokenResponse = restTemplate.exchange(tokenUrl, HttpMethod.POST, tokenRequest, Map.class);
 
-            return ResponseEntity.ok((String) tokenResponse.getBody().get("token"));
+            return ResponseEntity.ok(tokenResponse.getBody().get("token").toString());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("토큰 생성 실패: " + e.getMessage());
         }
-
     }
+
+    private String createNewSession(HttpHeaders headers) {
+        RestTemplate restTemplate = new RestTemplate();
+        String sessionUrl = OPENVIDU_URL + "/openvidu/api/sessions";
+        ResponseEntity<Map> sessionResponse = restTemplate.exchange(sessionUrl, HttpMethod.POST, new HttpEntity<>("{}", headers), Map.class);
+        return sessionResponse.getBody().get("id").toString();
+    }
+
 
 }
