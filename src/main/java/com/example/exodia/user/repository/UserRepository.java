@@ -17,17 +17,15 @@ import java.util.*;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUserNum(String userNum);
-    @EntityGraph(attributePaths = {"department", "position"})
     Optional<User> findByUserNumAndDelYn(String userNum, DelYN delYn);
     List<User> findAllByDelYn(DelYN delYn);
-    @EntityGraph(attributePaths = {"department", "position"})
     Page<User> findAllByDelYn(DelYN delYn, Pageable pageable);
 
     Optional<User> findByNameAndPosition(String userName, Position position);
     List<User> findAllByDepartmentName(String departmentName); // notification 에서 인사팀의 가지고오기
     List<User> findAllByDepartmentId(Long departmentId);
-    @EntityGraph(attributePaths = {"department", "department.parentDepartment", "position"})
-    List<User> findAllByDepartmentIdAndDelYn(Long departmentId, DelYN delYn);
+    @Query("SELECT u FROM User u WHERE u.department.id = :departmentId and u.delYn = :delYn ORDER BY u.position.id ASC")
+    List<User> findAllByDepartmentIdAndDelYn(@Param("departmentId")Long departmentId, @Param("delYn")DelYN delYn);
     @Query("SELECT u FROM User u WHERE u.delYn = :delYn ORDER BY u.position.id ASC")
     Page<User> findByDelYn(@Param("delYn")DelYN delYN, Pageable pageable);
     @Query("SELECT u FROM User u WHERE u.name LIKE CONCAT('%', :name, '%') AND u.delYn = :delYn ORDER BY u.position.id ASC")

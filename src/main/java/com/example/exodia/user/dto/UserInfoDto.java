@@ -22,6 +22,7 @@ public class UserInfoDto {
     private String profileImage;
 
     public static UserInfoDto fromEntity(User user) {
+
         return new UserInfoDto(
                 user.getUserNum(),
                 user.getDepartment().getId(),
