@@ -182,6 +182,7 @@ public class ChatRoomService {
 
 
     // 채팅방 메세지 조회 == 채팅방 입장
+    @Transactional
     public List<ChatMessageResponse> viewChatMessageList(Long roomId){
         // chatMessageList를 불러온다 == chatRoom에 입장한다. 1. chatRoomManage(redis로 관리) user의 현 채팅방id 기록
         // chatMessageList를 불러온다 == 입장 유저가 확인하지 않은 채팅을 읽는다. // 3. 채팅방의 unread 메세지 삭제.
@@ -248,6 +249,7 @@ public class ChatRoomService {
     }
 
     // 채팅방 구성원 조회
+    @Transactional
     public List<ChatUserResponse> viewChatUserList(Long roomId){
         // 채팅방-채팅유저 조회 (num, name, pos, dep)
         ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(()->new EntityNotFoundException("채팅방이 없습니다."));
