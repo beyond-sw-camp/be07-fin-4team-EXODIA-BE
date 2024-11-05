@@ -30,15 +30,17 @@ spring:
       minimum-idle: 10
       idle-timeout: 30000
 
+
       max-lifetime: 500000
     tomcat:
       max-active: 25
   kafka:
     bootstrap-servers: ${KAFKA_SERVER}:9092
     consumer:
-      enable-auto-commit: false
-      retry-backoff-ms: 1000
-      max-poll-records: 15
+      enable-auto-commit: false # 자동커밋X
+      retry-backoff-ms: 1000 # 오류 시 1초 마다 재실행
+      max-poll-records: 15 # 한번에 최대 15개만 이용
+
       fetch-min-size: 10000
       properties:
         isolation.level: read_committed
@@ -47,7 +49,7 @@ spring:
 
       notification-group:
         group-id: notification-group
-#
+
 #      chat-group:
 #        group-id: chat-group
     producer:
@@ -55,6 +57,9 @@ spring:
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
       linger-ms: 10
       buffer-memory: 33554432
+      acks: all # 모든 복제 저장 후 기록
+      batch-size: 32768 # 32KB
+      compression-type: gzip
 
   jpa:
     database: mysql

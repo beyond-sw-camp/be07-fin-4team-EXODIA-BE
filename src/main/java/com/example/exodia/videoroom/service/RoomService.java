@@ -56,6 +56,11 @@ public class RoomService {
         return response;
     }
 
+    public Room findBySessionId(String sessionId) {
+        return roomRepository.findBySessionId(sessionId)
+                .orElseThrow(() -> new RuntimeException("Room not found for sessionId: " + sessionId));
+    }
+
 
     public String joinRoom(String sessionId, String userNum) throws OpenViduJavaClientException, OpenViduHttpException {
         Room room = roomRepository.findBySessionId(sessionId)

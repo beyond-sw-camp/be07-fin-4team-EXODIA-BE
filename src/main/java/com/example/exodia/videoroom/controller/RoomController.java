@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/rooms")
@@ -102,6 +103,29 @@ public class RoomController {
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @GetMapping("/{sessionId}")
+    public ResponseEntity<?> getRoomDetails(@PathVariable String sessionId) {
+        Room room = roomService.findBySessionId(sessionId);
+        if (room == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Room not found");
+        }
+
+        Map<String, Object> roomDetails = new HashMap<>();
+        roomDetails.put("roomTitle", room.getTitle());
+
+        List<Map<String, Object>> participants = room.getParticipants().stream().map(participant -> {
+            Map<String, Object> participantDetails = new HashMap<>();
+            participantDetails.put("userId", participant.getUser().getId());
+            participantDetails.put("userName", participant.getUser().getName());  // 유저 이름 가져오기
+            participantDetails.put("token", participant.getToken());
+            return participantDetails;
+        }).collect(Collectors.toList());
+
+        roomDetails.put("participants", participants);
+
+        return ResponseEntity.ok(roomDetails);
     }
 
 }

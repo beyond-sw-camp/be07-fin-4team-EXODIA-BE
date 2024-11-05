@@ -78,13 +78,15 @@ public class ReservationService {
                 Reservation reservation = dto.toEntity(car, user);
                 reservation.setStatus(Status.WAITING);
                 Reservation savedReservation = reservationRepository.save(reservation);
+
                 kafkaProducer.sendCarReservationNotification(
                         "car-reservation-events",
                         user.getUserNum(),
                         user.getName(), // 유저명
                         car.getCarNum(), // 차량 번호
                         dto.getStartDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), //예약일
-                        dto.getEndDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) // 예약종료일
+                        dto.getEndDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), // 예약종료일
+                        reservation.getId()
                 );
 
                 return ReservationDto.fromEntity(savedReservation);
@@ -116,10 +118,11 @@ public class ReservationService {
         // 사용자에게 알림 전송 (예약 승인)
         kafkaProducer.sendReservationApprovalNotification(
                 "car-reservation-approval-events",
-                reservation.getUser().getUserNum(), // 사용자 번호 추가
-                reservation.getCar().getCarNum(),   // 차량 번호 추가
+                reservation.getUser().getUserNum(),
+                reservation.getCar().getCarNum(),
                 reservation.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-                reservation.getEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                reservation.getEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                reservation.getId()
         );
         return ReservationDto.fromEntity(updatedReservation);
     }
@@ -141,7 +144,8 @@ public class ReservationService {
                 reservation.getUser().getUserNum(), // 사용자 번호 추가
                 reservation.getCar().getCarNum(),
                 reservation.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-                reservation.getEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                reservation.getEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                reservation.getId()
         );
 
         // 예약 삭제
