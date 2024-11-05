@@ -406,6 +406,7 @@ public class SubmitService {
 		});
 	}
 
+	@Transactional
 	public Page<SubmitListResDto> filterSubmit(String filterType, String  filterValue, Pageable pageable) {
 		Page<Submit> submits = Page.empty();
 		if(filterType.equals("submitStatus")){
