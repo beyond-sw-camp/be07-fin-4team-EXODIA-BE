@@ -17,4 +17,8 @@ public interface SubmitRepository extends JpaRepository<Submit, Long> {
 	Page<Submit> findAllByUserOrderByCreatedAtDesc(User user, Pageable pageable);
 
 	List<Submit> findAllBySubmitStatusAndSubmitType(SubmitStatus submitStatus, String submitType);
+
+	Page<Submit> findBySubmitStatusOrderByCreatedAtDesc(SubmitStatus submitStatus, Pageable pageable);
+	Page<Submit> findBySubmitTypeOrderByCreatedAtDesc(String submitType, Pageable pageable);
+
 }
