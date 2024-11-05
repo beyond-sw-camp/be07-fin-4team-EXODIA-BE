@@ -21,6 +21,7 @@ public class CourseCreateDto {
     private String content;
     private String courseUrl;
     private int maxParticipants;
+    private LocalDateTime startTime;
 
     public Course toEntity(User user) {
         return Course.builder()
@@ -28,6 +29,7 @@ public class CourseCreateDto {
                 .content(this.content)
                 .courseUrl(this.courseUrl)
                 .maxParticipants(this.maxParticipants)
+                .startTime(this.startTime)
                 .user(user)
                 .build();
     }
