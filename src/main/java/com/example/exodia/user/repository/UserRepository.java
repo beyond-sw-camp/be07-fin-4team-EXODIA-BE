@@ -5,6 +5,7 @@ import com.example.exodia.department.domain.Department;
 import com.example.exodia.position.domain.Position;
 import com.example.exodia.user.domain.User;
 import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
@@ -16,15 +17,17 @@ import java.util.*;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUserNum(String userNum);
+    @EntityGraph(attributePaths = {"department", "position"})
     Optional<User> findByUserNumAndDelYn(String userNum, DelYN delYn);
     List<User> findAllByDelYn(DelYN delYn);
+    @EntityGraph(attributePaths = {"department", "position"})
     Page<User> findAllByDelYn(DelYN delYn, Pageable pageable);
 
     Optional<User> findByNameAndPosition(String userName, Position position);
     List<User> findAllByDepartmentName(String departmentName); // notification 에서 인사팀의 가지고오기
     List<User> findAllByDepartmentId(Long departmentId);
-    @Query("SELECT u FROM User u WHERE u.department.id = :departmentId and u.delYn = :delYn ORDER BY u.position.id ASC")
-    List<User> findAllByDepartmentIdAndDelYn(@Param("departmentId")Long departmentId, @Param("delYn")DelYN delYn);
+    @EntityGraph(attributePaths = {"department", "department.parentDepartment", "position"})
+    List<User> findAllByDepartmentIdAndDelYn(Long departmentId, DelYN delYn);
     @Query("SELECT u FROM User u WHERE u.delYn = :delYn ORDER BY u.position.id ASC")
     Page<User> findByDelYn(@Param("delYn")DelYN delYN, Pageable pageable);
     @Query("SELECT u FROM User u WHERE u.name LIKE CONCAT('%', :name, '%') AND u.delYn = :delYn ORDER BY u.position.id ASC")

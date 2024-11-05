@@ -151,6 +151,7 @@ public class QnAService {
         return qnAs.stream().map(QnA::listFromEntity).collect(Collectors.toList());
     }
 
+    @Transactional
     public QnADetailDto getQuestionDetail(Long id) {
         QnA qna = qnARepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 게시글입니다."));

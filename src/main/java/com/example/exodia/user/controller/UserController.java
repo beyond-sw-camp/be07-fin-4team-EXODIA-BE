@@ -144,6 +144,7 @@ public class UserController {
         return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "팀원 근태 정보 조회 성공",users));
     }
 
+    @Transactional
     @GetMapping("/search")
     public ResponseEntity<Map<String, Object>> searchUsers(
             @RequestParam(required = false) String search,
