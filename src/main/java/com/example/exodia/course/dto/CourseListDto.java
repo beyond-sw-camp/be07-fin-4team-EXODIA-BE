@@ -21,6 +21,7 @@ public class CourseListDto {
     private int maxParticipants; // 최대 신청인원
     private int currentParticipants;
     private String UserDepartmentName; // 유저의 부서명 받을꺼
+    private LocalDateTime startTime;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -33,6 +34,7 @@ public class CourseListDto {
                 .maxParticipants(course.getMaxParticipants())
                 .currentParticipants(currentParticipants)
                 .UserDepartmentName(course.getUser().getDepartment().getName())
+                .startTime(course.getStartTime())
                 .createdAt(course.getCreatedAt())
                 .updatedAt(course.getUpdatedAt())
                 .build();
