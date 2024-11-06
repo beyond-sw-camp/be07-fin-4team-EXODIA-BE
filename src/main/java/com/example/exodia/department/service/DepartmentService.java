@@ -75,6 +75,7 @@ public class DepartmentService {
         for (Department department : departments) {
             Department existingDepartment = departmentRepository.findById(department.getId()).orElse(null);
 
+
             if (existingDepartment != null) {
                 Department parent = department.getParentDepartment() != null ?
                         departmentRepository.findById(department.getParentDepartment().getId()).orElse(null) : null;
