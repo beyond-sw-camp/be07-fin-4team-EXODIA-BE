@@ -24,7 +24,6 @@ public class DepartmentService {
     public List<Map<String, Object>> getDepartmentHierarchy() {
         List<Department> allDepartments = departmentRepository.findAll();
 
-        allDepartments.forEach(department -> Hibernate.initialize(department.getChildren()));
 
         List<Map<String, Object>> hierarchy = new ArrayList<>();
         Map<Long, Map<String, Object>> departmentMap = new HashMap<>();
