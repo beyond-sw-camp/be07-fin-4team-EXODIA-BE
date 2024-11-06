@@ -79,7 +79,7 @@ public class CourseService {
         // TTL 설정, 강좌는 14일 정도 후 자동 삭제
         redisTemplate.opsForValue().set(redisKey, 0, 14, TimeUnit.DAYS);
 
-        String message = "[ 이벤트 ]" + " [ " + course.getCourseName() + " ] " + " 이" + "개설하였습니다.";
+        String message = "[ 이벤트 ]" + course.getCourseName() ;
         NotificationDTO notificationDTO = NotificationDTO.builder()
                 .message(message)
                 .type(NotificationType.공지사항)
@@ -180,7 +180,7 @@ public class CourseService {
         LocalDateTime reminderTime = course.getStartTime().minusMinutes(3);
         Date reminderDate = Date.from(reminderTime.atZone(ZoneId.systemDefault()).toInstant());
 
-        if (reminderDate.after(new Date())) { // 현재 시간 이후인지 확인
+        if (reminderDate.after(new Date())) {
             taskScheduler.schedule(() -> sendReminder(course), reminderDate);
             System.out.println("알림 스케줄링 완료: " + reminderDate + "에 알림 전송 예정");
         } else {
@@ -191,7 +191,7 @@ public class CourseService {
 
     // 실제 알림 전송 작업
     private void sendReminder(Course course) {
-        String message = String.format("[Reminder] 코스 %s이(가) 3분 후 시작합니다!", course.getCourseName());
+        String message = String.format("[EVENT] %s이(가) 3분 후 시작합니다!", course.getCourseName());
 
         NotificationDTO notificationDTO = NotificationDTO.builder()
                 .message(message)
