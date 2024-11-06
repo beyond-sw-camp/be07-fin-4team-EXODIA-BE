@@ -79,7 +79,7 @@ public class CourseService {
         // TTL 설정, 강좌는 14일 정도 후 자동 삭제
         redisTemplate.opsForValue().set(redisKey, 0, 14, TimeUnit.DAYS);
 
-        String message = "[ 이벤트 ]" + "course.getCourseName() ";
+        String message = "[ 이벤트 ]" + course.getCourseName() ;
         NotificationDTO notificationDTO = NotificationDTO.builder()
                 .message(message)
                 .type(NotificationType.공지사항)
