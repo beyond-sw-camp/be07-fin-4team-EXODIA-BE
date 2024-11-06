@@ -319,7 +319,7 @@ public class AttendanceService {
 	}
 
 	@Transactional
-	public Page<UserStatusAndTime> getTodayRecords(Pageable pageable) throws IOException {
+	public List<UserStatusAndTime> getTodayRecords() throws IOException {
 		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
 		// 로그인한 유저 정보 가져오기
 		User loggedInUser = userRepository.findByUserNum(userNum)
@@ -341,7 +341,8 @@ public class AttendanceService {
 		LocalDateTime currentTime = LocalDateTime.now();
 
 		List<UserStatusAndTime> times = new ArrayList<>();
-		Page<Attendance> attendanceRecords = attendanceRepository.findTodayRecords(startOfDay, currentTime, pageable);
+//		Page<Attendance> attendanceRecords = attendanceRepository.findTodayRecords(startOfDay, currentTime, pageable);
+		List<Attendance> attendanceRecords = attendanceRepository.findTodayRecords(startOfDay, currentTime);
 
 		for (User user : users) {
 			// User와 매칭되는 Attendance를 찾음
@@ -377,8 +378,71 @@ public class AttendanceService {
 				);
 			}
 		}
-		return new PageImpl<>(times, pageable, attendanceRecords.getTotalElements());
+//		return new PageImpl<>(times, pageable, attendanceRecords.getTotalElements());
+		return  times;
 	}
+
+//	@Transactional
+//	public Page<UserStatusAndTime> getTodayRecords(Pageable pageable) throws IOException {
+//		String userNum = SecurityContextHolder.getContext().getAuthentication().getName();
+//		// 로그인한 유저 정보 가져오기
+//		User loggedInUser = userRepository.findByUserNum(userNum)
+//				.orElseThrow(() -> new IOException("로그인한 유저 정보를 찾을 수 없습니다."));
+//
+//		Long departmentId = (Long)userRepository.findDepartmentIdByUserNum(userNum)
+//				.orElseThrow(() -> new IOException("로그인한 유저 정보를 찾을 수 없습니다."));
+//		List<Department> departments = getAllNestedChildrenById(departmentId);
+//
+//		List<User> users = new ArrayList<>();
+//		for (Department department : departments) {
+//			List<User> departmentUsers = userRepository.findAllByDepartmentIdAndDelYn(department.getId(),
+//					DelYN.N); //같은 부서 사람들
+//			for (User user : departmentUsers) {
+//				users.add(user);
+//			}
+//		}
+//		LocalDateTime startOfDay = LocalDateTime.of(LocalDateTime.now().toLocalDate(), LocalTime.MIDNIGHT);
+//		LocalDateTime currentTime = LocalDateTime.now();
+//
+//		List<UserStatusAndTime> times = new ArrayList<>();
+//		Page<Attendance> attendanceRecords = attendanceRepository.findTodayRecords(startOfDay, currentTime, pageable);
+//
+//		for (User user : users) {
+//			// User와 매칭되는 Attendance를 찾음
+//			Attendance attendanceRecord = attendanceRecords.stream()
+//					.filter(att -> att.getUser().getId().equals(user.getId()))
+//					.findFirst()
+//					.orElse(null);
+//
+//			if (attendanceRecord != null) {
+//				times.add(UserStatusAndTime.builder()
+//						.name(user.getName())
+//						.userNum(user.getUserNum())
+//						.departmentName(user.getDepartment().getName())
+//						.positionName(user.getPosition().getName())
+//						.profileImage(user.getProfileImage())
+//						.nowStatus(user.getN_status())
+//						.inTime(attendanceRecord.getInTime())
+//						.outTime(attendanceRecord.getOutTime())
+//						.build()
+//				);
+//			} else {
+//				// 매칭되는 Attendance가 없는 경우
+//				times.add(UserStatusAndTime.builder()
+//						.name(user.getName())
+//						.userNum(user.getUserNum())
+//						.departmentName(user.getDepartment().getName())
+//						.positionName(user.getPosition().getName())
+//						.profileImage(user.getProfileImage())
+//						.nowStatus(NowStatus.근무전)
+//						.inTime(null)
+//						.outTime(null)
+//						.build()
+//				);
+//			}
+//		}
+//		return new PageImpl<>(times, pageable, attendanceRecords.getTotalElements());
+//	}
 
 	@Transactional
 	public Attendance inMeetingStatus() throws IOException {

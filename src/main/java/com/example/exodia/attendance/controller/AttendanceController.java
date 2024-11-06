@@ -11,6 +11,7 @@ import com.example.exodia.user.dto.UserStatusAndTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -114,10 +115,22 @@ public class AttendanceController {
     }
 
 
+//    @GetMapping("/department/list")
+//    public ResponseEntity<?> getTeamAttendance(@PageableDefault(size = 6)  Pageable pageable) {
+//        try {
+//            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "팀원 근태 정보 조회 성공", attendanceService.getTodayRecords(pageable)));
+//        } catch (IOException e) {
+//            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage()), HttpStatus.NOT_FOUND);
+//        }
+//    }
+
+//    @RequestParam(defaultValue = "0") int page,
+//    @RequestParam(defaultValue = "6") int size
     @GetMapping("/department/list")
-    public ResponseEntity<?> getTeamAttendance(@PageableDefault(size = 6)  Pageable pageable) {
+    public ResponseEntity<?> getTeamAttendance() {
         try {
-            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "팀원 근태 정보 조회 성공", attendanceService.getTodayRecords(pageable)));
+//            Pageable pageable = PageRequest.of(page, size);
+            return ResponseEntity.ok(new CommonResDto(HttpStatus.OK, "팀원 근태 정보 조회 성공", attendanceService.getTodayRecords()));
         } catch (IOException e) {
             return new ResponseEntity<>(new CommonErrorDto(HttpStatus.NOT_FOUND, e.getMessage()), HttpStatus.NOT_FOUND);
         }

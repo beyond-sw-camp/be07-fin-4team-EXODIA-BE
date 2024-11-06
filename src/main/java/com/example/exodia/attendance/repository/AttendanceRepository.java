@@ -33,5 +33,6 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
 
     // 사용자의 오늘 하루 기록
     @Query("SELECT a FROM Attendance a WHERE a.inTime >= :startOfDay AND a.inTime <= :currentTime")
-    Page<Attendance> findTodayRecords(LocalDateTime startOfDay, LocalDateTime currentTime, Pageable pageable);
+    List<Attendance> findTodayRecords(LocalDateTime startOfDay, LocalDateTime currentTime);
+//    Page<Attendance> findTodayRecords(LocalDateTime startOfDay, LocalDateTime currentTime, Pageable pageable);
 }
