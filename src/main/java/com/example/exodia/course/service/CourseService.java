@@ -22,12 +22,18 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -42,8 +48,9 @@ public class CourseService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final NotificationService notificationService;
     private final KafkaProducer kafkaProducer;
+    private final ThreadPoolTaskScheduler taskScheduler;
 
-    public CourseService(CourseRepository courseRepository, UserRepository userRepository, UserService userService, RegistrationRepository registrationRepository, @Qualifier("12") RedisTemplate<String, Object> redisTemplate, NotificationService notificationService, KafkaProducer kafkaProducer) {
+    public CourseService(CourseRepository courseRepository, UserRepository userRepository, UserService userService, RegistrationRepository registrationRepository, @Qualifier("12") RedisTemplate<String, Object> redisTemplate, NotificationService notificationService, KafkaProducer kafkaProducer, ThreadPoolTaskScheduler taskScheduler) {
         this.courseRepository = courseRepository;
         this.userRepository = userRepository;
         this.userService = userService;
@@ -51,6 +58,7 @@ public class CourseService {
         this.redisTemplate = redisTemplate;
         this.notificationService = notificationService;
         this.kafkaProducer = kafkaProducer;
+        this.taskScheduler = taskScheduler;
     }
 
     /* 강좌 생성 */
@@ -71,7 +79,7 @@ public class CourseService {
         // TTL 설정, 강좌는 14일 정도 후 자동 삭제
         redisTemplate.opsForValue().set(redisKey, 0, 14, TimeUnit.DAYS);
 
-        String message = "[이벤트]" + " [ " + course.getCourseName() + " ] " + "이" + "개설하였습니다.";
+        String message = "[ 이벤트 ]" + "course.getCourseName() ";
         NotificationDTO notificationDTO = NotificationDTO.builder()
                 .message(message)
                 .type(NotificationType.공지사항)
@@ -84,6 +92,7 @@ public class CourseService {
         notificationService.saveNotification(userNum, notificationDTO);
         kafkaProducer.sendBoardEvent("notice-events", message);
 
+        scheduleCourseReminder(savedCourse);
         return savedCourse;
     }
 
@@ -164,6 +173,38 @@ public class CourseService {
         return registrationRepository.findAllByCourse(course).stream()
                 .map(registration -> new RegistrationDto(registration.getUser().getUserNum(), registration.getUser().getName()))
                 .collect(Collectors.toList());
+    }
+
+
+    private void scheduleCourseReminder(Course course) {
+        LocalDateTime reminderTime = course.getStartTime().minusMinutes(3);
+        Date reminderDate = Date.from(reminderTime.atZone(ZoneId.systemDefault()).toInstant());
+
+        if (reminderDate.after(new Date())) {
+            taskScheduler.schedule(() -> sendReminder(course), reminderDate);
+            System.out.println("알림 스케줄링 완료: " + reminderDate + "에 알림 전송 예정");
+        } else {
+            System.out.println("startTime이 현재 시간보다 너무 가깝습니다. 즉시 알림을 전송합니다.");
+            sendReminder(course);
+        }
+    }
+
+    // 실제 알림 전송 작업
+    private void sendReminder(Course course) {
+        String message = String.format("[EVENT] %s이(가) 3분 후 시작합니다!", course.getCourseName());
+
+        NotificationDTO notificationDTO = NotificationDTO.builder()
+                .message(message)
+                .type(NotificationType.공지사항)
+                .isRead(false)
+                .userNum(course.getUser().getUserNum())
+                .notificationTime(LocalDateTime.now())
+                .targetId(course.getId())
+                .build();
+
+        notificationService.saveNotification(course.getUser().getUserNum(), notificationDTO);
+        kafkaProducer.sendNotificationEvent(course.getUser().getUserNum(), message);
+        System.out.println("알림 전송 완료: " + message);
     }
 
 }

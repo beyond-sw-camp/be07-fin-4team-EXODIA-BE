@@ -7,6 +7,7 @@ import com.example.exodia.user.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
+import org.hibernate.Hibernate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +23,8 @@ public class DepartmentService {
     @Transactional
     public List<Map<String, Object>> getDepartmentHierarchy() {
         List<Department> allDepartments = departmentRepository.findAll();
+
+
         List<Map<String, Object>> hierarchy = new ArrayList<>();
         Map<Long, Map<String, Object>> departmentMap = new HashMap<>();
 

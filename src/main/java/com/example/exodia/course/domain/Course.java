@@ -9,6 +9,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @Builder
 @Entity
@@ -20,13 +22,18 @@ public class Course extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String courseName;
+    @Column(nullable = false)
+    private String courseName; // 이벤트 명
 
-    private String content;
+    @Column(nullable = false)
+    private String content; // 이벤트
 
-    private String courseUrl;
+    private String courseUrl; // string 값
 
-    private int maxParticipants;
+    @Column(nullable = false)
+    private LocalDateTime startTime; // 예약 시작 시간
+
+    private int maxParticipants; // 최대 참가자
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_num", nullable = false)
